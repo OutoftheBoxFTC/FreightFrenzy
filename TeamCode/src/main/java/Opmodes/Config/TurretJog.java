@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import MathSystems.Angle;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
 import State.Action.ActionController;
@@ -24,14 +23,14 @@ public class TurretJog extends BasicOpmode {
             @Override
             public void initialize() {
                 timer = System.currentTimeMillis() + ((long)TIME);
-                hardware.getTurretSystem().setTurretPowerRaw(POWER);
+                hardware.getTurretSystem().setTurretMotorPower(POWER);
                 //hardware.getTurretSystem().moveTurretRaw(Angle.degrees(165));
             }
 
             @Override
             public void update() {
                 if(System.currentTimeMillis() > timer){
-                    hardware.getTurretSystem().setTurretPowerRaw(0);
+                    hardware.getTurretSystem().setTurretMotorPower(0);
                 }
             }
 

@@ -3,21 +3,15 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
-import org.checkerframework.checker.units.qual.A;
-
 import Hardware.HardwareSystems.FFSystems.FFConstants;
 import Hardware.HardwareSystems.FFSystems.TurretSystem;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
-import MathSystems.Profiling.AccelProfile;
-import MathSystems.Profiling.AccelProfileProvider;
-import MathSystems.Profiling.AccelTimeState;
-import MathSystems.Profiling.ConstantAccelProfiler;
 import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveTurretAction implements Action {
-    public static double P = 0.05, D = 0;
+    public static double P = 0.04, I = 0.1, D = 0;
 
     private Angle targetAngle;
     private TurretSystem system;
@@ -25,7 +19,7 @@ public class MoveTurretAction implements Action {
 
     public MoveTurretAction(TurretSystem system){
         this.system = system;
-        pid = new PIDSystem(P, 0, D);
+        pid = new PIDSystem(P, I, D, 0.1);
         targetAngle = null;
     }
 
@@ -38,20 +32,20 @@ public class MoveTurretAction implements Action {
 
     @Override
     public void update() {
+        pid.setCoefficients(P, 0, D);
         if(targetAngle == null){
             return;
         }
         if(isAtTarget()){
-            system.setTurretPowerRaw(0);
+            system.setTurretMotorPower(0);
             return;
         }
-        if(system.getTurretPosition().degrees() < 110){
-            system.setTurretPowerRaw(0);
+        if(system.getTurretPosition().degrees() < -43){
+            system.setTurretMotorPower(0);
             return;
         }
-        pid.setCoefficients(P, 0, D);
         double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
-        system.setTurretPowerRaw(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
+        system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
 
         FtcDashboard.getInstance().getTelemetry().addData("Error", MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
         FtcDashboard.getInstance().getTelemetry().addData("Corr", pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees()));
@@ -60,7 +54,7 @@ public class MoveTurretAction implements Action {
 
     @Override
     public void onEnd() {
-        system.setTurretPowerRaw(0);
+        system.setTurretMotorPower(0);
     }
 
     @Override
@@ -70,6 +64,6 @@ public class MoveTurretAction implements Action {
 
     public boolean isAtTarget(){
         Angle error = MathUtils.getRotDist(system.getTurretPosition(), targetAngle);
-        return Math.abs(error.degrees()) < 2;
+        return Math.abs(error.degrees()) < 1;
     }
 }

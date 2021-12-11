@@ -1,5 +1,15 @@
 package Hardware.HardwareSystems.FFSystems;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.checkerframework.checker.units.qual.A;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import Hardware.HardwareSystems.FFSystems.Actions.MoveExtensionAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MovePitchAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveTurretAction;
 import Hardware.HardwareSystems.HardwareSystem;
@@ -10,28 +20,47 @@ import MathSystems.Angle;
 import MathSystems.MathUtils;
 import State.Action.ActionController;
 import State.Action.ActionQueue;
-
+@Config
 public class TurretSystem implements HardwareSystem {
+    public static final int PITCH_SMOOTHING = 20;
     private Angle finalTurretAngle = Angle.ZERO(), finalPitchAngle = Angle.ZERO();
 
     private final MoveTurretAction moveTurretAction;
+    private final MovePitchAction movePitchAction;
+    private final MoveExtensionAction moveExtensionAction;
 
-    private final SmartMotor turretMotor, pitchMotor;
+    private final SmartMotor turretMotor, pitchMotor, extensionMotor;
     private final SmartPotentiometer turretPotentiometer, pitchPotentiometer;
 
     private Angle turretAngle, prevTurretAngle, turretVel;
+
+    private final List<Angle> pitchFilter;
+
     private long last;
 
-    public TurretSystem(SmartLynxModule module){
-        turretMotor = module.getMotor(FFConstants.ExpansionPorts.TURRET_MOTOR_PORT);
-        turretPotentiometer = new SmartPotentiometer(module.getAnalogInput(FFConstants.ExpansionPorts.TURRET_POTENTIOMETER_PORT),
+    public TurretSystem(SmartLynxModule chub, SmartLynxModule ehub, HardwareMap map){
+
+        pitchFilter = Collections.synchronizedList(new ArrayList<>());
+
+        //turretMotor = new SmartMotor(map.dcMotor.get("turretMotor"));
+        turretMotor = ehub.getMotor(FFConstants.ExpansionPorts.TURRET_MOTOR_PORT);
+        turretPotentiometer = new SmartPotentiometer(chub.getAnalogInput(FFConstants.ExpansionPorts.TURRET_POTENTIOMETER_PORT),
                 FFConstants.Turret.TURRET_MIN_ANGLE, FFConstants.Turret.TURRET_MAX_ANGLE);
 
-        pitchMotor = module.getMotor(FFConstants.ExpansionPorts.PITCH_MOTOR_PORT);
-        pitchPotentiometer = new SmartPotentiometer(module.getAnalogInput(FFConstants.ExpansionPorts.PITCH_POTENTIOMETER_PORT),
+        turretPotentiometer.setOffsetAngle(Angle.degrees(150));
+
+        pitchMotor = ehub.getMotor(FFConstants.ExpansionPorts.PITCH_MOTOR_PORT);
+        pitchMotor.reverse();
+        pitchPotentiometer = new SmartPotentiometer(ehub.getAnalogInput(FFConstants.ExpansionPorts.PITCH_POTENTIOMETER_PORT),
                 FFConstants.Pitch.PITCH_MIN_ANGLE, FFConstants.Pitch.PITCH_MAX_ANGLE);
 
+        pitchPotentiometer.setOffsetAngle(Angle.degrees(258));
+
+        extensionMotor = ehub.getMotor(FFConstants.ExpansionPorts.EXTENSION_MOTOR_PORT);
+
         moveTurretAction = new MoveTurretAction(this);
+        movePitchAction = new MovePitchAction(this);
+        moveExtensionAction = new MoveExtensionAction(this);
 
         turretAngle = Angle.ZERO();
         prevTurretAngle = Angle.ZERO();
@@ -42,6 +71,7 @@ public class TurretSystem implements HardwareSystem {
     public void initialize() {
         last = System.currentTimeMillis();
         moveTurretAction.submit();
+        movePitchAction.submit();
     }
 
     @Override
@@ -54,6 +84,13 @@ public class TurretSystem implements HardwareSystem {
         turretVel = Angle.degrees(dTurret.degrees() / dt);
 
         prevTurretAngle = turretAngle;
+
+        synchronized (pitchFilter) {
+            pitchFilter.add(pitchPotentiometer.getAngle());
+            if (pitchFilter.size() > PITCH_SMOOTHING) {
+                pitchFilter.remove(0);
+            }
+        }
 
         last = now;
     }
@@ -73,7 +110,7 @@ public class TurretSystem implements HardwareSystem {
         }
     }
 
-    public void setTurretPowerRaw(double power){
+    public void setTurretMotorPower(double power){
         turretMotor.setPower(power);
     }
 
@@ -81,16 +118,28 @@ public class TurretSystem implements HardwareSystem {
         pitchMotor.setPower(pitchPower);
     }
 
+    public void setExtensionMotorPower(double power){
+        extensionMotor.setPower(power);
+    }
+
     public Angle getPitchPosition(){
-        return pitchPotentiometer.getAngle();
+        double sum = 0;
+        synchronized (pitchFilter) {
+            for (int i = 0; i < pitchFilter.size(); i++) {
+                sum += pitchFilter.get(i).degrees();
+            }
+            return Angle.degrees(sum / pitchFilter.size());
+        }
     }
 
     public void movePitchRaw(Angle angle){
         if(!angle.equals(finalPitchAngle)){
             finalPitchAngle = angle;
-            moveTurretAction.setTargetAngle(angle);
+            movePitchAction.setTargetAngle(angle);
         }
     }
 
-
+    public double getExtensionPosition(){
+        return extensionMotor.getMotor().getCurrentPosition();
+    }
 }

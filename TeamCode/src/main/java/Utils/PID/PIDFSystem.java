@@ -81,4 +81,11 @@ public class PIDFSystem {
         derivative = 0;
         dt = 0;
     }
+
+    public void setCoefficients(double p, int i, double d, double f) {
+        this.kp = p;
+        this.ki = i;
+        this.kd = d;
+        this.kf = f;
+    }
 }

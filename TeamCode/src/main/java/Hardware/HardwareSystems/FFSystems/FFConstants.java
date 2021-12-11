@@ -11,8 +11,12 @@ public class FFConstants {
         public static int TURRET_POTENTIOMETER_PORT = 3;
         public static int TURRET_MOTOR_PORT = 3;
 
-        public static int PITCH_POTENTIOMETER_PORT = 1;
-        public static int PITCH_MOTOR_PORT = 1;
+        public static int PITCH_POTENTIOMETER_PORT = 3;
+        public static int PITCH_MOTOR_PORT = 0;
+
+        public static int EXTENSION_MOTOR_PORT = 1;
+
+        public static int INTAKE_MOTOR_PORT = 2;
     }
     @Config
     public static class Turret {
@@ -25,6 +29,7 @@ public class FFConstants {
         public static Angle TURRET_MAX_ANGLE = Angle.degrees(300);
     }
 
+    @Config
     public static class Pitch{
         public static double PITCH_MAX_VEL = 240;
         public static double PITCH_MAX_ACCEL = 10;
@@ -33,5 +38,9 @@ public class FFConstants {
         public static double PITCH_CORRECTION_SPEED = 0.2;
         public static Angle PITCH_MIN_ANGLE = Angle.degrees(0);
         public static Angle PITCH_MAX_ANGLE = Angle.degrees(300);
+    }
+
+    public class Extension {
+        public static final double EXTENSION_KSTATIC = 0.3;
     }
 }

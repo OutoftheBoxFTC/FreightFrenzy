@@ -8,6 +8,7 @@ public class PIDSystem {
     private double kp, ki, kd, target, error, previousError, dt, integralRange;
     private double proportional, integral, derivative;
     private long prevTime;
+    private double prevErrorSign = 0;
 
     public PIDSystem(double kp, double ki, double kd){
         this.kp = kp;
@@ -46,8 +47,12 @@ public class PIDSystem {
     public double getCorrection(double error){
         proportional = error * kp;
         if(dt != 0){
-            if(Math.abs(error) < integralRange)
+            if(Math.abs(error) < integralRange) {
                 integral += error * ki * dt;
+                if(MathUtils.sign(error) != prevErrorSign){
+                    integral = 0;
+                }
+            }
             if(previousError != 0){
                 derivative = kd * (error - previousError) / dt;
             }
@@ -58,6 +63,8 @@ public class PIDSystem {
             prevTime = System.currentTimeMillis();
         dt = MathUtils.millisToSec(System.currentTimeMillis() - prevTime);
         prevTime = System.currentTimeMillis();
+
+        prevErrorSign = MathUtils.sign(error);
 
         return proportional + integral - derivative;
     }

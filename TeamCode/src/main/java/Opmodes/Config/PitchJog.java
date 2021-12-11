@@ -5,17 +5,16 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import java.nio.file.attribute.FileTime;
-
-import MathSystems.Angle;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
 import State.Action.ActionController;
 import Utils.OpmodeStatus;
+
 @TeleOp
 @Config
-public class TurretTester extends BasicOpmode {
-    public static double TARGET = 0;
+public class PitchJog extends BasicOpmode {
+    public static double POWER = 0.5;
+    public static double TIME = 100;
     @Override
     public void setup() {
         OpmodeStatus.bindOnStart(new Action() {
@@ -23,12 +22,16 @@ public class TurretTester extends BasicOpmode {
 
             @Override
             public void initialize() {
-                //hardware.getTurretSystem().setTurretPowerRaw(POWER);
+                timer = System.currentTimeMillis() + ((long)TIME);
+                hardware.getTurretSystem().setPitchMotorPower(POWER);
+                //hardware.getTurretSystem().moveTurretRaw(Angle.degrees(165));
             }
 
             @Override
             public void update() {
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(TARGET));
+                if(System.currentTimeMillis() > timer){
+                    hardware.getTurretSystem().setPitchMotorPower(0);
+                }
             }
 
             @Override
@@ -40,10 +43,8 @@ public class TurretTester extends BasicOpmode {
             @Override
             public void update() {
                 TelemetryPacket packet = new TelemetryPacket();
-                packet.put("Pos", hardware.getTurretSystem().getTurretPosition().degrees());
-                packet.put("Vel", hardware.getTurretSystem().getTurretVel().degrees());
-                FtcDashboard.getInstance().getTelemetry().addData("Pos", hardware.getTurretSystem().getTurretPosition().degrees());
-                FtcDashboard.getInstance().getTelemetry().addData("Vel", hardware.getTurretSystem().getTurretVel().degrees());
+                packet.put("Pos", hardware.getTurretSystem().getPitchPosition().degrees());
+                FtcDashboard.getInstance().getTelemetry().addData("Pos", hardware.getTurretSystem().getPitchPosition().degrees());
                 FtcDashboard.getInstance().getTelemetry().update();
             }
 

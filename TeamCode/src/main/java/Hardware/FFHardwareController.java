@@ -21,7 +21,7 @@ public class FFHardwareController extends HardwareController {
 
     @Override
     public void setupSystems(HardwareMap hardwareMap, SmartLynxModule controlHub, SmartLynxModule revHub) {
-        turretSystem = new TurretSystem(controlHub);
+        turretSystem = new TurretSystem(controlHub, revHub, hardwareMap);
 
         hardwareSystems.add(turretSystem);
     }
