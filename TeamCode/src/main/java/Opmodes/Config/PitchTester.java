@@ -42,7 +42,7 @@ public class PitchTester extends BasicOpmode {
                 packet.put("Pos", hardware.getTurretSystem().getPitchPosition().degrees());
                 packet.put("Vel", hardware.getTurretSystem().getPitchPosition().degrees());
                 FtcDashboard.getInstance().getTelemetry().addData("Pos", hardware.getTurretSystem().getPitchPosition().degrees());
-                FtcDashboard.getInstance().getTelemetry().addData("Vel", hardware.getTurretSystem().getPitchPosition().degrees());
+                FtcDashboard.getInstance().getTelemetry().addData("Vel", hardware.getTurretSystem().getPitchMotorPos());
                 FtcDashboard.getInstance().getTelemetry().update();
             }
 
