@@ -18,29 +18,27 @@ import Utils.PID.PIDSystem;
 public class MovePitchAction implements Action {
     public static double P = 0.04, I = 0, D = 0, F = 0.1;
 
-    private Angle targetAngle;
+    private double targetPos = 0;
     private TurretSystem system;
     private PIDFSystem pid;
 
     public MovePitchAction(TurretSystem system){
         this.system = system;
         pid = new PIDFSystem(P, I, D, 0.1);
-        targetAngle = null;
+        targetPos = Double.NaN;
     }
 
     public void setTargetAngle(Angle angle){
-        if(targetAngle != null && angle.equals(targetAngle)){
-            return;
-        }
-        targetAngle = angle;
+        targetPos = system.getPitchMotorPos() + ((int) (MathUtils.getRotDist(angle, system.getPitchPosition()).degrees() * TurretSystem.TICKS_PER_DEGREE_PANCAKES));
     }
 
     @Override
     public void update() {
         pid.setCoefficients(P, 0, D, F);
-        if(targetAngle == null){
+        if(Double.isNaN(targetPos)){
             return;
         }
+
         if(isAtTarget()){
             system.setPitchMotorPower(0);
             return;
@@ -49,7 +47,7 @@ public class MovePitchAction implements Action {
             system.setPitchMotorPower(0);
             return;
         }
-        double power = pid.getCorrection(MathUtils.getRotDist(system.getPitchPosition(), targetAngle).degrees(), 1);
+        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), Math.cos(system.getTurretPosition().radians()));
         system.setPitchMotorPower(MathUtils.signedMax(power, FFConstants.Pitch.PITCH_KSTATIC));
     }
 
@@ -64,7 +62,6 @@ public class MovePitchAction implements Action {
     }
 
     public boolean isAtTarget(){
-        Angle error = MathUtils.getRotDist(system.getPitchPosition(), targetAngle);
-        return Math.abs(error.degrees()) < 4;
+        return Math.abs(targetPos - system.getPitchMotorPos()) < (2 * TurretSystem.TICKS_PER_DEGREE_PANCAKES);
     }
 }
