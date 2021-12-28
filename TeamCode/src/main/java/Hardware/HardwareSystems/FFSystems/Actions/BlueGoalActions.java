@@ -4,6 +4,7 @@ import Hardware.FFHardwareController;
 import MathSystems.Angle;
 import State.Action.Action;
 import State.Action.ActionQueue;
+import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 
 public class BlueGoalActions {
@@ -11,6 +12,7 @@ public class BlueGoalActions {
     public static ActionQueue getBlueAlliance(FFHardwareController hardware){
         ActionQueue queue = new ActionQueue();
         queue.submitAction(new Action() {
+
             @Override
             public void update() {
                 hardware.getTurretSystem().moveExtensionRaw(840);
@@ -43,7 +45,7 @@ public class BlueGoalActions {
         queue.submitAction(new Action() {
             @Override
             public void update() {
-                hardware.getTurretSystem().moveExtensionRaw(125);
+                hardware.getTurretSystem().moveExtensionRaw(300);
                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
             }
 
@@ -52,22 +54,18 @@ public class BlueGoalActions {
                 return hardware.getTurretSystem().isExtensionAtPos();
             }
         });
-        queue.submitAction(new DelayAction(250));
-        queue.submitAction(new Action() {
+        queue.submitAction(new DelayAction(50));
+        queue.submitAction(new InstantAction() {
             @Override
             public void update() {
                 hardware.getTurretSystem().moveExtensionRaw(125);
-            }
-
-            @Override
-            public boolean shouldDeactivate() {
-                return hardware.getTurretSystem().isExtensionAtPos();
             }
         });
         queue.submitAction(new Action() {
             @Override
             public void update() {
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
+                hardware.getTurretSystem().moveExtensionRaw(125);
             }
 
             @Override

@@ -16,6 +16,7 @@ import MathSystems.Vector.Vector3;
 public class DrivetrainSystem implements HardwareSystem {
     private final SmartMotor bl, br, tl, tr;
     private final BNO055IMU imu;
+    private double angleOffset;
     private double blPower, brPower, tlPower, trPower;
     private double blAccel = 0, brAccel = 0, tlAccel = 0, trAccel = 0;
 
@@ -35,6 +36,8 @@ public class DrivetrainSystem implements HardwareSystem {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         imu.initialize(new BNO055IMU.Parameters());
+
+        angleOffset = getImuAngle().radians();
     }
 
     @Override
@@ -95,6 +98,9 @@ public class DrivetrainSystem implements HardwareSystem {
     }
 
     public Angle getImuAngle(){
-        return Angle.radians(imu.getAngularOrientation().firstAngle);
+        double ang = imu.getAngularOrientation().firstAngle - angleOffset;
+        double tau = 2 * Math.PI;
+        ang = ((((ang % tau) + tau) % tau));
+        return Angle.radians(ang);
     }
 }

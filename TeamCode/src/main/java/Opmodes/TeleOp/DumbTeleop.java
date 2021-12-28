@@ -29,12 +29,12 @@ public class DumbTeleop extends BasicOpmode {
         OpmodeStatus.bindOnStart(() -> {
             dirVec.setA(gamepad1.left_stick_x);
             dirVec.setB(-gamepad1.left_stick_y);
-            dirVec.setC(gamepad1.right_stick_x);
-            if(gamepad1.left_trigger > 0.2 && !prevLeft){
+            if(gamepad1.left_trigger > 0.1){
+                dirVec.setC(gamepad1.right_stick_x);
                 angle = hardware.getDrivetrainSystem().getImuAngle().degrees();
-            }
-            if(gamepad1.left_trigger > 0.2){
-                double err = angle - hardware.getDrivetrainSystem().getImuAngle().degrees();
+            }else{
+                double angleChange = gamepad1.right_stick_x * 45;
+                double err = (angle + angleChange) - hardware.getDrivetrainSystem().getImuAngle().degrees();
                 if(Math.abs(err) > 2.5) {
                     dirVec.scale(0.75);
                     dirVec.setC(MathUtils.sign(err) * -0.3);
@@ -104,6 +104,11 @@ public class DumbTeleop extends BasicOpmode {
                     ActionController.addAction(extendAction);
                     extending = true;
                     state = 0;
+                }
+                if(state == 0){
+                    if(hardware.getTurretSystem().getExtensionPosition() > 250){
+                        hardware.getTurretSystem().setBucketPosRaw(0.55);
+                    }
                 }
                 if(gamepad1.a){
                     hardware.getTurretSystem().setBucketPosRaw(1);
