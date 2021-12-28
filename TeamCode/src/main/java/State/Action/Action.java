@@ -20,5 +20,5 @@ public interface Action {
 
     default void onEnd(){}
 
-    default boolean shouldDeactivate(){return true;}
+    default boolean shouldDeactivate(){return false;}
 }

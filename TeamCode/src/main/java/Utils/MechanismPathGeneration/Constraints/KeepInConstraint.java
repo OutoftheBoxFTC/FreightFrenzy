@@ -1,6 +1,6 @@
 package Utils.MechanismPathGeneration.Constraints;
 
-import MechanismPathGeneration.RangeConstraint;
+import Utils.MechanismPathGeneration.RangeConstraint;
 
 public class KeepInConstraint extends MechanismConstraint{
     private double turretMin = RangeConstraint.DEFAULTS.turrMin,

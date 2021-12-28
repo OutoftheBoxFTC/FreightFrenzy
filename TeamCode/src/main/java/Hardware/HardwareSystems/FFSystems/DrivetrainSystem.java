@@ -1,28 +1,40 @@
 package Hardware.HardwareSystems.FFSystems;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import Drive.DriveConstants;
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import MathSystems.Angle;
 import MathSystems.MathUtils;
 import MathSystems.Vector.Vector3;
 
 public class DrivetrainSystem implements HardwareSystem {
     private final SmartMotor bl, br, tl, tr;
+    private final BNO055IMU imu;
     private double blPower, brPower, tlPower, trPower;
     private double blAccel = 0, brAccel = 0, tlAccel = 0, trAccel = 0;
 
     private final LynxModule module;
 
-    public DrivetrainSystem(SmartLynxModule module){
-        this.bl = module.getMotor(0);
-        this.br = module.getMotor(1);
-        this.tl = module.getMotor(2);
-        this.tr = module.getMotor(3);
+    public DrivetrainSystem(SmartLynxModule module, HardwareMap map){
+        this.bl = module.getMotor(1);//0
+        this.br = module.getMotor(3);//1
+        this.tl = module.getMotor(0);//2
+        this.tr = module.getMotor(2);//3
         this.module = module.getModule();
+        this.imu = map.get(BNO055IMU.class, "imu");
+    }
+
+    @Override
+    public void initialize() {
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imu.initialize(new BNO055IMU.Parameters());
     }
 
     @Override
@@ -54,6 +66,13 @@ public class DrivetrainSystem implements HardwareSystem {
         trPower = direction.getB() - direction.getA() - direction.getC();
     }
 
+    public void setPower(double bl, double br, double tl, double tr){
+        blPower = bl;
+        brPower = br;
+        tlPower = tl;
+        trPower = tr;
+    }
+
     public void setAccel(Vector3 accel){
         blAccel = -accel.getB() + accel.getA() - accel.getC();
         brAccel = accel.getB() + accel.getA() - accel.getC();
@@ -73,5 +92,9 @@ public class DrivetrainSystem implements HardwareSystem {
         br.disableVoltageCorrection();
         tl.disableVoltageCorrection();
         tr.disableVoltageCorrection();
+    }
+
+    public Angle getImuAngle(){
+        return Angle.radians(imu.getAngularOrientation().firstAngle);
     }
 }

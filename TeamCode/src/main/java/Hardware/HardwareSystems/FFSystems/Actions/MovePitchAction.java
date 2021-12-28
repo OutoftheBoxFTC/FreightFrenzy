@@ -2,6 +2,7 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import Hardware.HardwareSystems.FFSystems.FFConstants;
 import Hardware.HardwareSystems.FFSystems.TurretSystem;
@@ -16,7 +17,7 @@ import Utils.PID.PIDFSystem;
 import Utils.PID.PIDSystem;
 @Config
 public class MovePitchAction implements Action {
-    public static double P = 0.04, I = 0, D = 0, F = 0.1;
+    public static double P = -0.025, I = 0, D = 0.0001, F = 0;
 
     private double targetPos = 0;
     private TurretSystem system;
@@ -47,7 +48,9 @@ public class MovePitchAction implements Action {
             system.setPitchMotorPower(0);
             return;
         }
-        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), Math.cos(system.getTurretPosition().radians()));
+        FtcDashboard.getInstance().getTelemetry().addData("Target Pos", targetPos);
+        RobotLog.ii("Target Pos", targetPos + "|" + system.getPitchMotorPos());
+        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), Math.cos(system.getPitchPosition().radians()));
         system.setPitchMotorPower(MathUtils.signedMax(power, FFConstants.Pitch.PITCH_KSTATIC));
     }
 
@@ -62,6 +65,6 @@ public class MovePitchAction implements Action {
     }
 
     public boolean isAtTarget(){
-        return Math.abs(targetPos - system.getPitchMotorPos()) < (2 * TurretSystem.TICKS_PER_DEGREE_PANCAKES);
+        return Math.abs(targetPos - system.getPitchMotorPos()) < (15);
     }
 }

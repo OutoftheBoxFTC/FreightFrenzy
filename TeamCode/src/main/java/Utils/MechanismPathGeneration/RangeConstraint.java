@@ -1,6 +1,6 @@
 package Utils.MechanismPathGeneration;
 
-import MechanismPathGeneration.Constraints.MechanismConstraint;
+import Utils.MechanismPathGeneration.Constraints.MechanismConstraint;
 
 public class RangeConstraint extends MechanismConstraint {
     public static RangeConstraint DEFAULTS = new RangeConstraint(

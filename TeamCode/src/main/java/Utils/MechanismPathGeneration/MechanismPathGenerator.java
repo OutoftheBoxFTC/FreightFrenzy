@@ -1,8 +1,8 @@
 package Utils.MechanismPathGeneration;
 
 import MathSystems.Vector.Vector3;
-import MechanismPathGeneration.AStar.Node;
-import MechanismPathGeneration.Constraints.MechanismConstraint;
+import Utils.MechanismPathGeneration.AStar.Node;
+import Utils.MechanismPathGeneration.Constraints.MechanismConstraint;
 
 import java.util.*;
 

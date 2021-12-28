@@ -20,7 +20,20 @@ public class ActionQueue implements Action{
         }else{
             if(!actions.isEmpty()){
                 currentAction = actions.poll();
+                ActionController.addAction(currentAction);
             }
+        }
+    }
+
+    @Override
+    public boolean shouldDeactivate() {
+        return actions.isEmpty();
+    }
+
+    @Override
+    public void onEnd() {
+        if(currentAction != null){
+            //ActionController.getInstance().terminateAction(currentAction);
         }
     }
 

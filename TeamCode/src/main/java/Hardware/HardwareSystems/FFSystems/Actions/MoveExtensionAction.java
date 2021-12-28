@@ -1,14 +1,16 @@
 package Hardware.HardwareSystems.FFSystems.Actions;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import Hardware.HardwareSystems.FFSystems.FFConstants;
 import Hardware.HardwareSystems.FFSystems.TurretSystem;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
 import State.Action.Action;
 import Utils.PID.PIDSystem;
-
+@Config
 public class MoveExtensionAction implements Action {
-    public static double P = 0.01, I = 0, D = 0;
+    public static double P = -0.015, I = 0, D = 0;
 
     private double targetPos;
     private TurretSystem system;
@@ -17,7 +19,7 @@ public class MoveExtensionAction implements Action {
     public MoveExtensionAction(TurretSystem system){
         this.system = system;
         pid = new PIDSystem(P, I, D, 0.1);
-        targetPos = 0;
+        targetPos = Double.NaN;
     }
 
     public void setTargetPos(double pos){
@@ -30,21 +32,28 @@ public class MoveExtensionAction implements Action {
     @Override
     public void update() {
         pid.setCoefficients(P, 0, D);
-        if(isAtTarget()){
-            system.setExtensionMotorPower(0);
-            return;
-        }
-        if(system.getPitchPosition().degrees() < -43){
+        if(Double.isNaN(targetPos) || isAtTarget()){
             system.setExtensionMotorPower(0);
             return;
         }
         double power = pid.getCorrection(targetPos - system.getExtensionPosition());
+        if(Math.abs(power) > 0.6){
+            //power = MathUtils.sign(power) * 0.6;
+        }
+        if(targetPos < system.getExtensionPosition()){
+            double sign = MathUtils.sign(power);
+            if(system.getExtensionPosition() < 200) {
+                power = sign * Math.min(0.5, Math.abs(power));
+            }else{
+                power = sign * Math.min(0.7, Math.abs(power));
+            }
+        }
         system.setExtensionMotorPower(MathUtils.signedMax(power, FFConstants.Extension.EXTENSION_KSTATIC));
     }
 
     @Override
     public void onEnd() {
-        system.setPitchMotorPower(0);
+        system.setExtensionMotorPower(0);
     }
 
     @Override
@@ -54,6 +63,6 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 0.25;
+        return Math.abs(error) < 25;
     }
 }

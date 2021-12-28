@@ -45,7 +45,11 @@ public class MoveTurretAction implements Action {
             return;
         }
         double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
-        system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
+        if(Math.abs(system.getTurretPosition().degrees()) < 5) {
+            system.setTurretMotorPower(MathUtils.signedMax(power, 0.28));
+        }else{
+            system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
+        }
 
         FtcDashboard.getInstance().getTelemetry().addData("Error", MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
         FtcDashboard.getInstance().getTelemetry().addData("Corr", pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees()));
@@ -63,7 +67,14 @@ public class MoveTurretAction implements Action {
     }
 
     public boolean isAtTarget(){
+        if(targetAngle == null){
+            return false;
+        }
         Angle error = MathUtils.getRotDist(system.getTurretPosition(), targetAngle);
-        return Math.abs(error.degrees()) < 1;
+        double tol = 1;
+        if(Math.abs(system.getTurretPosition().degrees()) > 5){
+            tol = 5;
+        }
+        return Math.abs(error.degrees()) < tol;
     }
 }

@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 import MathSystems.Angle;
 
 public class FFConstants {
-    public static double DRIVETRAIN_KACCEL = 0.1;
+    public static double DRIVETRAIN_KACCEL = 0;
 
     public static class ExpansionPorts{
         public static int TURRET_POTENTIOMETER_PORT = 3;
@@ -23,7 +23,7 @@ public class FFConstants {
         public static double TURRET_MAX_VEL = 345;
         public static double TURRET_MAX_ACCEL = 10;
         public static double TURRET_KACCEL = 0;
-        public static double TURRET_KSTATIC = 0.3;
+        public static double TURRET_KSTATIC = 0.33;
         public static double TURRET_CORRECTION_SPEED = 0;
         public static Angle TURRET_MIN_ANGLE = Angle.degrees(0);
         public static Angle TURRET_MAX_ANGLE = Angle.degrees(300);

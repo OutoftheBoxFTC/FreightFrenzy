@@ -88,9 +88,6 @@ public class SmartLynxModule {
     }
 
     public SmartMotor getMotor(int port){
-        if(port > 4 || port < 0){
-            throw new RuntimeException("You fool. You absolute buffoon. HOW MANY MOTOR PORTS DO YOU THINK THERE ARE ON AN EHUB?????? " + port + " ISNT VALID 5HEAD");
-        }
         if(!cachedMotors.containsKey(port)){
             cachedMotors.put(port, new SmartMotor(new DcMotorImplEx(motorController, port)));
         }

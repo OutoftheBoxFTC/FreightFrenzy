@@ -1,5 +1,6 @@
 package Hardware.HardwareSystems.FFSystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -17,6 +18,7 @@ import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartAnalogInput.SmartPotentiometer;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import Hardware.SmartDevices.SmartServo.SmartServo;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
 import State.Action.ActionController;
@@ -32,6 +34,7 @@ public class TurretSystem implements HardwareSystem {
     private final MoveExtensionAction moveExtensionAction;
 
     private final SmartMotor turretMotor, pitchMotor, extensionMotor;
+    private final SmartServo bucketServo;
     private final SmartPotentiometer turretPotentiometer, pitchPotentiometer;
 
     private Angle turretAngle, prevTurretAngle, turretVel;
@@ -65,6 +68,8 @@ public class TurretSystem implements HardwareSystem {
         movePitchAction = new MovePitchAction(this);
         moveExtensionAction = new MoveExtensionAction(this);
 
+        bucketServo = ehub.getServo(0);
+
         turretAngle = Angle.ZERO();
         prevTurretAngle = Angle.ZERO();
         turretVel = Angle.ZERO();
@@ -75,10 +80,12 @@ public class TurretSystem implements HardwareSystem {
         last = System.currentTimeMillis();
         moveTurretAction.submit();
         movePitchAction.submit();
+        moveExtensionAction.submit();
         offset = getExtensionPosition();
-        pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
-        pitchMotor.getMotor().setPower(0.4);
-        pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
+        //pitchMotor.getMotor().setPower(0.4);
+        //pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     @Override
@@ -134,28 +141,42 @@ public class TurretSystem implements HardwareSystem {
     }
 
     public Angle getPitchPosition(){
-        double sum = 0;
-        synchronized (pitchFilter) {
-            for (int i = 0; i < pitchFilter.size(); i++) {
-                sum += pitchFilter.get(i).degrees();
-            }
-            return Angle.degrees(sum / pitchFilter.size());
-        }
+        return pitchPotentiometer.getAngle();
     }
 
     public void movePitchRaw(Angle angle){
         if(!angle.equals(finalPitchAngle)){
             finalPitchAngle = angle;
             int targetEncoderPos = (int) (MathUtils.getRotDist(angle, getPitchPosition()).degrees() * TICKS_PER_DEGREE_PANCAKES);
-            pitchMotor.getMotor().setTargetPosition(getPitchMotorPos() + targetEncoderPos);
+            movePitchAction.setTargetAngle(finalPitchAngle);
         }
     }
 
     public int getExtensionPosition(){
-        return extensionMotor.getMotor().getCurrentPosition();
+        return extensionMotor.getMotor().getCurrentPosition() - offset;
     }
 
     public SmartMotor getExtensionMotor() {
         return extensionMotor;
+    }
+
+    public void moveExtensionRaw(double target) {
+        moveExtensionAction.setTargetPos(target);
+    }
+
+    public boolean isTurretAtPos(){
+        return moveTurretAction.isAtTarget();
+    }
+
+    public boolean isPitchAtPos(){
+        return movePitchAction.isAtTarget();
+    }
+
+    public boolean isExtensionAtPos(){
+        return moveExtensionAction.isAtTarget();
+    }
+
+    public void setBucketPosRaw(double pos){
+        bucketServo.setPosition(pos);
     }
 }
