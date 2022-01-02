@@ -22,10 +22,9 @@ public class GVFDrive implements Action {
     private final Angle rotTol;
     private final Position position;
     private final Path path;
-    private LinearProfile profile;
     private double lastProject;
 
-    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, LinearProfile profile, double speed, double kps, double linTol, Angle rotTol){
+    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed, double kps, double linTol, Angle rotTol){
         this.drivetrainSystem = drivetrainSystem;
         this.position = position;
         this.path = path;
@@ -33,20 +32,19 @@ public class GVFDrive implements Action {
         this.kps = kps;
         this.linTol = linTol;
         this.rotTol = rotTol;
-        this.profile = profile;
         this.lastProject = 0;
     }
 
-    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, LinearProfile profile, double speed){
-        this(drivetrainSystem, position, path, profile, speed, 0, 2, Angle.degrees(5));
+    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed){
+        this(drivetrainSystem, position, path, speed, 0, 2, Angle.degrees(5));
     }
 
-    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, LinearProfile profile, double speed, double kps){
-        this(drivetrainSystem, position, path, profile, speed, kps, 2, Angle.degrees(5));
+    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed, double kps){
+        this(drivetrainSystem, position, path, speed, kps, 2, Angle.degrees(5));
     }
 
-    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, LinearProfile profile){
-        this(drivetrainSystem, position, path, profile, 1, 0.15, 2, Angle.degrees(5));
+    public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path){
+        this(drivetrainSystem, position, path, 1, 0.15, 2, Angle.degrees(5));
     }
 
     @Override
@@ -71,9 +69,7 @@ public class GVFDrive implements Action {
         double pathDist = posDelta.length();
         double pathReturnVel = Math.sqrt(2 * DriveConstants.MAX_LIN_ACCEL * pathDist);
 
-        double currMaxVel = profile.getL(val * path.getSegments().size());
-
-        Vector2 tang = path.deriv(val).getVector2().normalize().scale(currMaxVel);
+        Vector2 tang = path.deriv(val).getVector2().normalize();
 
         Vector2 norm = tang.rotate(Angle.degrees(-90)).normalize().scale(Math.min(pathReturnVel, DriveConstants.MAX_LIN_SPEED));
 

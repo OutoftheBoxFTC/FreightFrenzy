@@ -18,6 +18,7 @@ public class SmartServo {
         if(Math.abs(position - lastPosition) > 0.0001){
             servo.setPosition(position);
             lastPosition = position;
+
         }
     }
 

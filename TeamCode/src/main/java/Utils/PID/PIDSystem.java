@@ -21,7 +21,8 @@ public class PIDSystem {
         integral = 0;
         derivative = 0;
         dt = 0;
-        this.integralRange = 5;
+        prevTime = 0;
+        this.integralRange = 0;
     }
 
     public PIDSystem(double kp, double ki, double kd, double integralRange){
@@ -84,5 +85,6 @@ public class PIDSystem {
         integral = 0;
         derivative = 0;
         dt = 0;
+        prevTime = 0;
     }
 }

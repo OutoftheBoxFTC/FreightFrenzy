@@ -19,8 +19,7 @@ public class DriveSystem {
     }
 
     public void followGvf(Path path){
-        LinearProfile profile = LinearProfiler.profile(path, 60, 10, 30, 5, 100);
-        GVFDrive drive = new GVFDrive(drivetrainSystem, position, path, profile);
+        GVFDrive drive = new GVFDrive(drivetrainSystem, position, path);
         drive.runBlocking();
     }
 
