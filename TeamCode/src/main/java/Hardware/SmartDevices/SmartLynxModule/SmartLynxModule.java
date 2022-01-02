@@ -8,6 +8,8 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.lynx.LynxServoController;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -99,6 +101,10 @@ public class SmartLynxModule {
             cachedServos.put(port, new SmartServo(new ServoImplEx(servoController, port, ServoConfigurationType.getStandardServoType())));
         }
         return cachedServos.get(port);
+    }
+
+    public CRServo getCrServo(int port){
+        return new CRServoImplEx(servoController, port, ServoConfigurationType.getStandardServoType());
     }
 
     public SmartAnalogInput getAnalogInput(int port){

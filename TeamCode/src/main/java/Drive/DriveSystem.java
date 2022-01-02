@@ -1,7 +1,7 @@
 package Drive;
 
 import Drive.AdvDrive.GVF.GVFDrive;
-import Hardware.HardwareSystems.UGSystems.DrivetrainSystem;
+import Hardware.HardwareSystems.FFSystems.DrivetrainSystem;
 import MathSystems.Position;
 import State.Action.Action;
 import Utils.PathUtils.ContinousPathBuilder;
@@ -18,21 +18,20 @@ public class DriveSystem {
         this.position = position;
     }
 
-    public void followGvf(Path path){
-        GVFDrive drive = new GVFDrive(drivetrainSystem, position, path);
-        drive.runBlocking();
+    public GVFDrive followGvf(Path path){
+        return new GVFDrive(drivetrainSystem, position, path);
     }
 
-    public void gotoGvf(Position position){
+    public GVFDrive gotoGvf(Position position){
         Path path = new ContinousPathBuilder(this.position).lineTo(position).build();
-        followGvf(path);
+        return followGvf(path);
     }
 
-    public void gotoGvf(Position... position){
+    public GVFDrive gotoGvf(Position... position){
         ContinousPathBuilder builder = new ContinousPathBuilder(this.position);
         for(Position p : position){
             builder.lineTo(p);
         }
-        followGvf(builder.build());
+        return followGvf(builder.build());
     }
 }

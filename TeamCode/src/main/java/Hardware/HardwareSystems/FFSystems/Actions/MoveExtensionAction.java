@@ -43,7 +43,7 @@ public class MoveExtensionAction implements Action {
         if(targetPos < system.getExtensionPosition()){
             double sign = MathUtils.sign(power);
             if(system.getExtensionPosition() < 200) {
-                power = sign * Math.min(0.5, Math.abs(power));
+                power = sign * Math.min(0.6, Math.abs(power));
             }else{
                 power = sign * Math.min(0.7, Math.abs(power));
             }
@@ -63,6 +63,6 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 25;
+        return Math.abs(error) < 10;
     }
 }

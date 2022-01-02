@@ -93,7 +93,7 @@ public class TurretSystem implements HardwareSystem {
         long now = System.currentTimeMillis();
         double dt = (now - last) / 1000.0;
 
-        turretAngle = turretPotentiometer.getAngle();
+        turretAngle = Angle.degrees(turretPotentiometer.getAngle().degrees() * 1.1632653); // 49, 8
         Angle dTurret = MathUtils.getRotDist(prevTurretAngle, turretAngle);
         turretVel = Angle.degrees(dTurret.degrees() / dt);
 
@@ -110,7 +110,7 @@ public class TurretSystem implements HardwareSystem {
     }
 
     public Angle getTurretPosition(){
-        return turretPotentiometer.getAngle();
+        return turretAngle;
     }
 
     public Angle getTurretVel() {

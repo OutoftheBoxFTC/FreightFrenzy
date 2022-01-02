@@ -1,5 +1,6 @@
 package Hardware.HardwareSystems.FFSystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -51,7 +52,7 @@ public class DrivetrainSystem implements HardwareSystem {
         this.brPID = new PIDFSystem(P, I, D, F);
 
         this.module = module.getModule();
-        this.imu = map.get(BNO055IMU.class, "imu");
+        this.imu = map.get(BNO055IMU.class, "imu 2");
     }
 
     @Override
@@ -61,6 +62,9 @@ public class DrivetrainSystem implements HardwareSystem {
         imu.initialize(new BNO055IMU.Parameters());
 
         angleOffset = getImuAngle().radians();
+
+        setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     @Override
@@ -100,6 +104,13 @@ public class DrivetrainSystem implements HardwareSystem {
         br.getMotor().setZeroPowerBehavior(zeroPowerBehaviour);
         tl.getMotor().setZeroPowerBehavior(zeroPowerBehaviour);
         tr.getMotor().setZeroPowerBehavior(zeroPowerBehaviour);
+    }
+
+    public void setMode(DcMotor.RunMode mode){
+        bl.getMotor().setMode(mode);
+        br.getMotor().setMode(mode);
+        tl.getMotor().setMode(mode);
+        tr.getMotor().setMode(mode);
     }
 
     public void setPower(Vector3 direction){

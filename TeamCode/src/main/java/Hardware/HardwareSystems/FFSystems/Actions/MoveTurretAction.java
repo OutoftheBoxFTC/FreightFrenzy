@@ -36,13 +36,16 @@ public class MoveTurretAction implements Action {
         if(targetAngle == null){
             return;
         }
+        if(targetAngle.degrees() < -50){
+            targetAngle = Angle.degrees(-47);
+        }
         if(isAtTarget()){
             system.setTurretMotorPower(0);
             return;
         }
         if(system.getTurretPosition().degrees() < -43){
-            system.setTurretMotorPower(0);
-            return;
+            //system.setTurretMotorPower(0);
+            //return;
         }
         double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
         if(Math.abs(system.getTurretPosition().degrees()) < 5) {
@@ -73,7 +76,7 @@ public class MoveTurretAction implements Action {
         Angle error = MathUtils.getRotDist(system.getTurretPosition(), targetAngle);
         double tol = 1;
         if(Math.abs(system.getTurretPosition().degrees()) > 5){
-            tol = 5;
+            tol = 3;
         }
         return Math.abs(error.degrees()) < tol;
     }

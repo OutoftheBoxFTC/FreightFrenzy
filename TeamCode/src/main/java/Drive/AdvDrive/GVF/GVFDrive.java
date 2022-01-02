@@ -3,7 +3,7 @@ package Drive.AdvDrive.GVF;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import Drive.DriveConstants;
-import Hardware.HardwareSystems.UGSystems.DrivetrainSystem;
+import Hardware.HardwareSystems.FFSystems.DrivetrainSystem;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
 import MathSystems.Position;
@@ -69,7 +69,9 @@ public class GVFDrive implements Action {
         double pathDist = posDelta.length();
         double pathReturnVel = Math.sqrt(2 * DriveConstants.MAX_LIN_ACCEL * pathDist);
 
-        Vector2 tang = path.deriv(val).getVector2().normalize();
+        double velStop = Math.sqrt(2 * DriveConstants.MAX_LIN_ACCEL * (path.getEndpoint().getPos().distanceTo(position.getPos())));
+
+        Vector2 tang = path.deriv(val).getVector2().normalize().scale(velStop);
 
         Vector2 norm = tang.rotate(Angle.degrees(-90)).normalize().scale(Math.min(pathReturnVel, DriveConstants.MAX_LIN_SPEED));
 
@@ -100,7 +102,9 @@ public class GVFDrive implements Action {
 
         rSpeed = rSpeed / DriveConstants.MAX_ROT_SPEED;
 
-        Vector2 linVel = new Vector2(xSpeed * GVFConstants.strafeGain * speed, ySpeed * GVFConstants.forwardGain * speed);
+        Vector2 linVel = new Vector2(xSpeed * GVFConstants.strafeGain * speed, -ySpeed * GVFConstants.forwardGain * speed);
+
+        RobotLog.ii("GVF", closestPoint + " | " + tang + " | " + norm + " | " + vel + " | " + rotatedDist);
 
         drivetrainSystem.setPower(new Vector3(linVel, rSpeed * GVFConstants.rotationGain * speed * MathUtils.sign(-angDelta.radians())));
 

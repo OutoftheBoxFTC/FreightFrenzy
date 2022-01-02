@@ -17,7 +17,7 @@ import Utils.PID.PIDFSystem;
 import Utils.PID.PIDSystem;
 @Config
 public class MovePitchAction implements Action {
-    public static double P = -0.025, I = 0, D = 0.0001, F = 0;
+    public static double P = -0.01, I = 0, D = 0.0000, F = 0;
 
     private double targetPos = 0;
     private TurretSystem system;
@@ -50,7 +50,7 @@ public class MovePitchAction implements Action {
         }
         FtcDashboard.getInstance().getTelemetry().addData("Target Pos", targetPos);
         RobotLog.ii("Target Pos", targetPos + "|" + system.getPitchMotorPos());
-        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), Math.cos(system.getPitchPosition().radians()));
+        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), 1);
         system.setPitchMotorPower(MathUtils.signedMax(power, FFConstants.Pitch.PITCH_KSTATIC));
     }
 
@@ -65,6 +65,6 @@ public class MovePitchAction implements Action {
     }
 
     public boolean isAtTarget(){
-        return Math.abs(targetPos - system.getPitchMotorPos()) < (15);
+        return Math.abs(targetPos - system.getPitchMotorPos()) < (10);
     }
 }

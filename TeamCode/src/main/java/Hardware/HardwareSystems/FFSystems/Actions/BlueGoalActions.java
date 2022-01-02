@@ -9,15 +9,20 @@ import State.Action.StandardActions.DelayAction;
 
 public class BlueGoalActions {
 
-    public static ActionQueue getBlueAlliance(FFHardwareController hardware){
+    public static ActionQueue getBlueAlliance(FFHardwareController hardware, double angle, double distance){
         ActionQueue queue = new ActionQueue();
         queue.submitAction(new Action() {
 
             @Override
+            public void initialize() {
+                hardware.getTurretSystem().moveExtensionRaw(distance / 0.0494500688);
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-16));
+            }
+
+            @Override
             public void update() {
-                hardware.getTurretSystem().moveExtensionRaw(840);
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-37.5));
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-10));
+
             }
 
             @Override
@@ -27,8 +32,12 @@ public class BlueGoalActions {
         });
         queue.submitAction(new Action() {
             @Override
+            public void initialize() {
+                hardware.getTurretSystem().moveExtensionRaw(distance / 0.0494500688);
+            }
+
+            @Override
             public void update() {
-                hardware.getTurretSystem().moveExtensionRaw(840);
             }
 
             @Override
@@ -44,9 +53,13 @@ public class BlueGoalActions {
         ActionQueue queue = new ActionQueue();
         queue.submitAction(new Action() {
             @Override
-            public void update() {
+            public void initialize() {
                 hardware.getTurretSystem().moveExtensionRaw(300);
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
+            }
+
+            @Override
+            public void update() {
+
             }
 
             @Override
@@ -57,20 +70,82 @@ public class BlueGoalActions {
         queue.submitAction(new DelayAction(50));
         queue.submitAction(new InstantAction() {
             @Override
+            public void initialize() {
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5)); //-6.18
+                hardware.getTurretSystem().moveExtensionRaw(105);
+            }
+
+            @Override
             public void update() {
-                hardware.getTurretSystem().moveExtensionRaw(125);
+
             }
         });
         queue.submitAction(new Action() {
             @Override
-            public void update() {
+            public void initialize() {
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
-                hardware.getTurretSystem().moveExtensionRaw(125);
+                hardware.getTurretSystem().moveExtensionRaw(105);
+            }
+
+            @Override
+            public void update() {
+
             }
 
             @Override
             public boolean shouldDeactivate() {
-                return hardware.getTurretSystem().isTurretAtPos();
+                return true;
+            }
+        });
+        return queue;
+    }
+
+    public static ActionQueue getBlueAllianceReturnAuto(FFHardwareController hardware){
+        ActionQueue queue = new ActionQueue();
+        queue.submitAction(new Action() {
+            @Override
+            public void initialize() {
+                hardware.getTurretSystem().moveExtensionRaw(450);
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5)); //-6.18
+            }
+
+            @Override
+            public void update() {
+
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getTurretSystem().isExtensionAtPos();
+            }
+        });
+        queue.submitAction(new DelayAction(50));
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void initialize() {
+                hardware.getTurretSystem().moveExtensionRaw(105);
+            }
+
+            @Override
+            public void update() {
+
+            }
+        });
+        queue.submitAction(new Action() {
+            @Override
+            public void initialize() {
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
+                hardware.getTurretSystem().moveExtensionRaw(105);
+            }
+
+            @Override
+            public void update() {
+
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return true;
             }
         });
         return queue;
