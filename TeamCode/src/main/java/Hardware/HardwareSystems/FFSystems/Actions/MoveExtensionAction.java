@@ -42,10 +42,10 @@ public class MoveExtensionAction implements Action {
         }
         if(targetPos < system.getExtensionPosition()){
             double sign = MathUtils.sign(power);
-            if(system.getExtensionPosition() < 200) {
-                power = sign * Math.min(0.6, Math.abs(power));
-            }else{
+            if(system.getExtensionPosition() < 300) {
                 power = sign * Math.min(0.7, Math.abs(power));
+            }else{
+                power = sign * Math.min(0.8, Math.abs(power));
             }
         }
         system.setExtensionMotorPower(MathUtils.signedMax(power, FFConstants.Extension.EXTENSION_KSTATIC));

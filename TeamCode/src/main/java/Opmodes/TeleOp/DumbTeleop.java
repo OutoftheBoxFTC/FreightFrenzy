@@ -101,6 +101,8 @@ public class DumbTeleop extends BasicOpmode {
                     telemetry.addData("2m", hardware.getOdometrySystem().getLeftDist());
                     telemetry.addData("Turret", -(90-Angle.radians(Math.atan2(yDist, xDist)).degrees()));
                     telemetry.addData("Turret Pos", hardware.getTurretSystem().getTurretPosition().degrees());
+                    telemetry.addData("Pitch Pos", hardware.getTurretSystem().getPitchPosition().degrees());
+                    telemetry.addData("Pitch Target", hardware.getTurretSystem().getPitchTarget().degrees());
                     telemetry.addData("IMU", hardware.getDrivetrainSystem().getImuAngle().degrees());
                     if(gamepad2.a) {
                         hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-(90-Angle.radians(Math.atan2(yDist, xDist)).degrees())));
@@ -115,7 +117,7 @@ public class DumbTeleop extends BasicOpmode {
                         angle = -37.5;
                         dist = 810;
                     }
-                    extendAction = BlueGoalActions.getBlueAlliance(hardware, angle, dist);
+                    extendAction = BlueGoalActions.getBlueAlliance(hardware, angle, dist+3);
                     ActionController.addAction(extendAction);
                     extending = true;
                     state = 0;

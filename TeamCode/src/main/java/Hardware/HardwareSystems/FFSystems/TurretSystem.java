@@ -179,4 +179,8 @@ public class TurretSystem implements HardwareSystem {
     public void setBucketPosRaw(double pos){
         bucketServo.setPosition(pos);
     }
+
+    public Angle getPitchTarget(){
+        return finalPitchAngle;
+    }
 }

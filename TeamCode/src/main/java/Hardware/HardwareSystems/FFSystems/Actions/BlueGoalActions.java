@@ -17,7 +17,7 @@ public class BlueGoalActions {
             public void initialize() {
                 hardware.getTurretSystem().moveExtensionRaw(distance / 0.0494500688);
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-16));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-19));
             }
 
             @Override

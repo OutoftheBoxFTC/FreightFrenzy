@@ -34,7 +34,7 @@ public class FFConstants {
         public static double PITCH_MAX_VEL = 240;
         public static double PITCH_MAX_ACCEL = 10;
         public static double PITCH_KACCEL = 0.1;
-        public static double PITCH_KSTATIC = 0.1;
+        public static double PITCH_KSTATIC = 0.25;
         public static double PITCH_CORRECTION_SPEED = 0.2;
         public static Angle PITCH_MIN_ANGLE = Angle.degrees(0);
         public static Angle PITCH_MAX_ANGLE = Angle.degrees(300);
