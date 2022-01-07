@@ -15,7 +15,7 @@ public class BlueGoalActions {
 
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(distance / 0.0494500688);
+                hardware.getTurretSystem().moveExtensionRaw(distance * 14.9817342);/// 0.0494500688
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-19));
             }
@@ -33,7 +33,7 @@ public class BlueGoalActions {
         queue.submitAction(new Action() {
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(distance / 0.0494500688);
+                hardware.getTurretSystem().moveExtensionRaw(distance* 14.9817342);
             }
 
             @Override
@@ -54,8 +54,8 @@ public class BlueGoalActions {
         queue.submitAction(new Action() {
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(300);
-            }
+                hardware.getTurretSystem().moveExtensionRaw(105);
+            } //300
 
             @Override
             public void update() {
@@ -72,7 +72,7 @@ public class BlueGoalActions {
             @Override
             public void initialize() {
                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5)); //-6.18
-                hardware.getTurretSystem().moveExtensionRaw(105);
+                hardware.getTurretSystem().moveExtensionRaw(105); //105
             }
 
             @Override
@@ -105,8 +105,8 @@ public class BlueGoalActions {
         queue.submitAction(new Action() {
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(450);
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5)); //-6.18
+                hardware.getTurretSystem().moveExtensionRaw(250);
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-5)); //-6.5
             }
 
             @Override

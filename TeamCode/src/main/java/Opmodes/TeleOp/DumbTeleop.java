@@ -43,6 +43,7 @@ public class DumbTeleop extends BasicOpmode {
 
         OpmodeStatus.bindOnStart(new Action() {
             boolean prev = false, started = false;
+            long timer2 = System.currentTimeMillis();
             long timer = System.currentTimeMillis();
             @Override
             public void update() {
@@ -75,11 +76,14 @@ public class DumbTeleop extends BasicOpmode {
                         ActionController.addAction(new EnterIntakeAction(hardware));
                         inIntake = true;
                         hardware.getIntakeSystem().setPower(0);
+                        timer2 = System.currentTimeMillis() + 750;
                     }
-                    if(hardware.getTurretSystem().isExtensionAtPos() && hardware.getTurretSystem().getExtensionPosition() < 30) {
+                    if(hardware.getTurretSystem().isExtensionAtPos() && hardware.getTurretSystem().getExtensionPosition() < 10) {
                         started = false;
                         timer = System.currentTimeMillis() + 50;
-                        hardware.getIntakeSystem().setPower(gamepad1.right_bumper ? 1 : gamepad1.left_bumper ? -1 : 0);
+                        if(System.currentTimeMillis() > timer2){
+                            hardware.getIntakeSystem().setPower(gamepad1.right_bumper ? 1 : gamepad1.left_bumper ? -1 : 0);
+                        }
                     }
                 }
                 prev = hardware.getIntakeSystem().getIntakeStop();
@@ -117,13 +121,13 @@ public class DumbTeleop extends BasicOpmode {
                         angle = -37.5;
                         dist = 810;
                     }
-                    extendAction = BlueGoalActions.getBlueAlliance(hardware, angle, dist+3);
+                    extendAction = BlueGoalActions.getBlueAlliance(hardware, angle, dist+4.5);
                     ActionController.addAction(extendAction);
                     extending = true;
                     state = 0;
                 }
                 if(state == 0){
-                    if(hardware.getTurretSystem().getExtensionPosition() > 250){
+                    if(hardware.getTurretSystem().getExtensionPosition() > 150){
                         hardware.getTurretSystem().setBucketPosRaw(0.5);
                     }
                 }

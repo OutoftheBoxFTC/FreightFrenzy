@@ -10,7 +10,7 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveExtensionAction implements Action {
-    public static double P = -0.015, I = 0, D = 0;
+    public static double P = -0.01, I = 0, D = 0;
 
     private double targetPos;
     private TurretSystem system;
@@ -18,6 +18,7 @@ public class MoveExtensionAction implements Action {
 
     public MoveExtensionAction(TurretSystem system){
         this.system = system;
+        P = -0.01;
         pid = new PIDSystem(P, I, D, 0.1);
         targetPos = Double.NaN;
     }
@@ -32,6 +33,13 @@ public class MoveExtensionAction implements Action {
     @Override
     public void update() {
         pid.setCoefficients(P, 0, D);
+        if(targetPos == 0){
+            //system.setExtensionMotorPower(0);
+            system.setExtensionFloat();
+            //return;
+        }else{
+            system.setExtensionBrake();
+        }
         if(Double.isNaN(targetPos) || isAtTarget()){
             system.setExtensionMotorPower(0);
             return;
@@ -46,6 +54,11 @@ public class MoveExtensionAction implements Action {
                 power = sign * Math.min(0.7, Math.abs(power));
             }else{
                 power = sign * Math.min(0.8, Math.abs(power));
+            }
+        }else{
+            if(system.getExtensionPosition() < 50){
+                double sign = MathUtils.sign(power);
+                power = sign * Math.min(0.2, Math.abs(power));
             }
         }
         system.setExtensionMotorPower(MathUtils.signedMax(power, FFConstants.Extension.EXTENSION_KSTATIC));
@@ -63,6 +76,6 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 10;
+        return Math.abs(error) < 15;
     }
 }

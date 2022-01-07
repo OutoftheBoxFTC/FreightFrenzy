@@ -183,4 +183,14 @@ public class TurretSystem implements HardwareSystem {
     public Angle getPitchTarget(){
         return finalPitchAngle;
     }
+
+    public void setExtensionFloat() {
+        extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
+
+    public void setExtensionBrake() {
+        extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+
 }
