@@ -20,6 +20,7 @@ public class MovePitchAction implements Action {
     public static double P = -0.01, I = 0, D = 0.0000, F = 0;
 
     private double targetPos = 0;
+    private Angle targetAngle = Angle.ZERO();
     private TurretSystem system;
     private PIDFSystem pid;
 
@@ -30,6 +31,7 @@ public class MovePitchAction implements Action {
     }
 
     public void setTargetAngle(Angle angle){
+        targetAngle = angle;
         targetPos = system.getPitchMotorPos() + ((int) (MathUtils.getRotDist(angle, system.getPitchPosition()).degrees() * TurretSystem.TICKS_PER_DEGREE_PANCAKES));
     }
 
@@ -41,6 +43,10 @@ public class MovePitchAction implements Action {
         }
 
         if(isAtTarget()){
+            //double check juuuuust in case
+            if(Math.abs(MathUtils.getRotDist(system.getPitchPosition(), targetAngle).degrees()) > 3){
+                setTargetAngle(targetAngle);
+            }
             system.setPitchMotorPower(0);
             return;
         }

@@ -17,6 +17,8 @@ import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import Utils.GamepadEx.GamepadEx;
 import Utils.OpmodeStatus;
+import Utils.ProgramClock;
+
 @TeleOp
 public class DumbTeleop extends BasicOpmode {
     boolean inIntake = true;
@@ -151,6 +153,11 @@ public class DumbTeleop extends BasicOpmode {
                     });
                     ActionController.addAction(queue);
                     state = 1;
+                }
+                if(Math.abs(gamepad1.right_stick_y) > 0.2){
+                    double position = hardware.getTurretSystem().getExtensionPosition();
+                    position += ProgramClock.getFrameTimeSeconds() * 10 * gamepad1.right_stick_y;
+                    hardware.getTurretSystem().moveExtensionRaw(position);
                 }
             }
         });
