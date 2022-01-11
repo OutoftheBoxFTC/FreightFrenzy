@@ -9,11 +9,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import Hardware.SmartDevices.Ultrasonic.DFRoboticsUltrasonicSensor;
 
 public class OdometrySystem implements HardwareSystem {
     private SmartMotor fl, fr, bl, br;
 
     private Rev2mDistanceSensor left, right;
+    private DFRoboticsUltrasonicSensor forwardSensor;
     private double leftDist, rightDist;
 
     private long timer = 0;
@@ -25,6 +27,7 @@ public class OdometrySystem implements HardwareSystem {
         br = chub.getMotor(3);
         left = hardwareMap.get(Rev2mDistanceSensor.class, "left");
         right = hardwareMap.get(Rev2mDistanceSensor.class, "right");
+        forwardSensor = new DFRoboticsUltrasonicSensor(chub.getAnalogInput(1).getAnalogInput());
     }
 
     @Override
@@ -68,5 +71,9 @@ public class OdometrySystem implements HardwareSystem {
 
     public double getRightDist() {
         return rightDist;
+    }
+
+    public double getForwardDist(){
+        return forwardSensor.getDistanceCm() / 2.54;
     }
 }

@@ -16,6 +16,8 @@ public class MoveExtensionAction implements Action {
     private TurretSystem system;
     private PIDSystem pid;
 
+    private boolean pidActive = true;
+
     public MoveExtensionAction(TurretSystem system){
         this.system = system;
         P = -0.01;
@@ -33,10 +35,16 @@ public class MoveExtensionAction implements Action {
     @Override
     public void update() {
         pid.setCoefficients(P, 0, D);
+        if(!pidActive){
+            return;
+        }
         if(targetPos == 0){
-            //system.setExtensionMotorPower(0);
+            if(system.getExtensionPosition() > 0){
+                system.setExtensionMotorPower(0.75);
+            }
+            system.setExtensionMotorPower(0);
             system.setExtensionFloat();
-            //return;
+            return;
         }else{
             system.setExtensionBrake();
         }
@@ -76,6 +84,14 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 15;
+        return Math.abs(error) < 25;
+    }
+
+    public double getTargetPos() {
+        return targetPos;
+    }
+
+    public void setPidActive(boolean pidActive) {
+        this.pidActive = pidActive;
     }
 }

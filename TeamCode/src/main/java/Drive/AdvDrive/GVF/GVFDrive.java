@@ -36,15 +36,15 @@ public class GVFDrive implements Action {
     }
 
     public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed){
-        this(drivetrainSystem, position, path, speed, 0, 2, Angle.degrees(5));
+        this(drivetrainSystem, position, path, speed, 0, 2, Angle.degrees(2));
     }
 
     public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed, double kps){
-        this(drivetrainSystem, position, path, speed, kps, 2, Angle.degrees(5));
+        this(drivetrainSystem, position, path, speed, kps, 2, Angle.degrees(2));
     }
 
     public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path){
-        this(drivetrainSystem, position, path, 1, 0.15, 2, Angle.degrees(5));
+        this(drivetrainSystem, position, path, 1, 0.12, 2, Angle.degrees(2));
     }
 
     @Override
@@ -73,13 +73,14 @@ public class GVFDrive implements Action {
 
         Vector2 tang = path.deriv(val).getVector2().normalize().scale(velStop);
 
-        Vector2 norm = tang.rotate(Angle.degrees(-90)).normalize().scale(Math.min(pathReturnVel, DriveConstants.MAX_LIN_SPEED));
+        //Vector2 norm = tang.rotate(Angle.degrees(-90)).normalize().scale(Math.min(pathReturnVel, DriveConstants.MAX_LIN_SPEED));
+        Vector2 norm = closestPoint.getPos().subtract(position.getPos()).normalize().scale(Math.min(pathReturnVel, DriveConstants.MAX_LIN_SPEED));
 
         double weight = MathUtils.clamp(posDelta.length() * kps, 0, 1);
 
         if(closestPoint.getPos().distanceTo(path.getEndpoint().getPos()) < linTol){
             weight = 1;
-            norm = path.getEndpoint().getPos().subtract(position.getPos()).normalize().scale(DriveConstants.MAX_LIN_ACCEL);
+            //norm = path.getEndpoint().getPos().subtract(position.getPos()).normalize().scale(velStop);
         }
 
         Vector2 vel = norm.subtract(tang).scale(weight).add(tang);
@@ -102,7 +103,7 @@ public class GVFDrive implements Action {
 
         rSpeed = rSpeed / DriveConstants.MAX_ROT_SPEED;
 
-        Vector2 linVel = new Vector2(xSpeed * GVFConstants.strafeGain * speed, -ySpeed * GVFConstants.forwardGain * speed);
+        Vector2 linVel = new Vector2(xSpeed * GVFConstants.strafeGain * speed, ySpeed * GVFConstants.forwardGain * speed);
 
         RobotLog.ii("GVF", closestPoint + " | " + tang + " | " + norm + " | " + vel + " | " + rotatedDist);
 
@@ -123,5 +124,6 @@ public class GVFDrive implements Action {
                 marker.call();
             }
         }
+        drivetrainSystem.setPower(Vector3.ZERO());
     }
 }

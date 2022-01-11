@@ -52,7 +52,7 @@ public class DrivetrainSystem implements HardwareSystem {
         this.brPID = new PIDFSystem(P, I, D, F);
 
         this.module = module.getModule();
-        this.imu = map.get(BNO055IMU.class, "imu 2");
+        this.imu = map.get(BNO055IMU.class, "imu");
     }
 
     @Override

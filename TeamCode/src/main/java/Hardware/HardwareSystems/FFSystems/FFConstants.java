@@ -41,6 +41,6 @@ public class FFConstants {
     }
 
     public class Extension {
-        public static final double EXTENSION_KSTATIC = 0.55;
+        public static final double EXTENSION_KSTATIC = 0.65;
     }
 }

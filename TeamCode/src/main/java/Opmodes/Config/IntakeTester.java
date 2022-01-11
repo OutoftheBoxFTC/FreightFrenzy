@@ -46,6 +46,7 @@ public class IntakeTester extends BasicOpmode {
         });
         OpmodeStatus.bindOnStart(() -> {
             FtcDashboard.getInstance().getTelemetry().addData("Power", gamepad1.right_trigger);
+            FtcDashboard.getInstance().getTelemetry().addData("Blink", hardware.getIntakeSystem().getIntakeStop() ? 1 : 0);
             FtcDashboard.getInstance().getTelemetry().update();
         });
     }

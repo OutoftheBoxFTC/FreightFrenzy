@@ -17,7 +17,7 @@ public class BlueGoalActions {
             public void initialize() {
                 hardware.getTurretSystem().moveExtensionRaw(distance * 14.9817342);/// 0.0494500688
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-19));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-15));
             }
 
             @Override
@@ -51,6 +51,7 @@ public class BlueGoalActions {
 
     public static ActionQueue getBlueAllianceReturn(FFHardwareController hardware){
         ActionQueue queue = new ActionQueue();
+        queue.submitAction(new DelayAction(10));
         queue.submitAction(new Action() {
             @Override
             public void initialize() {
@@ -64,7 +65,7 @@ public class BlueGoalActions {
 
             @Override
             public boolean shouldDeactivate() {
-                return hardware.getTurretSystem().isExtensionAtPos();
+                return hardware.getTurretSystem().getExtensionPosition() < 500;
             }
         });
         queue.submitAction(new DelayAction(50));
@@ -123,7 +124,7 @@ public class BlueGoalActions {
         queue.submitAction(new InstantAction() {
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(105);
+                hardware.getTurretSystem().moveExtensionRaw(80);
             }
 
             @Override
@@ -135,7 +136,7 @@ public class BlueGoalActions {
             @Override
             public void initialize() {
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
-                hardware.getTurretSystem().moveExtensionRaw(105);
+                hardware.getTurretSystem().moveExtensionRaw(80);
             }
 
             @Override

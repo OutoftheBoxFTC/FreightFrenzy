@@ -14,6 +14,6 @@ public class LeaveIntakeAction extends InstantAction {
     @Override
     public void update() {
         hardware.getTurretSystem().setBucketPosRaw(0.45);
-        hardware.getTurretSystem().moveExtensionRaw(100); //100
+        hardware.getTurretSystem().moveExtensionRaw(105); //100
     }
 }

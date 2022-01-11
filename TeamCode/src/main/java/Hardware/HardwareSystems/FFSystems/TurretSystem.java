@@ -37,11 +37,13 @@ public class TurretSystem implements HardwareSystem {
     private final SmartServo bucketServo;
     private final SmartPotentiometer turretPotentiometer, pitchPotentiometer;
 
-    private Angle turretAngle, prevTurretAngle, turretVel;
+    private Angle turretAngle, prevTurretAngle, turretVel, initialPitch;
 
     private final List<Angle> pitchFilter;
 
     private int offset = 0;
+
+    private long timer = 0;
 
     private long last;
 
@@ -83,6 +85,9 @@ public class TurretSystem implements HardwareSystem {
         moveExtensionAction.submit();
         offset = getExtensionPosition();
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        initialPitch = getPitchPosition();
+        timer = System.currentTimeMillis() + 100;
         //pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
         //pitchMotor.getMotor().setPower(0.4);
         //pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -90,6 +95,9 @@ public class TurretSystem implements HardwareSystem {
 
     @Override
     public void update() {
+        if(System.currentTimeMillis() > timer) {
+            pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
         long now = System.currentTimeMillis();
         double dt = (now - last) / 1000.0;
 
@@ -144,6 +152,12 @@ public class TurretSystem implements HardwareSystem {
         return pitchPotentiometer.getAngle();
     }
 
+    public Angle getFakePitchPos(){
+        double pitchEncoder = getPitchMotorPos();
+        double encoderAngle = pitchEncoder / -TICKS_PER_DEGREE_PANCAKES;
+        return Angle.degrees(encoderAngle + initialPitch.degrees());
+    }
+
     public void movePitchRaw(Angle angle){
         if(!angle.equals(finalPitchAngle)){
             finalPitchAngle = angle;
@@ -192,5 +206,11 @@ public class TurretSystem implements HardwareSystem {
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    public double getExtensionTarget(){
+        return moveExtensionAction.getTargetPos();
+    }
 
+    public void setExPIDActive(boolean active){
+        moveExtensionAction.setPidActive(active);
+    }
 }

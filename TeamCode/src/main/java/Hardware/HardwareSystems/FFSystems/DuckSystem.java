@@ -23,7 +23,7 @@ public class DuckSystem implements HardwareSystem {
     }
 
     public void setDuckPower(double power){
-        duckServo1.setPower(power);
-        duckServo2.setPower(power);
+        duckServo1.setPower(power * 0.8);
+        duckServo2.setPower(power * 0.8);
     }
 }
