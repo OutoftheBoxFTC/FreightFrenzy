@@ -9,15 +9,16 @@ import State.Action.StandardActions.DelayAction;
 
 public class BlueGoalActions {
 
-    public static ActionQueue getBlueAlliance(FFHardwareController hardware, double angle, double distance){
+    public static ActionQueue getBlueAlliance(FFHardwareController hardware, double angle, double distance, boolean turret){
         ActionQueue queue = new ActionQueue();
         queue.submitAction(new Action() {
 
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(distance * 14.9817342);/// 0.0494500688
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-15));
+                hardware.getTurretSystem().moveExtensionRaw(210);/// 0.0494500688
+                if(turret)
+                    hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-14));
             }
 
             @Override
@@ -27,7 +28,7 @@ public class BlueGoalActions {
 
             @Override
             public boolean shouldDeactivate() {
-                return hardware.getTurretSystem().isExtensionAtPos();
+                return true;
             }
         });
         queue.submitAction(new Action() {
@@ -55,7 +56,7 @@ public class BlueGoalActions {
         queue.submitAction(new Action() {
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveExtensionRaw(105);
+                hardware.getTurretSystem().moveExtensionRaw(110);
             } //300
 
             @Override
@@ -73,7 +74,7 @@ public class BlueGoalActions {
             @Override
             public void initialize() {
                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5)); //-6.18
-                hardware.getTurretSystem().moveExtensionRaw(105); //105
+                hardware.getTurretSystem().moveExtensionRaw(110); //105
             }
 
             @Override
@@ -84,7 +85,7 @@ public class BlueGoalActions {
         queue.submitAction(new Action() {
             @Override
             public void initialize() {
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(1));
                 hardware.getTurretSystem().moveExtensionRaw(105);
             }
 

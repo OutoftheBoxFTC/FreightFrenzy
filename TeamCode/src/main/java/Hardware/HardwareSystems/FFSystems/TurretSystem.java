@@ -101,7 +101,7 @@ public class TurretSystem implements HardwareSystem {
         long now = System.currentTimeMillis();
         double dt = (now - last) / 1000.0;
 
-        turretAngle = Angle.degrees(turretPotentiometer.getAngle().degrees() * 1.1632653); // 49, 8
+        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.1632653) + 6.5); // 49, 8
         Angle dTurret = MathUtils.getRotDist(prevTurretAngle, turretAngle);
         turretVel = Angle.degrees(dTurret.degrees() / dt);
 
@@ -212,5 +212,9 @@ public class TurretSystem implements HardwareSystem {
 
     public void setExPIDActive(boolean active){
         moveExtensionAction.setPidActive(active);
+    }
+
+    public void setTurretPIDActive(boolean active){
+        moveTurretAction.setEnabled(active);
     }
 }

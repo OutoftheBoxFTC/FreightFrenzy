@@ -261,7 +261,7 @@ public class BlueAuto extends BasicOpmode {
 
             runQueue.submitAction(system.followGvf(score1));
 
-            runQueue.submitAction(BlueGoalActions.getBlueAlliance(hardware, -49, 36));
+            runQueue.submitAction(BlueGoalActions.getBlueAlliance(hardware, -49, 36, true));
 
             runQueue.submitAction(new DelayAction(500));
 

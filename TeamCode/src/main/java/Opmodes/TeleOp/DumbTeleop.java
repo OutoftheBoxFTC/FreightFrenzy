@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import Hardware.HardwareSystems.FFSystems.Actions.BlueGoalActions;
+import Hardware.HardwareSystems.FFSystems.Actions.DumpBucketAction;
 import Hardware.HardwareSystems.FFSystems.Actions.EnterIntakeAction;
 import Hardware.HardwareSystems.FFSystems.Actions.LeaveIntakeAction;
 import MathSystems.Angle;
@@ -15,6 +16,7 @@ import State.Action.Action;
 import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
+import State.Action.StandardActions.DelayAction;
 import Utils.GamepadEx.GamepadEx;
 import Utils.OpmodeStatus;
 import Utils.ProgramClock;
@@ -80,7 +82,7 @@ public class DumbTeleop extends BasicOpmode {
                         started = false;
                         timer = System.currentTimeMillis() + 500;
                         if(System.currentTimeMillis() > timer2){
-                            hardware.getIntakeSystem().setPower(gamepad1.right_bumper ? 0.8 : gamepad1.left_bumper ? -1 : 0);
+                            hardware.getIntakeSystem().setPower(gamepad1.right_bumper ? 1 : gamepad1.left_bumper ? -1 : 0);
                         }
                     }
                 }
@@ -91,6 +93,7 @@ public class DumbTeleop extends BasicOpmode {
             int state = -1;
             ActionQueue extendAction = null;
             double targetPos = 0;
+            boolean dumping = true;
             @Override
             public void update() {
                 //hardware.getTurretSystem().setPitchMotorPower(-6.5);
@@ -117,24 +120,48 @@ public class DumbTeleop extends BasicOpmode {
                     double dist = Math.sqrt(yDist * yDist + xDist * xDist);
                     if(hardware.getOdometrySystem().getLeftDist() > 40){
                         angle = -37.5;
-                        dist = 810;
+                        dist = 40;
                     }
-                    extendAction = BlueGoalActions.getBlueAlliance(hardware, angle, 40);
+                    extendAction = BlueGoalActions.getBlueAlliance(hardware, -32.2368422, 42.3, true);//-32.2368422
                     ActionController.addAction(extendAction);
+                    ActionQueue tmp = new ActionQueue();
+                    tmp.submitAction(new DelayAction(100));
+                    tmp.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            hardware.getTurretSystem().setBucketPosRaw(0.45);
+                        }
+                    });
+                    ActionController.addAction(tmp);
                     extending = true;
                     state = 0;
                 }
-                if(state == 0){
-                    if(hardware.getTurretSystem().getExtensionPosition() > 150){
-                        hardware.getTurretSystem().setBucketPosRaw(0.45);
-                    }
+                if(gamepad2.a && !dumping){
+                    ActionController.addAction(new DumpBucketAction(hardware, 1, 0.45));
+                    dumping = true;
                 }
-                if(gamepad1.a){
-                    hardware.getTurretSystem().setBucketPosRaw(0.92);
+                if(gamepad2.y && !dumping){
+                    ActionController.addAction(new DumpBucketAction(hardware, 0.93, 0.45));
+                    dumping = true;
                 }
-                if(gamepad1.y){
-                    hardware.getTurretSystem().setBucketPosRaw(0.85);
+                if(!(gamepad2.a || gamepad2.y)){
+                    dumping = false;
                 }
+                if(gamepad2.b && hardware.getTurretSystem().getExtensionPosition() > 75){
+                    hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-35));
+                }
+                if(gamepad1.dpad_down){
+                    hardware.getTurretSystem().moveTurretRaw(Angle.ZERO());
+                }
+
+                if(gamepad2.dpad_left || gamepad2.dpad_right){
+                    hardware.getTurretSystem().setTurretPIDActive(false);
+                    hardware.getTurretSystem().moveTurretRaw(hardware.getTurretSystem().getTurretPosition());
+                    hardware.getTurretSystem().setTurretMotorPower(gamepad2.dpad_left ? -0.9 : gamepad2.dpad_right ? 0.9 : 0);
+                }else{
+                    hardware.getTurretSystem().setTurretPIDActive(true);
+                }
+
                 if(gamepad1.x && state != 1){
                     hardware.getTurretSystem().setBucketPosRaw(0.4);
                     if(extendAction != null) {
@@ -150,11 +177,11 @@ public class DumbTeleop extends BasicOpmode {
                     ActionController.addAction(queue);
                     state = 1;
                 }
-                if(Math.abs(gamepad1.right_stick_y) > 0.2){
+                if(gamepad2.dpad_up || gamepad2.dpad_down){
                     targetPos += ProgramClock.getFrameTimeSeconds() * 100 * gamepad1.right_stick_y;
                     hardware.getTurretSystem().moveExtensionRaw(hardware.getTurretSystem().getExtensionPosition());
                     hardware.getTurretSystem().setExPIDActive(false);
-                    hardware.getTurretSystem().setExtensionMotorPower(gamepad1.right_stick_y / -2.0);
+                    hardware.getTurretSystem().setExtensionMotorPower(gamepad2.dpad_up ? -0.75 : gamepad2.dpad_down ? 0.75 : 0);
                 }else{
                     targetPos = hardware.getTurretSystem().getExtensionPosition();
                     hardware.getTurretSystem().setExPIDActive(true);

@@ -17,6 +17,8 @@ public class MoveTurretAction implements Action {
     private TurretSystem system;
     private PIDSystem pid;
 
+    private boolean enabled = true;
+
     public MoveTurretAction(TurretSystem system){
         this.system = system;
         pid = new PIDSystem(P, I, D, 0.1);
@@ -33,7 +35,7 @@ public class MoveTurretAction implements Action {
     @Override
     public void update() {
         pid.setCoefficients(P, 0, D);
-        if(targetAngle == null){
+        if(targetAngle == null || !enabled){
             return;
         }
         if(targetAngle.degrees() < -50){
@@ -79,5 +81,9 @@ public class MoveTurretAction implements Action {
             tol = 3;
         }
         return Math.abs(error.degrees()) < tol;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

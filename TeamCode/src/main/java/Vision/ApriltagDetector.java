@@ -1,5 +1,6 @@
 package Vision;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -38,9 +39,17 @@ public class ApriltagDetector implements Action {
         pipeline = new AprilTagDetectionPipeline(TAGSIZE, fx, fy, cx, cy);
 
         camera.setPipeline(pipeline);
-        camera.openCameraDeviceAsync(() -> {
-            camera.openCameraDevice();
-            camera.startStreaming(1920, 1080, OpenCvCameraRotation.UPRIGHT);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                camera.startStreaming(1920, 1080, OpenCvCameraRotation.UPRIGHT);
+                FtcDashboard.getInstance().startCameraStream(camera, 0);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
         });
     }
 
