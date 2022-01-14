@@ -2,6 +2,7 @@ package Vision;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Point;
@@ -55,8 +56,7 @@ public class ApriltagDetector implements Action {
 
     @Override
     public void update() {
-        ArrayList<AprilTagDetection> detections = pipeline.getDetectionsUpdate();
-
+        ArrayList<AprilTagDetection> detections = pipeline.getLatestDetections();
         if(detections != null){
             if(detections.size() == 0){
                 nodetectFrames++;
@@ -66,7 +66,7 @@ public class ApriltagDetector implements Action {
             }else{
                 nodetectFrames = 0;
                 if(detections.get(0).pose.z < THRESH_CLOSE){
-                    pipeline.setDecimation(DEC_HIGH);
+                    //pipeline.setDecimation(DEC_HIGH);
                 }
                 lastPoint = detections.get(0).center;
             }
@@ -75,5 +75,21 @@ public class ApriltagDetector implements Action {
 
     public Point getLastPoint() {
         return lastPoint;
+    }
+
+    public POSITION getPosition(){
+        if(getLastPoint().x > 1200){
+            return POSITION.LEFT;
+        }else if(getLastPoint().x > 1100){
+            return POSITION.CENTRE;
+        }else{
+            return POSITION.RIGHT;
+        }
+    }
+
+    public enum POSITION{
+        LEFT,
+        CENTRE,
+        RIGHT
     }
 }

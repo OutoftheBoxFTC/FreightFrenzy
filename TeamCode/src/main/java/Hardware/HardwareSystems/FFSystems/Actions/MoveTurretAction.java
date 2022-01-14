@@ -11,7 +11,7 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveTurretAction implements Action {
-    public static double P = 0.04, I = 0.1, D = 0;
+    public static double P = 0.04, I = 1, D = 0;
 
     private Angle targetAngle;
     private TurretSystem system;
@@ -34,7 +34,7 @@ public class MoveTurretAction implements Action {
 
     @Override
     public void update() {
-        pid.setCoefficients(P, 0, D);
+        pid.setCoefficients(P, I, D);
         if(targetAngle == null || !enabled){
             return;
         }
@@ -51,7 +51,7 @@ public class MoveTurretAction implements Action {
         }
         double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
         if(Math.abs(system.getTurretPosition().degrees()) < 5) {
-            system.setTurretMotorPower(MathUtils.signedMax(power, 0.28));
+            system.setTurretMotorPower(MathUtils.signedMax(power, 0.4   ));
         }else{
             system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
         }
