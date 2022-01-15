@@ -116,13 +116,17 @@ public class DumbTeleop extends BasicOpmode {
                 if(gamepad2.a) {
                     hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-(90-Angle.radians(Math.atan2(yDist, xDist)).degrees())));
                 }
-                if(gamepad1.b && state != 0){
+                if((gamepad1.b || gamepad1.a) && state != 0){
                     double dist = Math.sqrt(yDist * yDist + xDist * xDist);
                     if(hardware.getOdometrySystem().getLeftDist() > 40){
                         angle = -37.5;
                         dist = 40;
                     }
-                    extendAction = BlueGoalActions.getBlueAlliance(hardware, -32.2368422, 42.3, true);//-32.2368422
+                    if(gamepad1.b) {
+                        extendAction = BlueGoalActions.getBlueAlliance(hardware, -32.2368422, 42.3, true);//-32.2368422
+                    }else{
+                        extendAction = BlueGoalActions.getBlueAlliance(hardware, -32.2368422, 38.5, true);//-32.2368422
+                    }
                     ActionController.addAction(extendAction);
                     ActionQueue tmp = new ActionQueue();
                     tmp.submitAction(new DelayAction(100));
@@ -144,6 +148,7 @@ public class DumbTeleop extends BasicOpmode {
                     ActionController.addAction(new DumpBucketAction(hardware, 0.93, 0.45));
                     dumping = true;
                 }
+
                 if(!(gamepad2.a || gamepad2.y)){
                     dumping = false;
                 }

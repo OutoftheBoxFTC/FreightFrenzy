@@ -184,7 +184,7 @@ public class BlueAuto extends BasicOpmode {
                             .build();
 
                     Path enterWarehouse1 = new ContinousPathBuilder(driveInFirst.getEndpoint())
-                            .lineTo(new Position(5, 31 - offset, Angle.ZERO()))
+                            .lineTo(new Position(5, 30 - offset, Angle.ZERO()))
                             .build();
 
                     Path intake1 = new ContinousPathBuilder(enterWarehouse1.getEndpoint())
@@ -192,7 +192,7 @@ public class BlueAuto extends BasicOpmode {
                             .build();
 
                     Path outtake1 = new ContinousPathBuilder(intake1.getEndpoint())
-                            .lineTo(new Position(7, 33 - offset, Angle.ZERO()))
+                            .lineTo(new Position(7, 28 - offset, Angle.ZERO()))
                             .build();
 
                     runQueue.submitAction(new DelayAction(500));

@@ -78,7 +78,7 @@ public class ApriltagDetector implements Action {
     }
 
     public POSITION getPosition(){
-        if(getLastPoint().x > 1200){
+        if(getLastPoint().x > 1250){
             return POSITION.LEFT;
         }else if(getLastPoint().x > 1100){
             return POSITION.CENTRE;
