@@ -114,7 +114,7 @@ public class DumbTeleop extends BasicOpmode {
                 telemetry.addData("Pitch Target", targetPos);
                 telemetry.addData("IMU", hardware.getDrivetrainSystem().getImuAngle().degrees());
                 if(gamepad2.a) {
-                    hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-(90-Angle.radians(Math.atan2(yDist, xDist)).degrees())));
+                    //hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-(90-Angle.radians(Math.atan2(yDist, xDist)).degrees())));
                 }
                 if((gamepad1.b || gamepad1.a) && state != 0){
                     double dist = Math.sqrt(yDist * yDist + xDist * xDist);
@@ -155,7 +155,7 @@ public class DumbTeleop extends BasicOpmode {
                 if(gamepad2.b && hardware.getTurretSystem().getExtensionPosition() > 75){
                     hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-35));
                 }
-                if(gamepad1.dpad_down){
+                if(gamepad1.dpad_left){
                     hardware.getTurretSystem().moveTurretRaw(Angle.ZERO());
                 }
 
@@ -203,7 +203,7 @@ public class DumbTeleop extends BasicOpmode {
             }
         });
 
-        OpmodeStatus.bindOnStart(() -> hardware.getDuckSystem().setDuckPower(gamepad2.right_bumper ? 1 : gamepad2.left_bumper ? -1 : 0));
+        OpmodeStatus.bindOnStart(() -> hardware.getDuckSystem().setDuckPower(gamepad2.right_bumper ? 0.6 : gamepad2.left_bumper ? 0.2 : 0));
         //-6.5
     }
 }

@@ -221,4 +221,8 @@ public class TurretSystem implements HardwareSystem {
     public void tareExtensionMotor(){
         offset = extensionMotor.getMotor().getCurrentPosition();
     }
+
+    public SmartServo getBucketServo() {
+        return bucketServo;
+    }
 }

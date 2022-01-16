@@ -15,10 +15,9 @@ public class SmartServo {
     }
 
     public void setPosition(double position){
-        if(Math.abs(position - lastPosition) > 0.0001){
+        if(Math.abs(position - lastPosition) > 0.0001 && servo.isPwmEnabled()){
             servo.setPosition(position);
             lastPosition = position;
-
         }
     }
 
