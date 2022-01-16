@@ -217,4 +217,8 @@ public class TurretSystem implements HardwareSystem {
     public void setTurretPIDActive(boolean active){
         moveTurretAction.setEnabled(active);
     }
+
+    public void tareExtensionMotor(){
+        offset = extensionMotor.getMotor().getCurrentPosition();
+    }
 }

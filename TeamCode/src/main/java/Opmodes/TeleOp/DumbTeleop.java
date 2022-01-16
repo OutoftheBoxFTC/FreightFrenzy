@@ -187,9 +187,18 @@ public class DumbTeleop extends BasicOpmode {
                     hardware.getTurretSystem().moveExtensionRaw(hardware.getTurretSystem().getExtensionPosition());
                     hardware.getTurretSystem().setExPIDActive(false);
                     hardware.getTurretSystem().setExtensionMotorPower(gamepad2.dpad_up ? -0.75 : gamepad2.dpad_down ? 0.75 : 0);
+                }else if(gamepad1.dpad_down || gamepad1.dpad_up){
+                    hardware.getTurretSystem().setBucketPosRaw(0.4);
+                    targetPos += ProgramClock.getFrameTimeSeconds() * 100 * gamepad1.right_stick_y;
+                    hardware.getTurretSystem().moveExtensionRaw(hardware.getTurretSystem().getExtensionPosition());
+                    hardware.getTurretSystem().setExPIDActive(false);
+                    hardware.getTurretSystem().setExtensionMotorPower(gamepad1.dpad_up ? -0.75 : gamepad1.dpad_down ? 0.75 : 0);
                 }else{
                     targetPos = hardware.getTurretSystem().getExtensionPosition();
                     hardware.getTurretSystem().setExPIDActive(true);
+                }
+                if(gamepad1.dpad_right){
+                    hardware.getTurretSystem().tareExtensionMotor();
                 }
             }
         });

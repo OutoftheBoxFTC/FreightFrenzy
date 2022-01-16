@@ -353,6 +353,14 @@ public class BlueAuto extends BasicOpmode {
                     runQueue.submitAction(new DelayAction(300));
                 }
                 runQueue.submitAction(system.gotoGvf(new Position(3, 40, Angle.ZERO())));
+                runQueue.submitAction(new EnterIntakeAction(hardware));
+                runQueue.submitAction(new DelayAction(800));
+                runQueue.submitAction(new InstantAction() {
+                    @Override
+                    public void update() {
+                        hardware.getTurretSystem().setExPIDActive(false);
+                    }
+                });
                 ActionController.addAction(runQueue);
             }
         });
