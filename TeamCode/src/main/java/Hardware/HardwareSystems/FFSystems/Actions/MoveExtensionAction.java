@@ -38,16 +38,7 @@ public class MoveExtensionAction implements Action {
         if(!pidActive){
             return;
         }
-        if(targetPos == 0){
-            if(system.getExtensionPosition() > 0){
-                system.setExtensionMotorPower(0.75);
-            }
-            system.setExtensionMotorPower(0);
-            system.setExtensionFloat();
-            return;
-        }else{
-            system.setExtensionBrake();
-        }
+        system.setExtensionBrake();
         if(Double.isNaN(targetPos) || isAtTarget()){
             system.setExtensionMotorPower(0);
             return;
@@ -59,14 +50,14 @@ public class MoveExtensionAction implements Action {
         if(targetPos < system.getExtensionPosition()){
             double sign = MathUtils.sign(power);
             if(system.getExtensionPosition() < 300) {
-                power = sign * Math.min(0.7, Math.abs(power));
+                power = sign * Math.min(0.4, Math.abs(power));
             }else{
                 power = sign * Math.min(0.8, Math.abs(power));
             }
         }else{
-            if(system.getExtensionPosition() < 50){
+            if(system.getExtensionPosition() < 160){
                 double sign = MathUtils.sign(power);
-                power = sign * Math.min(0.2, Math.abs(power));
+                power = sign * Math.min(0.5, Math.abs(power));
             }
         }
         system.setExtensionMotorPower(MathUtils.signedMax(power, FFConstants.Extension.EXTENSION_KSTATIC));
@@ -84,7 +75,7 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 25;
+        return Math.abs(error) < 10;
     }
 
     public double getTargetPos() {

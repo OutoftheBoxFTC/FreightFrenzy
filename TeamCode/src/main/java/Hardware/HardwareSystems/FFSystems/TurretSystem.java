@@ -191,6 +191,7 @@ public class TurretSystem implements HardwareSystem {
     }
 
     public void setBucketPosRaw(double pos){
+        bucketServo.enableServo();
         bucketServo.setPosition(pos);
     }
 
