@@ -6,6 +6,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import Drive.DriveConstants;
 import Hardware.HardwareSystems.HardwareSystem;
@@ -58,7 +59,7 @@ public class DrivetrainSystem implements HardwareSystem {
     @Override
     public void initialize() {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(new BNO055IMU.Parameters());
 
         angleOffset = getImuAngle().radians();
@@ -157,7 +158,7 @@ public class DrivetrainSystem implements HardwareSystem {
     }
 
     public Angle getImuAngle(){
-        double ang = imu.getAngularOrientation().firstAngle - angleOffset;
+        double ang = imu.getAngularOrientation().firstAngle;
         double tau = 2 * Math.PI;
         ang = ((((ang % tau) + tau) % tau));
         return Angle.radians(ang);

@@ -75,7 +75,7 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 10;
+        return Math.abs(error) < 20;
     }
 
     public double getTargetPos() {

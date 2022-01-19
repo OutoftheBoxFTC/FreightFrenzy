@@ -25,7 +25,15 @@ public class FusionOdometer implements Action {
     @Override
     public void update() {
         this.position.setR(dtSystem.getImuAngle());
-        this.position.setX(odoSystem.getLeftDist());
+        double left = odoSystem.getLeftDist();
+        double angle = dtSystem.getImuAngle().radians();
+
+        if(left < 100) {
+
+            left = Math.cos(angle) * left;
+
+            this.position.setX(left);
+        }
         double curr = -(odoSystem.getFl() + odoSystem.getBl()/2.0);
         double dE = curr - lastPos;
         dE = dE * Math.cos(dtSystem.getImuAngle().radians());
@@ -33,7 +41,10 @@ public class FusionOdometer implements Action {
         this.position.setY(this.position.getY() + dE);
         if(use2mForward) {
             if (odoSystem.getRightDist() < 70) {
-                this.position.setY(47.5 - odoSystem.getRightDist());
+                double forw = odoSystem.getRightDist();
+                forw = Math.cos(angle) * forw;
+
+                this.position.setY(67.5 - forw);
             }
         }
         lastPos = curr;

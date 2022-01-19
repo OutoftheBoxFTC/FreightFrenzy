@@ -16,7 +16,7 @@ public class EnterIntakeAction extends InstantAction {
     @Override
     public void update() {
         hardware.getIntakeSystem().setPower(-1);
-        hardware.getTurretSystem().setBucketPosRaw(0.1);
+        hardware.getTurretSystem().getBucketServo().disableServo();
         ActionQueue queue = new ActionQueue();
         queue.submitAction(new DelayAction(75));
         queue.submitAction(new InstantAction() {

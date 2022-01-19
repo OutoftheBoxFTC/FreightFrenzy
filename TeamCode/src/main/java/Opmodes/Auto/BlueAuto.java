@@ -1,5 +1,6 @@
 package Opmodes.Auto;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -33,7 +34,8 @@ public class BlueAuto extends BasicOpmode {
 
     Position position, velocity;
 
-    double[] offsets = new double[]{0, 20, 12};
+    //double[] offsets = new double[]{0, 20, 10};
+    double[] offsets = new double[]{0, 0, -3};
 
     @Override
     public void setup() {
@@ -45,6 +47,9 @@ public class BlueAuto extends BasicOpmode {
         ActionController.addAction(() -> {
             telemetry.addData("Position", position);
             telemetry.addData("Detection", detector.getPosition());
+            FtcDashboard.getInstance().getTelemetry().addData("Left", hardware.getOdometrySystem().getLeftDist());
+            FtcDashboard.getInstance().getTelemetry().addData("Forward", hardware.getOdometrySystem().getRightDist());
+            FtcDashboard.getInstance().getTelemetry().update();
             if(!isStarted()) {
                 switch (detector.getPosition()) {
                     case LEFT:
@@ -96,7 +101,7 @@ public class BlueAuto extends BasicOpmode {
                         if(level == LEVEL.HIGH) {
                             MoveExtensionAction.P = -0.005;
                             hardware.getTurretSystem().movePitchRaw(Angle.degrees(-13));
-                            hardware.getTurretSystem().moveExtensionRaw(510);
+                            hardware.getTurretSystem().moveExtensionRaw(480);
                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-49));
                         }
                         if(level == LEVEL.MED){
@@ -128,7 +133,7 @@ public class BlueAuto extends BasicOpmode {
                         return hardware.getTurretSystem().isExtensionAtPos();
                     }
                 });
-                runQueue.submitAction(new DelayAction(750));
+                runQueue.submitAction(new DelayAction(250));
                 runQueue.submitAction(new InstantAction() {
                     @Override
                     public void update() {
@@ -144,7 +149,7 @@ public class BlueAuto extends BasicOpmode {
                     }
                 });
 
-                runQueue.submitAction(new DelayAction(850));
+                runQueue.submitAction(new DelayAction(500));
 
                 runQueue.submitAction(new InstantAction() {
                     @Override
@@ -156,7 +161,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     }
                 });
-                runQueue.submitAction(new DelayAction(500));
+                runQueue.submitAction(new DelayAction(250));
                 runQueue.submitAction(BlueGoalActions.getBlueAllianceReturnAuto(hardware));
                 runQueue.submitAction(new Action() {
                     @Override
@@ -178,21 +183,16 @@ public class BlueAuto extends BasicOpmode {
                 double offset = 0;
 
                 for(int i = 0; i < 2; i ++) {
-                    Path driveInFirst = new ContinousPathBuilder(new Position(10, -2 - offset, Angle.ZERO()))
-                            .lineTo(new Position(3, -2 - offset, Angle.ZERO()))
-                            .lineTo(new Position(3, 20 - offset, Angle.ZERO()))
+                    Path driveInFirst = new ContinousPathBuilder(strafeLeft.getEndpoint())
+                            .lineTo(new Position(3, 38 - offset, Angle.ZERO()))
                             .build();
 
-                    Path enterWarehouse1 = new ContinousPathBuilder(driveInFirst.getEndpoint())
-                            .lineTo(new Position(5, 30 - offset, Angle.ZERO()))
-                            .build();
-
-                    Path intake1 = new ContinousPathBuilder(enterWarehouse1.getEndpoint())
-                            .lineTo(new Position(5, (32 + (i * 15)) - offset, Angle.ZERO()))
+                    Path intake1 = new ContinousPathBuilder(driveInFirst.getEndpoint())
+                            .lineTo(new Position(5, (54 + (i * 4)) - offset, Angle.ZERO()))
                             .build();
 
                     Path outtake1 = new ContinousPathBuilder(intake1.getEndpoint())
-                            .lineTo(new Position(7, 28 - offset, Angle.ZERO()))
+                            .lineTo(new Position(5, 0 - offset, Angle.ZERO()))
                             .build();
 
                     runQueue.submitAction(new DelayAction(500));
@@ -209,29 +209,12 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
                     */
-                    runQueue.submitAction(system.followGvf(enterWarehouse1));
+                    runQueue.submitAction(system.followGvf(driveInFirst));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
                             hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
-                        }
-                    });
-
-                    runQueue.submitAction(new InstantAction() {
-                        @Override
-                        public void update() {
-                            odometer.setUse2mForward(true);
-                        }
-                    });
-
-                    runQueue.submitAction(new DelayAction(500));
-
-                    runQueue.submitAction(new InstantAction() {
-                        @Override
-                        public void update() {
-                            odometer.setUse2mForward(false);
-                            hardware.getIntakeSystem().setPower(0);
                         }
                     });
 
@@ -256,22 +239,22 @@ public class BlueAuto extends BasicOpmode {
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
-                            hardware.getIntakeSystem().setPower(0.6);
+                            hardware.getIntakeSystem().setPower(1);
                         }
                     });
 
                     runQueue.submitAction(system.followGvf(intake1));
 
-                    runQueue.submitAction(new DelayAction(500));
+                    runQueue.submitAction(new DelayAction(250));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
-                            hardware.getIntakeSystem().setPower(-0.5);
+                            hardware.getIntakeSystem().setPower(-1);
                         }
                     });
 
-                    runQueue.submitAction(system.followGvf(outtake1));
+                    runQueue.submitAction(new DelayAction(500));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -280,9 +263,23 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(400));
-
                     runQueue.submitAction(new LeaveIntakeAction(hardware));
+
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            ActionQueue queue = new ActionQueue();
+                            queue.submitAction(new DelayAction(750));
+                            queue.submitAction(new InstantAction() {
+                                @Override
+                                public void update() {
+                                    hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-49));
+                                }
+                            });
+
+                            ActionController.addAction(queue);
+                        }
+                    });
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -291,7 +288,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(200));
+                    runQueue.submitAction(new DelayAction(150));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -301,20 +298,33 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
+                    runQueue.submitAction(system.followGvf(outtake1));
+
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
-                            hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-49));
+                            hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
                         }
                     });
 
-                    Path score1 = new ContinousPathBuilder(outtake1.getEndpoint())
-                            .lineTo(new Position(7, 0 - offset, Angle.ZERO()))
-                            .build();
+                    runQueue.submitAction(new DelayAction(200));
 
-                    runQueue.submitAction(system.followGvf(score1));
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            //odometer.setUse2mForward(false);
+                            hardware.getIntakeSystem().setPower(0);
+                        }
+                    });
 
                     runQueue.submitAction(BlueGoalActions.getBlueAlliance(hardware, -49, 40.5, false));
+
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            //requestOpModeStop();
+                        }
+                    });
 
                     runQueue.submitAction(new DelayAction(500));
 

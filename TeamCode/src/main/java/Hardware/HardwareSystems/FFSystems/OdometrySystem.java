@@ -1,5 +1,6 @@
 package Hardware.HardwareSystems.FFSystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import Hardware.HardwareSystems.HardwareSystem;
+import Hardware.SmartDevices.AsyncRev2MSensor;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.Ultrasonic.DFRoboticsUltrasonicSensor;
@@ -15,6 +17,7 @@ public class OdometrySystem implements HardwareSystem {
     private SmartMotor fl, fr, bl, br;
 
     private Rev2mDistanceSensor left, right;
+    private AsyncRev2MSensor leftSensor, rightSensor;
     private DFRoboticsUltrasonicSensor forwardSensor;
     private double leftDist, rightDist;
 
@@ -27,6 +30,8 @@ public class OdometrySystem implements HardwareSystem {
         br = chub.getMotor(3);
         left = hardwareMap.get(Rev2mDistanceSensor.class, "left");
         right = hardwareMap.get(Rev2mDistanceSensor.class, "right");
+        leftSensor = new AsyncRev2MSensor(left);
+        rightSensor = new AsyncRev2MSensor(right);
         forwardSensor = new DFRoboticsUltrasonicSensor(chub.getAnalogInput(1).getAnalogInput());
     }
 
@@ -38,15 +43,18 @@ public class OdometrySystem implements HardwareSystem {
         br.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         timer = System.currentTimeMillis() + 100;
+
+        leftSensor.setMeasurementIntervalMs(100);
+        rightSensor.setMeasurementIntervalMs(100);
     }
 
     @Override
     public void update() {
         if(System.currentTimeMillis() > timer){
             timer = System.currentTimeMillis() + 100;
-            leftDist = left.getDistance(DistanceUnit.INCH);
-            rightDist = right.getDistance(DistanceUnit.INCH);
         }
+        leftDist = leftSensor.getDistance(DistanceUnit.INCH);
+        rightDist = rightSensor.getDistance(DistanceUnit.INCH);
     }
 
     public double getFl(){

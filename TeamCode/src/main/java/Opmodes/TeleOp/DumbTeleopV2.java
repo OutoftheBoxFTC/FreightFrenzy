@@ -69,7 +69,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                     //hardware.getTurretSystem().setBucketPosRaw(0.1);
                                     ActionController.getInstance().terminateAction(this);
                                     ActionQueue queue = new ActionQueue();
-                                    queue.submitAction(new DelayAction(500));
+                                    queue.submitAction(new DelayAction(200));
                                     queue.submitAction(new InstantAction() {
                                         @Override
                                         public void update() {
