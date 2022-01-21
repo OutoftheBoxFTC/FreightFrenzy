@@ -12,6 +12,6 @@ public class ServoTester extends BasicOpmode {
     public static double POS = 0.5;
     @Override
     public void setup() {
-        OpmodeStatus.bindOnStart(() -> hardware.getTurretSystem().setBucketPosRaw(POS));
+        OpmodeStatus.bindOnStart(() -> hardware.getTurretSystem().setArmPos(POS));
     }
 }

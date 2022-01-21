@@ -12,7 +12,7 @@ public class DumpBucketAction extends ActionQueue {
         submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getTurretSystem().setBucketPosRaw(dumpPos);
+                hardware.getTurretSystem().openArm();
             }
         });
         submitAction(new DelayAction(400));

@@ -34,7 +34,7 @@ public class TurretSystem implements HardwareSystem {
     private final MoveExtensionAction moveExtensionAction;
 
     private final SmartMotor turretMotor, pitchMotor, extensionMotor;
-    private final SmartServo bucketServo;
+    private final SmartServo bucketServo, armServo;
     private final SmartPotentiometer turretPotentiometer, pitchPotentiometer;
 
     private Angle turretAngle, prevTurretAngle, turretVel, initialPitch;
@@ -70,7 +70,8 @@ public class TurretSystem implements HardwareSystem {
         movePitchAction = new MovePitchAction(this);
         moveExtensionAction = new MoveExtensionAction(this);
 
-        bucketServo = ehub.getServo(0);
+        bucketServo = ehub.getServo(2);
+        armServo = ehub.getServo(0);
 
         turretAngle = Angle.ZERO();
         prevTurretAngle = Angle.ZERO();
@@ -225,5 +226,18 @@ public class TurretSystem implements HardwareSystem {
 
     public SmartServo getBucketServo() {
         return bucketServo;
+    }
+
+    public void setArmPos(double pos){
+        armServo.enableServo();
+        this.armServo.setPosition(pos);
+    }
+
+    public void closeArm(){
+        setArmPos(0.45);
+    }
+
+    public void openArm(){
+        setArmPos(0.7);
     }
 }

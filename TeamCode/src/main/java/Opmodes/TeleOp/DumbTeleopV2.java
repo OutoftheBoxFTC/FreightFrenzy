@@ -52,6 +52,8 @@ public class DumbTeleopV2 extends BasicOpmode {
                         moving = true;
                         hardware.getTurretSystem().moveExtensionRaw(140);
                         hardware.getTurretSystem().moveTurretRaw(Angle.ZERO());
+                        hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
+                        hardware.getTurretSystem().openArm();
                         ActionController.addAction(new Action() {
                             @Override
                             public void update() {
@@ -119,6 +121,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                     moving = true;
                     hardware.getTurretSystem().moveExtensionRaw(110);
                     hardware.getIntakeSystem().setPower(1);
+                    hardware.getTurretSystem().closeArm();
                     hardware.getTurretSystem().getBucketServo().disableServo();
                     intaking = false;
                     ActionController.addAction(new Action() {
@@ -148,8 +151,9 @@ public class DumbTeleopV2 extends BasicOpmode {
                 telemetry.addData("Test", hardware.getTurretSystem().getExtensionPosition());
 
                 if(gamepad1.b && !moving && !inIntake){
-                    hardware.getTurretSystem().getBucketServo().setPosition(0.45);
+                    hardware.getTurretSystem().setBucketPosRaw(1);
                     hardware.getTurretSystem().moveExtensionRaw(510);
+                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-14));
                 }
 
                 if(gamepad1.a && !prevA && !moving && !inIntake){

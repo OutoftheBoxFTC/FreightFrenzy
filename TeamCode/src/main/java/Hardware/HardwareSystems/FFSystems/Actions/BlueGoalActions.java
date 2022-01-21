@@ -3,6 +3,7 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 import Hardware.FFHardwareController;
 import MathSystems.Angle;
 import State.Action.Action;
+import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
@@ -19,6 +20,19 @@ public class BlueGoalActions {
                 if(turret)
                     hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-14));
+                ActionController.addAction(new Action() {
+                    @Override
+                    public void update() {
+                        if(hardware.getTurretSystem().getExtensionPosition() > 150){
+                            hardware.getTurretSystem().setBucketPosRaw(1);
+                        }
+                    }
+
+                    @Override
+                    public boolean shouldDeactivate() {
+                        return hardware.getTurretSystem().getExtensionPosition() > 150;
+                    }
+                });
             }
 
             @Override

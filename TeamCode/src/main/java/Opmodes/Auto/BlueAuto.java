@@ -12,6 +12,7 @@ import Hardware.HardwareSystems.FFSystems.Actions.LeaveIntakeAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveExtensionAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MovePitchAction;
 import MathSystems.Angle;
+import MathSystems.MathUtils;
 import MathSystems.Position;
 import MathSystems.Vector.Vector3;
 import Odometry.FusionOdometer;
@@ -35,7 +36,8 @@ public class BlueAuto extends BasicOpmode {
     Position position, velocity;
 
     //double[] offsets = new double[]{0, 20, 10};
-    double[] offsets = new double[]{0, 0, -3};
+    double[] offsets = new double[]{0, 0, -3, -3};
+    long started = 0;
 
     @Override
     public void setup() {
@@ -68,12 +70,50 @@ public class BlueAuto extends BasicOpmode {
         FusionOdometer odometer = new FusionOdometer(hardware.getOdometrySystem(), hardware.getDrivetrainSystem(), position, velocity);
         OpmodeStatus.bindOnStart(odometer);
 
+        OpmodeStatus.bindOnStart(new InstantAction() {
+            @Override
+            public void update() {
+                started = System.currentTimeMillis();
+            }
+        });
+
         DriveSystem system = new DriveSystem(hardware.getDrivetrainSystem(), position);
 
         hardware.getDrivetrainSystem().setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
 
         ActionQueue initQueue = new ActionQueue();
+        initQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().closeArm();
+            }
+        });
         initQueue.submitAction(new LeaveIntakeAction(hardware));
+        initQueue.submitAction(new DelayAction(1000));
+        initQueue.submitAction(new Action() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().moveExtensionRaw(250);
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getTurretSystem().isExtensionAtPos();
+            }
+        });
+        initQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setBucketPosRaw(1);
+            }
+        });
+        initQueue.submitAction(new DelayAction(500));
+        initQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().moveExtensionRaw(0);
+            }
+        });
         initQueue.submitAction(new DelayAction(2000));
         initQueue.submitAction(new InstantAction() {
             @Override
@@ -91,30 +131,33 @@ public class BlueAuto extends BasicOpmode {
             public void update() {
                 ActionQueue runQueue = new ActionQueue();
                 if(level == LEVEL.LOW) {
-                    runQueue.submitAction(system.gotoGvf(new Position(6, -2, Angle.ZERO())));
+                    runQueue.submitAction(system.gotoGvf(new Position(8, 0, Angle.ZERO())));
                 }else{
-                    runQueue.submitAction(system.gotoGvf(new Position(10, -2, Angle.ZERO())));
+                    runQueue.submitAction(system.gotoGvf(new Position(12, 0, Angle.ZERO())));
                 }
                 runQueue.submitAction(new Action() {
                     @Override
                     public void update() {
+                        hardware.getTurretSystem().setBucketPosRaw(1);
                         if(level == LEVEL.HIGH) {
                             MoveExtensionAction.P = -0.005;
                             hardware.getTurretSystem().movePitchRaw(Angle.degrees(-13));
-                            hardware.getTurretSystem().moveExtensionRaw(480);
-                            hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-49));
+                            hardware.getTurretSystem().moveExtensionRaw(465);
+                            hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
                         }
                         if(level == LEVEL.MED){
                             MoveExtensionAction.P = -0.002;
                             hardware.getTurretSystem().movePitchRaw(Angle.degrees(8));
-                            hardware.getTurretSystem().moveExtensionRaw(470);
+                            hardware.getTurretSystem().moveExtensionRaw(464);
                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
+                            hardware.getTurretSystem().setBucketPosRaw(0.85);
                         }
                         if(level == LEVEL.LOW){
                             MoveExtensionAction.P = -0.001;
-                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(26));
-                            hardware.getTurretSystem().moveExtensionRaw(457);
+                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(25));
+                            hardware.getTurretSystem().moveExtensionRaw(458);
                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
+                            hardware.getTurretSystem().setBucketPosRaw(0.85);
                         }
                     }
 
@@ -138,14 +181,7 @@ public class BlueAuto extends BasicOpmode {
                     @Override
                     public void update() {
                         MoveExtensionAction.P = -0.0045;
-                        if(level == LEVEL.LOW) {
-                            hardware.getTurretSystem().setBucketPosRaw(0.9);
-                        }else if(level == LEVEL.HIGH){
-                            hardware.getTurretSystem().setBucketPosRaw(0.95);
-                        }
-                        else{
-                            hardware.getTurretSystem().setBucketPosRaw(0.85);
-                        }
+                        hardware.getTurretSystem().openArm();
                     }
                 });
 
@@ -154,11 +190,8 @@ public class BlueAuto extends BasicOpmode {
                 runQueue.submitAction(new InstantAction() {
                     @Override
                     public void update() {
-                        if(level == LEVEL.HIGH) {
-                            hardware.getTurretSystem().setBucketPosRaw(0.45);
-                        }else{
-                            hardware.getTurretSystem().setBucketPosRaw(0.45);
-                        }
+                        hardware.getTurretSystem().closeArm();
+                        hardware.getTurretSystem().setBucketPosRaw(0.45);
                     }
                 });
                 runQueue.submitAction(new DelayAction(250));
@@ -167,6 +200,7 @@ public class BlueAuto extends BasicOpmode {
                     @Override
                     public void update() {
                         hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
+                        hardware.getTurretSystem().openArm();
                     }
 
                     @Override
@@ -182,7 +216,7 @@ public class BlueAuto extends BasicOpmode {
 
                 double offset = 0;
 
-                for(int i = 0; i < 2; i ++) {
+                for(int i = 0; i < 3; i ++) {
                     Path driveInFirst = new ContinousPathBuilder(strafeLeft.getEndpoint())
                             .lineTo(new Position(3, 38 - offset, Angle.ZERO()))
                             .build();
@@ -195,7 +229,7 @@ public class BlueAuto extends BasicOpmode {
                             .lineTo(new Position(5, 0 - offset, Angle.ZERO()))
                             .build();
 
-                    runQueue.submitAction(new DelayAction(500));
+                    runQueue.submitAction(new DelayAction(300));
                     /**
                     runQueue.submitAction(new Action() {
                         @Override
@@ -234,18 +268,52 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(300));
+                    runQueue.submitAction(new DelayAction(500));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
+                            long now = System.currentTimeMillis();
+                            double remaining = 30 - MathUtils.millisToSec(now - started);
+                            if(remaining < 6){
+                                ActionController.getInstance().terminateAction(runQueue);
+                            }
+                        }
+                    });
+
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            hardware.getTurretSystem().setBucketPosRaw(0.1);
                             hardware.getIntakeSystem().setPower(1);
                         }
                     });
 
-                    runQueue.submitAction(system.followGvf(intake1));
+                    runQueue.submitAction(new Action() {
+                        Action action = system.followGvf(intake1);
+                        long timer = 0;
+                        boolean deactivate = false;
 
-                    runQueue.submitAction(new DelayAction(250));
+                        @Override
+                        public void initialize() {
+                            ActionController.addAction(action);
+                            timer = System.currentTimeMillis() + 1000;
+                        }
+
+                        @Override
+                        public void update() {
+                            deactivate = System.currentTimeMillis() > timer;
+                            if(deactivate)
+                                ActionController.getInstance().terminateAction(action);
+                        }
+
+                        @Override
+                        public boolean shouldDeactivate() {
+                            return deactivate;
+                        }
+                    });
+
+                    runQueue.submitAction(new DelayAction(100));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -254,7 +322,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(500));
+                    runQueue.submitAction(new DelayAction(550));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -269,10 +337,12 @@ public class BlueAuto extends BasicOpmode {
                         @Override
                         public void update() {
                             ActionQueue queue = new ActionQueue();
-                            queue.submitAction(new DelayAction(750));
+                            queue.submitAction(new DelayAction(400));
                             queue.submitAction(new InstantAction() {
                                 @Override
                                 public void update() {
+                                    hardware.getTurretSystem().moveExtensionRaw(250);
+                                    hardware.getTurretSystem().setBucketPosRaw(1);
                                     hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-49));
                                 }
                             });
@@ -307,7 +377,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(200));
+                    runQueue.submitAction(new DelayAction(100));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -326,7 +396,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(500));
+                    runQueue.submitAction(new DelayAction(300));
 
                     runQueue.submitAction(new Action() {
                         @Override
@@ -340,37 +410,44 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(250));
+                    runQueue.submitAction(new DelayAction(200));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
-                            hardware.getTurretSystem().setBucketPosRaw(1);
+                            hardware.getTurretSystem().openArm();
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(750));
+                    runQueue.submitAction(new DelayAction(500));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
+                            hardware.getTurretSystem().closeArm();
                             hardware.getTurretSystem().setBucketPosRaw(0.4);
                         }
                     });
 
-                    runQueue.submitAction(BlueGoalActions.getBlueAllianceReturn(hardware));
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            ActionController.addAction(BlueGoalActions.getBlueAllianceReturn(hardware));
+                        }
+                    });
 
-                    runQueue.submitAction(new DelayAction(300));
+
+                    runQueue.submitAction(new DelayAction(100));
                 }
                 runQueue.submitAction(system.gotoGvf(new Position(3, 40, Angle.ZERO())));
-                runQueue.submitAction(new EnterIntakeAction(hardware));
-                runQueue.submitAction(new DelayAction(800));
                 runQueue.submitAction(new InstantAction() {
                     @Override
                     public void update() {
                         hardware.getTurretSystem().setExPIDActive(false);
                     }
                 });
+                runQueue.submitAction(new EnterIntakeAction(hardware));
+                runQueue.submitAction(new DelayAction(800));
                 ActionController.addAction(runQueue);
             }
         });

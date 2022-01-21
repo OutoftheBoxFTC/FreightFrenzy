@@ -36,15 +36,15 @@ public class GVFDrive implements Action {
     }
 
     public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed){
-        this(drivetrainSystem, position, path, speed, 0, 2, Angle.degrees(2));
+        this(drivetrainSystem, position, path, speed, 0, 3, Angle.degrees(3));
     }
 
     public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed, double kps){
-        this(drivetrainSystem, position, path, speed, kps, 2, Angle.degrees(2));
+        this(drivetrainSystem, position, path, speed, kps, 3, Angle.degrees(3));
     }
 
     public GVFDrive(DrivetrainSystem drivetrainSystem, Position position, Path path){
-        this(drivetrainSystem, position, path, 1, 0.12, 2, Angle.degrees(2));
+        this(drivetrainSystem, position, path, 1, 0.08, 3, Angle.degrees(3));
     }
 
     @Override

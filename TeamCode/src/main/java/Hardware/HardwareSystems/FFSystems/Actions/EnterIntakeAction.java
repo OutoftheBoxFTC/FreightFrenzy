@@ -23,6 +23,7 @@ public class EnterIntakeAction extends InstantAction {
             @Override
             public void update() {
                 hardware.getTurretSystem().moveExtensionRaw(0);
+                hardware.getTurretSystem().openArm();
             }
         });
         ActionController.addAction(queue);

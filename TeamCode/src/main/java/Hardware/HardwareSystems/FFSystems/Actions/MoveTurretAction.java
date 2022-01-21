@@ -51,7 +51,7 @@ public class MoveTurretAction implements Action {
         }
         double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
         if(Math.abs(system.getTurretPosition().degrees()) < 5) {
-            system.setTurretMotorPower(MathUtils.signedMax(power, 0.3));
+            system.setTurretMotorPower(MathUtils.signedMax(power, 0.4));
         }else{
             system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
         }
