@@ -9,7 +9,7 @@ import State.Action.Action;
 public class GamepadEx implements Action {
     private final Gamepad gamepad;
 
-    public Joystick right_joystick, left_joystick;
+    public Joystick right_joystick, left_joystick, dpad;
     public Trigger left_trigger, right_trigger;
     public Button dpad_up, dpad_down, dpad_left, dpad_right,
             a, b, x, y,
@@ -23,6 +23,7 @@ public class GamepadEx implements Action {
         left_joystick = new Joystick();
         left_trigger = new Trigger();
         right_trigger = new Trigger();
+        dpad = new Joystick();
         dpad_up = new Button();
         dpad_down = new Button();
         dpad_left = new Button();
@@ -44,6 +45,7 @@ public class GamepadEx implements Action {
     public void update() {
         right_joystick.update(gamepad.right_stick_x, gamepad.right_stick_y);
         left_joystick.update(gamepad.left_stick_x, gamepad.left_stick_y);
+        dpad.update(gamepad.dpad_left ? -1 : gamepad.dpad_right ? 1 : 0, gamepad.dpad_down ? -1 : gamepad.dpad_up ? 1 : 0);
 
         left_trigger.update(gamepad.left_trigger);
         right_trigger.update(gamepad.right_trigger);

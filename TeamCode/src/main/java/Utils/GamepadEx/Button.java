@@ -7,7 +7,7 @@ import State.Action.ActionController;
 
 public class Button {
     private boolean state, toggle, lastState, pressed, released;
-    private ArrayList<Action> pressedStates, releasedStates;
+    private ArrayList<GamepadCallback> pressedStates, releasedStates;
 
     public Button(){
         this.state = false;
@@ -26,21 +26,25 @@ public class Button {
             toggle = !toggle;
             if(state){
                 pressed = true;
-                ActionController.addActions(pressedStates);
+                for(GamepadCallback callback : pressedStates){
+                    callback.call();
+                }
             }else{
                 released = true;
-                ActionController.addActions(releasedStates);
+                for(GamepadCallback callback : releasedStates){
+                    callback.call();
+                }
             }
             lastState = state;
         }
     }
     
-    public Action bindOnPress(Action action){
+    public GamepadCallback bindOnPress(GamepadCallback action){
         this.pressedStates.add(action);
         return action;
     }
     
-    public Action bindOnRelease(Action action){
+    public GamepadCallback bindOnRelease(GamepadCallback action){
         this.releasedStates.add(action);
         return action;
     }

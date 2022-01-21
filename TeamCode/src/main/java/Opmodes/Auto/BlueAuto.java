@@ -22,6 +22,7 @@ import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
+import Utils.OpmodeData;
 import Utils.OpmodeStatus;
 import Utils.PathUtils.ContinousPathBuilder;
 import Utils.PathUtils.Path;
@@ -45,6 +46,8 @@ public class BlueAuto extends BasicOpmode {
         ActionController.addAction(detector);
         position = Position.ZERO();
         velocity = Position.ZERO();
+
+        ActionController.addAction(() -> OpmodeData.getInstance().setExtensionPos(hardware.getTurretSystem().getExtensionPosition()));
 
         ActionController.addAction(() -> {
             telemetry.addData("Position", position);

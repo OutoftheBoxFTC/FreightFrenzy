@@ -42,12 +42,12 @@ public class Trigger {
         return action;
     }
 
-    public Action bindOnPress(Action action){
+    public GamepadCallback bindOnPress(GamepadCallback action){
         button.bindOnPress(action);
         return action;
     }
 
-    public Action bindOnRelease(Action action){
+    public GamepadCallback bindOnRelease(GamepadCallback action){
         button.bindOnRelease(action);
         return action;
     }
