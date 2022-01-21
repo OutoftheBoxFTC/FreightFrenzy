@@ -87,7 +87,24 @@ public class DumbTeleopV2 extends BasicOpmode {
                             public void update() {
                                 if(Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 5){
                                     ActionQueue queue = new ActionQueue();
-                                    queue.submitAction(new DelayAction(1000));
+                                    queue.submitAction(new Action() {
+                                        long timer = 0;
+
+                                        @Override
+                                        public void initialize() {
+                                            timer = System.currentTimeMillis();
+                                        }
+
+                                        @Override
+                                        public void update() {
+
+                                        }
+
+                                        @Override
+                                        public boolean shouldDeactivate() {
+                                            return (System.currentTimeMillis() - timer) > 1000 || gamepad1.right_bumper;
+                                        }
+                                    });
                                     queue.submitAction(new InstantAction() {
                                         @Override
                                         public void update() {
