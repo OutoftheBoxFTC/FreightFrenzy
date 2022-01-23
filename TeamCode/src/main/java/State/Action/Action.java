@@ -18,6 +18,10 @@ public interface Action {
         }
     }
 
+    default void deactivateNow(){
+        ActionController.getInstance().terminateAction(this);
+    }
+
     default void onEnd(){}
 
     default boolean shouldDeactivate(){return false;}

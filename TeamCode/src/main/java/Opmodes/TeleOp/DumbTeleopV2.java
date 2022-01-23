@@ -134,6 +134,19 @@ public class DumbTeleopV2 extends BasicOpmode {
                                     ActionController.addAction(queue);
                                     ActionController.getInstance().terminateAction(this);
                                 }
+                                if(gamepad1Ex.a.justPressed()){
+                                    hardware.getTurretSystem().moveExtensionRaw(250);
+                                    hardware.getTurretSystem().setBucketPosRaw(0.4);
+                                }
+                                if(gamepad1Ex.a.released()){
+                                    hardware.getTurretSystem().moveExtensionRaw(0);
+                                    ActionController.addAction(() -> {
+                                        if(hardware.getTurretSystem().getExtensionPosition() < 70){
+                                            hardware.getTurretSystem().getBucketServo().disableServo();
+                                            deactivateNow();
+                                        }
+                                    });
+                                }
                             }
                         });
                     }
