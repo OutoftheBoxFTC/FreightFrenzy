@@ -15,7 +15,7 @@ public class DumpBucketAction extends ActionQueue {
                 hardware.getTurretSystem().openArm();
             }
         });
-        submitAction(new DelayAction(400));
+        submitAction(new DelayAction(300));
         submitAction(new InstantAction() {
             @Override
             public void update() {

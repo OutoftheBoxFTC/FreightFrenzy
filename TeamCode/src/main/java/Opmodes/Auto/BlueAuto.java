@@ -97,6 +97,7 @@ public class BlueAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getTurretSystem().moveExtensionRaw(250);
+                hardware.getTurretSystem().closeArm();
             }
 
             @Override
@@ -144,7 +145,7 @@ public class BlueAuto extends BasicOpmode {
                         hardware.getTurretSystem().setBucketPosRaw(1);
                         if(level == LEVEL.HIGH) {
                             MoveExtensionAction.P = -0.005;
-                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-13));
+                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-18));
                             hardware.getTurretSystem().moveExtensionRaw(465);
                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
                         }
@@ -157,8 +158,8 @@ public class BlueAuto extends BasicOpmode {
                         }
                         if(level == LEVEL.LOW){
                             MoveExtensionAction.P = -0.001;
-                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(25));
-                            hardware.getTurretSystem().moveExtensionRaw(458);
+                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(15));
+                            hardware.getTurretSystem().moveExtensionRaw(453);
                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
                             hardware.getTurretSystem().setBucketPosRaw(0.85);
                         }
@@ -341,6 +342,17 @@ public class BlueAuto extends BasicOpmode {
                         public void update() {
                             ActionQueue queue = new ActionQueue();
                             queue.submitAction(new DelayAction(400));
+                            queue.submitAction(new Action() {
+                                @Override
+                                public void update() {
+
+                                }
+
+                                @Override
+                                public boolean shouldDeactivate() {
+                                    return hardware.getTurretSystem().isExtensionAtPos();
+                                }
+                            });
                             queue.submitAction(new InstantAction() {
                                 @Override
                                 public void update() {

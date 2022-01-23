@@ -23,8 +23,8 @@ public class Button {
         this.state = state;
         this.pressed = false;
         if(state != lastState){
-            toggle = !toggle;
             if(state){
+                toggle = !toggle;
                 pressed = true;
                 for(GamepadCallback callback : pressedStates){
                     callback.call();

@@ -19,7 +19,7 @@ public class BlueGoalActions {
                 hardware.getTurretSystem().moveExtensionRaw(210);/// 0.0494500688
                 if(turret)
                     hardware.getTurretSystem().moveTurretRaw(Angle.degrees(angle));//-37.5
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-14));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-17));
                 ActionController.addAction(new Action() {
                     @Override
                     public void update() {
