@@ -188,13 +188,20 @@ public class DumbTeleopV2 extends BasicOpmode {
                     }
                 }
 
-                if((gamepad1Ex.right_trigger.pressed() || gamepad1Ex.left_trigger.pressed()) && !moving && inIntake){
+                if((gamepad1Ex.right_trigger.pressed() || gamepad1Ex.left_trigger.pressed() || hardware.getIntakeSystem().inIntake()) && !moving && inIntake){
                     moving = true;
                     ActionQueue tmp = new ActionQueue();
                     tmp.submitAction(new InstantAction() {
                         @Override
                         public void update() {
                             hardware.getTurretSystem().closeArm();
+                            hardware.getDuckSystem().setDuckPower(1);
+                        }
+                    });
+                    tmp.submitAction(new DelayAction(100));
+                    tmp.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
                             hardware.getIntakeSystem().setPower(-1);
                         }
                     });
@@ -205,11 +212,12 @@ public class DumbTeleopV2 extends BasicOpmode {
                             hardware.getTurretSystem().moveExtensionRaw(110);
                             hardware.getIntakeSystem().setPower(1);
                             hardware.getTurretSystem().getBucketServo().disableServo();
+                            hardware.getDuckSystem().setDuckPower(0);
                         }
                     });
                     ActionController.addAction(tmp);
                     intaking = false;
-                    if(gamepad1Ex.right_trigger.pressed()) {
+                    if(gamepad1Ex.right_trigger.pressed() || hardware.getIntakeSystem().inIntake()) {
                         ActionController.addAction(new Action() {
                             @Override
                             public void update() {

@@ -10,6 +10,12 @@ import Utils.OpmodeStatus;
 public class IntakeTesting extends BasicOpmode {
     @Override
     public void setup() {
-        OpmodeStatus.bindOnStart(() -> hardware.getIntakeSystem().setPower(1));
+        OpmodeStatus.bindOnStart(() -> {
+            if(hardware.getIntakeSystem().inIntake()){
+                hardware.getIntakeSystem().setPower(-1);
+            }else{
+                hardware.getIntakeSystem().setPower(1);
+            }
+        });
     }
 }

@@ -2,6 +2,7 @@ package Hardware.HardwareSystems.FFSystems;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -47,6 +48,8 @@ public class TurretSystem implements HardwareSystem {
 
     private long last;
 
+    private LynxModule chub;
+
     public TurretSystem(SmartLynxModule chub, SmartLynxModule ehub, HardwareMap map){
 
         pitchFilter = Collections.synchronizedList(new ArrayList<>());
@@ -76,6 +79,7 @@ public class TurretSystem implements HardwareSystem {
         turretAngle = Angle.ZERO();
         prevTurretAngle = Angle.ZERO();
         turretVel = Angle.ZERO();
+        this.chub = chub.getModule();
     }
 
     @Override
