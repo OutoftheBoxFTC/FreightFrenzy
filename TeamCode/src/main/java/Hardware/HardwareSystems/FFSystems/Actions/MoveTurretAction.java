@@ -2,6 +2,7 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import Hardware.HardwareSystems.FFSystems.FFConstants;
 import Hardware.HardwareSystems.FFSystems.TurretSystem;
@@ -11,7 +12,7 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveTurretAction implements Action {
-    public static double P = 0.04, I = 1, D = 0;
+    public static double P = 0.3, I = 0, D = 0;
 
     private Angle targetAngle;
     private TurretSystem system;
@@ -50,15 +51,8 @@ public class MoveTurretAction implements Action {
             //return;
         }
         double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
-        if(Math.abs(system.getTurretPosition().degrees()) < 5) {
-            system.setTurretMotorPower(MathUtils.signedMax(power, 0.4));
-        }else{
-            system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
-        }
+        system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
 
-        FtcDashboard.getInstance().getTelemetry().addData("Error", MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
-        FtcDashboard.getInstance().getTelemetry().addData("Corr", pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees()));
-        FtcDashboard.getInstance().getTelemetry().addData("Target", targetAngle.degrees());
     }
 
     @Override

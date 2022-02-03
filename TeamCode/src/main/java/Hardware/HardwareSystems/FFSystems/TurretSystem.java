@@ -28,6 +28,7 @@ import State.Action.ActionQueue;
 public class TurretSystem implements HardwareSystem {
     public static final double TICKS_PER_DEGREE_PANCAKES = -6.604477;
     public static final int PITCH_SMOOTHING = 20;
+    public static double TURRET_SMOOTHING = 1;
     private Angle finalTurretAngle = Angle.ZERO(), finalPitchAngle = Angle.ZERO();
 
     private final MoveTurretAction moveTurretAction;
@@ -93,6 +94,7 @@ public class TurretSystem implements HardwareSystem {
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         initialPitch = getPitchPosition();
         timer = System.currentTimeMillis() + 100;
+        MoveExtensionAction.P = -0.0045;
         //pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
         //pitchMotor.getMotor().setPower(0.4);
         //pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -100,13 +102,15 @@ public class TurretSystem implements HardwareSystem {
 
     @Override
     public void update() {
-        if(System.currentTimeMillis() > timer) {
+        if(System.currentTimeMillis() > timer && timer != 0) {
             pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            timer = 0;
         }
         long now = System.currentTimeMillis();
         double dt = (now - last) / 1000.0;
 
-        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13); // 49, 8
+        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 5 - 2.5 - 1.5); // 49, 8
+
         Angle dTurret = MathUtils.getRotDist(prevTurretAngle, turretAngle);
         turretVel = Angle.degrees(dTurret.degrees() / dt);
 
@@ -244,10 +248,22 @@ public class TurretSystem implements HardwareSystem {
     }
 
     public void closeArm(){
-        setArmPos(0.35);
+        setArmPos(0.525);
     }
 
     public void openArm(){
         setArmPos(0.7);
+    }
+
+    public double getTurretMotorPower() {
+        return turretMotor.getPower();
+    }
+
+    public Angle getTurretTarget() {
+        return finalTurretAngle;
+    }
+
+    public SmartPotentiometer getTurretPotentiometer() {
+        return turretPotentiometer;
     }
 }

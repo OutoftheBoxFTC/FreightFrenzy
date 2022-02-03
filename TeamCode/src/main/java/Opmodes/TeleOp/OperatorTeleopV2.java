@@ -1,6 +1,5 @@
 package Opmodes.TeleOp;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -13,13 +12,12 @@ import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
-import Utils.GamepadEx.GamepadCallback;
 import Utils.GamepadEx.GamepadEx;
-import Utils.GamepadEx.GamepadValueCallback;
 import Utils.OpmodeData;
 import Utils.OpmodeStatus;
+
 @TeleOp
-public class DumbTeleopV2 extends BasicOpmode {
+public class OperatorTeleopV2 extends BasicOpmode {
     boolean slowmode = false;
     boolean retractLocked = false;
     double offset = 0;
@@ -30,20 +28,10 @@ public class DumbTeleopV2 extends BasicOpmode {
         OpmodeStatus.bindOnStart(gamepad2Ex);
         Vector3 dirVec = Vector3.ZERO();
 
-        //ctionController.addAction(() -> slowmode = gamepad1Ex.dpad_down.toggled());
+        ActionController.addAction(() -> slowmode = gamepad1Ex.dpad_down.toggled());
 
         if(!OpmodeData.getInstance().isDataStale())
             hardware.getTurretSystem().tareExtensionMotor(OpmodeData.getInstance().getExtensionPos());
-
-        OpmodeStatus.bindOnStart(new Action() {
-            @Override
-            public void update() {
-                FtcDashboard.getInstance().getTelemetry().addData("Turret Position", hardware.getTurretSystem().getTurretPosition().degrees());
-                FtcDashboard.getInstance().getTelemetry().addData("Turret Target", hardware.getTurretSystem().getTurretTarget().degrees());
-                FtcDashboard.getInstance().getTelemetry().addData("Turret Voltage", hardware.getTurretSystem().getTurretPotentiometer().getVoltage());
-                FtcDashboard.getInstance().getTelemetry().update();
-            }
-        });
 
         OpmodeStatus.bindOnStart(() -> {
             dirVec.setA(gamepad1.left_stick_x);
@@ -91,9 +79,8 @@ public class DumbTeleopV2 extends BasicOpmode {
                             }
                             if(!moving && !inIntake) {
                                 moving = true;
-                                hardware.getTurretSystem().moveExtensionRaw(130);
-                                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0.01));
-                                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
+                                hardware.getTurretSystem().moveExtensionRaw(120);
+                                hardware.getTurretSystem().moveTurretRaw(Angle.ZERO());
                                 hardware.getTurretSystem().openArm();
                                 ActionController.addAction(new Action() {
                                     @Override
@@ -107,29 +94,19 @@ public class DumbTeleopV2 extends BasicOpmode {
                                 ActionController.addAction(new Action() {
                                     @Override
                                     public void update() {
-                                        if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 140 &&
-                                                Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 1) {
+                                        if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 130 &&
+                                                Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 5) {
                                             //hardware.getTurretSystem().setBucketPosRaw(0.1);
+                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
                                             ActionController.getInstance().terminateAction(this);
                                             ActionQueue queue = new ActionQueue();
-                                            queue.submitAction(new DelayAction(200));
-                                            queue.submitAction(new Action() {
-                                                @Override
-                                                public void update() {
-
-                                                }
-
-                                                @Override
-                                                public boolean shouldDeactivate() {
-                                                    return Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 1;
-                                                }
-                                            });
                                             queue.submitAction(new InstantAction() {
                                                 @Override
                                                 public void update() {
                                                     hardware.getTurretSystem().getBucketServo().disableServo();
                                                 }
                                             });
+                                            queue.submitAction(new DelayAction(250));
                                             queue.submitAction(new InstantAction() {
                                                 @Override
                                                 public void update() {
@@ -231,7 +208,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-35));
                                             hardware.getIntakeSystem().setPower(0);
                                             hardware.getTurretSystem().setBucketPosRaw(0.9);
-                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(20 + offset)));
+                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(22 + offset)));
                                             moving = false;
                                         }
                                     });
@@ -251,7 +228,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                 if(gamepad1.b && !moving && !inIntake){
                     hardware.getTurretSystem().setBucketPosRaw(1);
                     hardware.getTurretSystem().moveExtensionRaw(580);
-                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(20 + offset)));
+                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(22 + offset)));
                 }
 
                 if(gamepad1.y && !moving && !inIntake){
@@ -260,7 +237,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                     //hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(17 + offset)));
                 }
 
-                if(gamepad1Ex.y.justPressed() && !moving && !inIntake){
+                if(gamepad2Ex.y.justPressed() && !moving && !inIntake){
                     ActionController.addAction(new DumpBucketAction(hardware, 1, 0.4));
                     retractLocked = true;
                     ActionQueue queue = new ActionQueue();
@@ -283,7 +260,7 @@ public class DumbTeleopV2 extends BasicOpmode {
         });
 
         ActionController.addAction(() -> {
-            double val = gamepad1Ex.dpad.getX();
+            double val = gamepad2Ex.dpad.getX();
             if(val == 0){
                 hardware.getTurretSystem().setTurretPIDActive(true);
             }else {
@@ -294,7 +271,7 @@ public class DumbTeleopV2 extends BasicOpmode {
         });
 
         ActionController.addAction(() -> {
-            double val = gamepad1Ex.dpad.getY();
+            double val = gamepad2Ex.dpad.getY();
             if(val == 0){
                 hardware.getTurretSystem().setExPIDActive(true);
             }else {

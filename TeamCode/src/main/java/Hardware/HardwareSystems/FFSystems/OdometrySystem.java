@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.AsyncRev2MSensor;
+import Hardware.SmartDevices.MB1242;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.Ultrasonic.DFRoboticsUltrasonicSensor;
@@ -18,7 +19,7 @@ public class OdometrySystem implements HardwareSystem {
 
     private Rev2mDistanceSensor left, right;
     private AsyncRev2MSensor leftSensor, rightSensor;
-    private DFRoboticsUltrasonicSensor forwardSensor;
+    private MB1242 forwardSensor;
     private double leftDist, rightDist;
 
     private long timer = 0;
@@ -29,10 +30,10 @@ public class OdometrySystem implements HardwareSystem {
         bl = chub.getMotor(2);
         br = chub.getMotor(3);
         left = hardwareMap.get(Rev2mDistanceSensor.class, "left");
-        right = hardwareMap.get(Rev2mDistanceSensor.class, "right");
+        //right = hardwareMap.get(Rev2mDistanceSensor.class, "right");
         leftSensor = new AsyncRev2MSensor(left);
-        rightSensor = new AsyncRev2MSensor(right);
-        forwardSensor = new DFRoboticsUltrasonicSensor(chub.getAnalogInput(1).getAnalogInput());
+        //rightSensor = new AsyncRev2MSensor(right);
+        forwardSensor = hardwareMap.tryGet(MB1242.class, "frontSensor");
     }
 
     @Override
@@ -45,7 +46,7 @@ public class OdometrySystem implements HardwareSystem {
         timer = System.currentTimeMillis() + 100;
 
         leftSensor.setMeasurementIntervalMs(100);
-        rightSensor.setMeasurementIntervalMs(100);
+        //rightSensor.setMeasurementIntervalMs(100);
     }
 
     @Override
@@ -54,7 +55,7 @@ public class OdometrySystem implements HardwareSystem {
             timer = System.currentTimeMillis() + 100;
         }
         leftDist = leftSensor.getDistance(DistanceUnit.INCH);
-        rightDist = rightSensor.getDistance(DistanceUnit.INCH);
+        //rightDist = rightSensor.getDistance(DistanceUnit.INCH);
     }
 
     public double getFl(){
@@ -82,6 +83,6 @@ public class OdometrySystem implements HardwareSystem {
     }
 
     public double getForwardDist(){
-        return forwardSensor.getDistanceCm() / 2.54;
+        return forwardSensor.getDistance(DistanceUnit.INCH);
     }
 }

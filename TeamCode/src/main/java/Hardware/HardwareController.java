@@ -3,6 +3,7 @@ package Hardware;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,9 +63,14 @@ public abstract class HardwareController {
                 if(!(expansionHub == null)) {
                     expansionHub.clearBulkCache();
                 }
+                String s = "";
                 for(HardwareSystem system : hardwareSystems){
+                    long start = System.currentTimeMillis();
                     system.update();
+                    long end = System.currentTimeMillis();
+                    s += (system.getClass().getSimpleName()) + ": " + (end - start) + " | ";
                 }
+                //RobotLog.ii("Timings", s);
                 long now = System.currentTimeMillis();
                 chubLatency.set(now - lastTime);
                 lastTime = now;

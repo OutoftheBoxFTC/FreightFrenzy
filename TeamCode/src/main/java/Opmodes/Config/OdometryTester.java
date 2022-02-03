@@ -1,5 +1,7 @@
 package Opmodes.Config;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import MathSystems.Position;
@@ -26,6 +28,14 @@ public class OdometryTester extends BasicOpmode {
             telemetry.addData("Forward", hardware.getOdometrySystem().getForwardDist());
 
             telemetry.addData("Odo", position);
+
+            telemetry.addData("ChubTime", hardware.getChubLatency());
+
+            TelemetryPacket packet = new TelemetryPacket();
+            double xPos = 141 - hardware.getOdometrySystem().getForwardDist();
+            packet.fieldOverlay().setFill("GREEN");
+            packet.fieldOverlay().strokeLine(xPos, 0, xPos, 141);
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
         });
     }
 }

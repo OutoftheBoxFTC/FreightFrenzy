@@ -87,6 +87,12 @@ public class ApriltagDetector implements Action {
         }
     }
 
+    public void shutdown() {
+        camera.closeCameraDeviceAsync(() -> {
+
+        });
+    }
+
     public enum POSITION{
         LEFT,
         CENTRE,
