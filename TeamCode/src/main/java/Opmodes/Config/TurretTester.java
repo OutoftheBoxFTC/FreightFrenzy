@@ -43,6 +43,8 @@ public class TurretTester extends BasicOpmode {
                 TelemetryPacket packet = new TelemetryPacket();
                 packet.put("Pos", hardware.getTurretSystem().getTurretPosition().degrees());
                 packet.put("Vel", hardware.getTurretSystem().getTurretVel().degrees());
+                telemetry.addData("Encoder", hardware.getTurretSystem().getTurretEncoderPos());
+                telemetry.addData("Test", hardware.getTurretSystem().getTurretMotor().getMotor().getTargetPosition());
                 FtcDashboard.getInstance().getTelemetry().addData("Pos", hardware.getTurretSystem().getTurretPosition().degrees());
                 FtcDashboard.getInstance().getTelemetry().addData("Vel", hardware.getTurretSystem().getTurretVel().degrees());
                 FtcDashboard.getInstance().getTelemetry().addData("Gyro", hardware.getDrivetrainSystem().getImuAngle().degrees());

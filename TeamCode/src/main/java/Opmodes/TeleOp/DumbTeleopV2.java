@@ -108,11 +108,11 @@ public class DumbTeleopV2 extends BasicOpmode {
                                     @Override
                                     public void update() {
                                         if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 140 &&
-                                                Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 1) {
+                                                hardware.getTurretSystem().isTurretAtPos()) {
                                             //hardware.getTurretSystem().setBucketPosRaw(0.1);
                                             ActionController.getInstance().terminateAction(this);
                                             ActionQueue queue = new ActionQueue();
-                                            queue.submitAction(new DelayAction(200));
+                                            queue.submitAction(new DelayAction(50));
                                             queue.submitAction(new Action() {
                                                 @Override
                                                 public void update() {
@@ -121,7 +121,7 @@ public class DumbTeleopV2 extends BasicOpmode {
 
                                                 @Override
                                                 public boolean shouldDeactivate() {
-                                                    return Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 1;
+                                                    return hardware.getTurretSystem().isTurretAtPos();
                                                 }
                                             });
                                             queue.submitAction(new InstantAction() {

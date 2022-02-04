@@ -12,9 +12,9 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveTurretAction implements Action {
-    public static double P = 0.3, I = 0, D = 0;
+    public static double P = -0.1, I = 0, D = 0;
 
-    private Angle targetAngle;
+    private Double targetPos = null;
     private TurretSystem system;
     private PIDSystem pid;
 
@@ -23,24 +23,18 @@ public class MoveTurretAction implements Action {
     public MoveTurretAction(TurretSystem system){
         this.system = system;
         pid = new PIDSystem(P, I, D, 0.1);
-        targetAngle = null;
+        targetPos = null;
     }
 
     public void setTargetAngle(Angle angle){
-        if(targetAngle != null && angle.equals(targetAngle)){
-            return;
-        }
-        targetAngle = angle;
+        targetPos = angle.degrees() * 11.0194174;
     }
 
     @Override
     public void update() {
         pid.setCoefficients(P, I, D);
-        if(targetAngle == null || !enabled){
+        if(targetPos == null || !enabled){
             return;
-        }
-        if(targetAngle.degrees() < -50){
-            targetAngle = Angle.degrees(-47);
         }
         if(isAtTarget()){
             system.setTurretMotorPower(0);
@@ -50,7 +44,7 @@ public class MoveTurretAction implements Action {
             //system.setTurretMotorPower(0);
             //return;
         }
-        double power = pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
+        double power = pid.getCorrection(targetPos - system.getTurretEncoderPos());
         system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
 
     }
@@ -66,15 +60,10 @@ public class MoveTurretAction implements Action {
     }
 
     public boolean isAtTarget(){
-        if(targetAngle == null){
+        if(targetPos == null){
             return false;
         }
-        Angle error = MathUtils.getRotDist(system.getTurretPosition(), targetAngle);
-        double tol = 1;
-        if(Math.abs(system.getTurretPosition().degrees()) > 5){
-            tol = 3;
-        }
-        return Math.abs(error.degrees()) < tol;
+        return Math.abs(targetPos - system.getTurretEncoderPos()) < 25;
     }
 
     public void setEnabled(boolean enabled) {

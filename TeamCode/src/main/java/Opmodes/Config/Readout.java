@@ -17,6 +17,8 @@ public class Readout extends BasicOpmode {
                 telemetry.addData("Turret Pos", hardware.getTurretSystem().getTurretPosition().degrees());
                 telemetry.addData("Extension Pos", hardware.getTurretSystem().getExtensionPosition());
 
+                telemetry.addData("Turret Encoder", hardware.getTurretSystem().getTurretEncoderPos());
+
                 telemetry.addData("Intake Bucket", hardware.getIntakeSystem().getDistance());
             }
         });
