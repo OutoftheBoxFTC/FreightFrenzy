@@ -80,6 +80,13 @@ public class IntakeSystem implements HardwareSystem {
 
     public ActionQueue getOuttakeAction(FFHardwareController hardware){
         ActionQueue queue = new ActionQueue();
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setExtensionMotorPower(-0.4);
+                hardware.getTurretSystem().setBucketPosRaw(0.1);
+            }
+        });
         queue.submitAction(new DelayAction(75));
         queue.submitAction(new InstantAction() {
             @Override
