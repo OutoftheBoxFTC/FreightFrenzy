@@ -46,10 +46,6 @@ public class MoveTurretAction implements Action {
         double power = pid.getCorrection(targetPos - system.getTurretEncoderPos());
         system.setTurretMotorPower(MathUtils.signedMax(power, FFConstants.Turret.TURRET_KSTATIC));
 
-
-        FtcDashboard.getInstance().getTelemetry().addData("Error", MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees());
-        FtcDashboard.getInstance().getTelemetry().addData("Corr", pid.getCorrection(MathUtils.getRotDist(system.getTurretPosition(), targetAngle).degrees()));
-        FtcDashboard.getInstance().getTelemetry().addData("Target", targetAngle.degrees());
     }
 
     @Override

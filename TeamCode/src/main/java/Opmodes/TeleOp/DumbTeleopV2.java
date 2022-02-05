@@ -91,28 +91,20 @@ public class DumbTeleopV2 extends BasicOpmode {
                             }
                             if(!moving && !inIntake) {
                                 moving = true;
-                                hardware.getTurretSystem().moveExtensionRaw(130);
+                                hardware.getTurretSystem().moveExtensionRaw(70);
                                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0.01));
                                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
                                 hardware.getTurretSystem().openArm();
+                                hardware.getIntakeSystem().setPower(-1);
                                 ActionController.addAction(new Action() {
                                     @Override
                                     public void update() {
-                                        if (Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 5) {
-                                            hardware.getIntakeSystem().setPower(-1);
-                                            ActionController.getInstance().terminateAction(this);
-                                        }
-                                    }
-                                });
-                                ActionController.addAction(new Action() {
-                                    @Override
-                                    public void update() {
-                                        if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 140 &&
+                                        if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 80 &&
                                                 hardware.getTurretSystem().isTurretAtPos()) {
                                             //hardware.getTurretSystem().setBucketPosRaw(0.1);
                                             ActionController.getInstance().terminateAction(this);
                                             ActionQueue queue = new ActionQueue();
-                                            queue.submitAction(new DelayAction(50));
+                                            queue.submitAction(new DelayAction(150));
                                             queue.submitAction(new Action() {
                                                 @Override
                                                 public void update() {

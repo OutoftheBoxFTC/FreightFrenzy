@@ -33,7 +33,7 @@ import Vision.ApriltagDetector;
 @Autonomous
 @Config
 public class BlueAuto extends BasicOpmode {
-    public static LEVEL level = LEVEL.MED;
+    public static LEVEL level = LEVEL.HIGH;
 
     Position position, velocity;
 
@@ -43,8 +43,8 @@ public class BlueAuto extends BasicOpmode {
 
     @Override
     public void setup() {
-        ApriltagDetector detector = new ApriltagDetector(hardwareMap);
-        ActionController.addAction(detector);
+        //ApriltagDetector detector = new ApriltagDetector(hardwareMap);
+        //ActionController.addAction(detector);
         position = Position.ZERO();
         velocity = Position.ZERO();
 
@@ -52,11 +52,12 @@ public class BlueAuto extends BasicOpmode {
 
         ActionController.addAction(() -> {
             telemetry.addData("Position", position);
-            telemetry.addData("Detection", detector.getPosition());
+            //telemetry.addData("Detection", detector.getPosition());
             FtcDashboard.getInstance().getTelemetry().addData("Left", hardware.getOdometrySystem().getLeftDist());
             FtcDashboard.getInstance().getTelemetry().addData("Forward", hardware.getOdometrySystem().getRightDist());
             FtcDashboard.getInstance().getTelemetry().update();
             if(!isStarted()) {
+                /**
                 switch (detector.getPosition()) {
                     case LEFT:
                         level = LEVEL.LOW;
@@ -68,6 +69,7 @@ public class BlueAuto extends BasicOpmode {
                         level = LEVEL.HIGH;
                         break;
                 }
+                 */
             }
         });
 
@@ -78,7 +80,7 @@ public class BlueAuto extends BasicOpmode {
             @Override
             public void update() {
                 started = System.currentTimeMillis();
-                detector.shutdown();
+                //detector.shutdown();
             }
         });
 
@@ -137,9 +139,9 @@ public class BlueAuto extends BasicOpmode {
             public void update() {
                 ActionQueue runQueue = new ActionQueue();
                 if(level == LEVEL.LOW) {
-                    runQueue.submitAction(system.gotoGvf(new Position(8, 0, Angle.ZERO())));
+                    //runQueue.submitAction(system.gotoGvf(new Position(8, 0, Angle.ZERO())));
                 }else{
-                    runQueue.submitAction(system.gotoGvf(new Position(12, 0, Angle.ZERO())));
+                    //runQueue.submitAction(system.gotoGvf(new Position(12, 0, Angle.ZERO())));
                 }
                 runQueue.submitAction(new Action() {
                     @Override
@@ -191,7 +193,7 @@ public class BlueAuto extends BasicOpmode {
                     }
                 });
 
-                runQueue.submitAction(new DelayAction(500));
+                runQueue.submitAction(new DelayAction(300));
 
                 runQueue.submitAction(new InstantAction() {
                     @Override
@@ -200,13 +202,14 @@ public class BlueAuto extends BasicOpmode {
                         hardware.getTurretSystem().setBucketPosRaw(0.45);
                     }
                 });
-                runQueue.submitAction(new DelayAction(250));
+                runQueue.submitAction(new DelayAction(200));
                 runQueue.submitAction(BlueGoalActions.getBlueAllianceReturnAuto(hardware));
                 runQueue.submitAction(new Action() {
                     @Override
                     public void update() {
                         hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
                         hardware.getTurretSystem().openArm();
+                        MoveExtensionAction.P = -0.5;
                     }
 
                     @Override
@@ -228,7 +231,7 @@ public class BlueAuto extends BasicOpmode {
                             .build();
 
                     Path intake1 = new ContinousPathBuilder(driveInFirst.getEndpoint())
-                            .lineTo(new Position(5, (54 + (i * 4)) - offset, Angle.ZERO()))
+                            .lineTo(new Position(5, (54 + (i * 7)) - offset, Angle.ZERO()))
                             .build();
 
                     runQueue.submitAction(new DelayAction(300));
@@ -245,7 +248,25 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
                     */
-                    runQueue.submitAction(system.followGvf(driveInFirst));
+                    double finalOffset = offset;
+                    runQueue.submitAction(new Action() {
+                        @Override
+                        public void update() {
+                            hardware.getDrivetrainSystem().setPower(new Vector3(0, 1, 0));
+                        }
+
+                        @Override
+                        public boolean shouldDeactivate() {
+                            return position.getY() > (38 - finalOffset);
+                        }
+                    });
+
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
+                        }
+                    });
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -270,7 +291,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(500));
+                    runQueue.submitAction(new DelayAction(250));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -304,7 +325,7 @@ public class BlueAuto extends BasicOpmode {
 
                         @Override
                         public void update() {
-                            deactivate = System.currentTimeMillis() > timer;
+                            deactivate = System.currentTimeMillis() > timer || hardware.getIntakeSystem().inIntake();
                             if(deactivate)
                                 ActionController.getInstance().terminateAction(action);
                         }
@@ -315,33 +336,24 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(100));
-
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
-                            hardware.getIntakeSystem().setPower(-1);
-                            hardware.getDrivetrainSystem().setPower(new Vector3(0, -0.5, 0));
+                            hardware.getIntakeSystem().getOuttakeAction(hardware).submit();
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(250));
+                    Path moveBack = new PathBuilder(intake1.getEndpoint())
+                            .lineTo(new Position(5, 40-offset, Angle.ZERO()))
+                            .build();
 
-                    runQueue.submitAction(new InstantAction() {
-                        @Override
-                        public void update() {
-                            hardware.getDrivetrainSystem().setPower(new Vector3(0, 0, 0));
-                            hardware.getIntakeSystem().setPower(1);
-                        }
-                    });
-
-                    runQueue.submitAction(new LeaveIntakeAction(hardware));
+                    runQueue.submitAction(system.followGvf(moveBack));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
                             ActionQueue queue = new ActionQueue();
-                            queue.submitAction(new DelayAction(400));
+                            queue.submitAction(new DelayAction(150));
                             queue.submitAction(new Action() {
                                 @Override
                                 public void update() {
@@ -350,7 +362,7 @@ public class BlueAuto extends BasicOpmode {
 
                                 @Override
                                 public boolean shouldDeactivate() {
-                                    return hardware.getTurretSystem().isExtensionAtPos();
+                                    return hardware.getTurretSystem().isExtensionAtPos() && hardware.getTurretSystem().getExtensionPosition() > 120;
                                 }
                             });
                             queue.submitAction(new InstantAction() {
@@ -359,6 +371,7 @@ public class BlueAuto extends BasicOpmode {
                                     hardware.getTurretSystem().moveExtensionRaw(250);
                                     hardware.getTurretSystem().setBucketPosRaw(1);
                                     hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-49));
+                                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-25));
                                 }
                             });
 
@@ -373,17 +386,36 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(250));
+                    runQueue.submitAction(new DelayAction(500));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
                         public void update() {
                             odometer.setUse2mForward(false);
-                            hardware.getIntakeSystem().setPower(0);
                         }
                     });
 
-                    Path outtake1 = new ContinousPathBuilder(intake1.getEndpoint())
+                    double finalOffset1 = offset;
+                    runQueue.submitAction(new Action() {
+                        @Override
+                        public void update() {
+                            hardware.getDrivetrainSystem().setPower(new Vector3(0, -1, 0));
+                        }
+
+                        @Override
+                        public boolean shouldDeactivate() {
+                            return position.getY() < 0 - finalOffset1;
+                        }
+                    });
+
+                    runQueue.submitAction(new InstantAction() {
+                        @Override
+                        public void update() {
+                            hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
+                        }
+                    });
+
+                    Path outtake1 = new ContinousPathBuilder(moveBack.getEndpoint())
                             .lineTo(new Position(5, 0 - offset, Angle.ZERO()))
                             .build();
 
@@ -415,7 +447,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(300));
+                    runQueue.submitAction(new DelayAction(100));
 
                     runQueue.submitAction(new Action() {
                         @Override
@@ -429,7 +461,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(200));
+                    runQueue.submitAction(new DelayAction(50));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -438,7 +470,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(500));
+                    runQueue.submitAction(new DelayAction(250));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override
@@ -448,7 +480,7 @@ public class BlueAuto extends BasicOpmode {
                         }
                     });
 
-                    runQueue.submitAction(new DelayAction(300));
+                    runQueue.submitAction(new DelayAction(150));
 
                     runQueue.submitAction(new InstantAction() {
                         @Override

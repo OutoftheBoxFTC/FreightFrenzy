@@ -83,8 +83,9 @@ public class IntakeSystem implements HardwareSystem {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getTurretSystem().setExtensionMotorPower(-0.4);
+                hardware.getTurretSystem().setExtensionMotorPower(-0.1);
                 hardware.getTurretSystem().setBucketPosRaw(0.1);
+                hardware.getTurretSystem().closeArm();
             }
         });
         queue.submitAction(new DelayAction(75));
@@ -93,7 +94,6 @@ public class IntakeSystem implements HardwareSystem {
             public void update() {
                 hardware.getIntakeSystem().setPower(-1);
                 hardware.getDuckSystem().setDuckPower(1);
-                hardware.getTurretSystem().closeArm();
                 ActionController.addAction(new Action() {
                     long timer = 0;
 
@@ -120,6 +120,7 @@ public class IntakeSystem implements HardwareSystem {
 
             @Override
             public boolean shouldDeactivate() {
+                RobotLog.ii("Current", hardware.getIntakeSystem().getIntakeCurrent()+"");
                 return hardware.getIntakeSystem().getIntakeCurrent() < 0.5;
             }
         });
@@ -129,7 +130,7 @@ public class IntakeSystem implements HardwareSystem {
                 hardware.getIntakeSystem().setPower(1);
                 hardware.getTurretSystem().openArm();
                 hardware.getTurretSystem().setBucketPosRaw(0.4);
-                hardware.getTurretSystem().moveExtensionRaw(150);
+                hardware.getTurretSystem().moveExtensionRaw(200);
             }
         });
         queue.submitAction(new DelayAction(75));

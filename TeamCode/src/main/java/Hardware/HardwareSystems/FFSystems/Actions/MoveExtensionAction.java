@@ -20,7 +20,7 @@ public class MoveExtensionAction implements Action {
 
     public MoveExtensionAction(TurretSystem system){
         this.system = system;
-        P = -0.1;
+        P = -0.5;
         pid = new PIDSystem(P, I, D, 0.1);
         targetPos = Double.NaN;
     }

@@ -40,7 +40,7 @@ public class FusionOdometer implements Action {
         dE = dE * INCH_PER_PULSE;
         this.position.setY(this.position.getY() + dE);
         if(use2mForward) {
-            if (odoSystem.getForwardDist() < 90 && odoSystem.getForwardDist() != 0) {
+            if (odoSystem.getForwardDist() < 40 && odoSystem.getForwardDist() > 29 && odoSystem.getForwardDist() != 0) {
                 double forw = odoSystem.getForwardDist();
                 forw = Math.cos(angle) * forw;
 
