@@ -26,8 +26,8 @@ public class OdometrySystem implements HardwareSystem {
 
     public OdometrySystem(SmartLynxModule chub, HardwareMap hardwareMap){
         fl = chub.getMotor(0);
-        fr = chub.getMotor(1);
-        bl = chub.getMotor(2);
+        fr = chub.getMotor(2);
+        bl = chub.getMotor(1);
         br = chub.getMotor(3);
         left = hardwareMap.get(Rev2mDistanceSensor.class, "left");
         //right = hardwareMap.get(Rev2mDistanceSensor.class, "right");

@@ -43,8 +43,8 @@ public class DrivetrainSystem implements HardwareSystem {
         this.br = module.getMotor(3);//1
 
         this.tlE = module.getMotor(0);
-        this.trE = module.getMotor(1);
-        this.blE = module.getMotor(2);
+        this.trE = module.getMotor(2);
+        this.blE = module.getMotor(1);
         this.brE = module.getMotor(3);
 
         this.tlPID = new PIDFSystem(P, I, D, F);
