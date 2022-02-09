@@ -51,11 +51,23 @@ public class BlueGoalAutoActions {
     public static ActionQueue score(FFHardwareController hardware){
         ActionQueue queue = new ActionQueue();
 
+        queue.submitAction(new Action() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getTurretSystem().isTurretAtPos();
+            }
+        });
+
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getTurretSystem().moveExtensionRaw(800);
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-38));
+                hardware.getTurretSystem().moveExtensionRaw(650);
+                hardware.getTurretSystem().setBucketPosRaw(0.9);
             }
         });
 
@@ -111,6 +123,12 @@ public class BlueGoalAutoActions {
             }
         });
 
+        return queue;
+    }
+
+    public static ActionQueue intoIntake(FFHardwareController hardware){
+        ActionQueue queue = new ActionQueue();
+
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
@@ -139,6 +157,8 @@ public class BlueGoalAutoActions {
             }
         });
 
+        queue.submitAction(new DelayAction(300));
+
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
@@ -146,7 +166,6 @@ public class BlueGoalAutoActions {
                 hardware.getTurretSystem().setBucketPosRaw(0.1);
             }
         });
-
         return queue;
     }
 
@@ -191,7 +210,7 @@ public class BlueGoalAutoActions {
             public void update() {
                 hardware.getDrivetrainSystem().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(1));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-20));
             }
         });
         return initQueue;

@@ -1,12 +1,10 @@
 package Hardware.HardwareSystems.FFSystems;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import Drive.DriveConstants;
 import Hardware.HardwareSystems.HardwareSystem;
@@ -32,7 +30,7 @@ public class DrivetrainSystem implements HardwareSystem {
     private double angleOffset;
     private double blPower, brPower, tlPower, trPower;
     private double blAccel = 0, brAccel = 0, tlAccel = 0, trAccel = 0;
-    private boolean useVelCorrection = false;
+    private boolean enabled = true;
 
     private final LynxModule module;
 
@@ -70,17 +68,7 @@ public class DrivetrainSystem implements HardwareSystem {
 
     @Override
     public void update() {
-        if(useVelCorrection){
-            double tlCorr = tlPID.getCorrection((tlPower * TICKS_PER_SEC) - tl.getMotor().getVelocity(), tlPower * TICKS_PER_SEC);
-            double trCorr = trPID.getCorrection((trPower * TICKS_PER_SEC) - tr.getMotor().getVelocity(), trPower * TICKS_PER_SEC);
-            double blCorr = blPID.getCorrection((blPower * TICKS_PER_SEC) - bl.getMotor().getVelocity(), blPower * TICKS_PER_SEC);
-            double brCorr = brPID.getCorrection((brPower * TICKS_PER_SEC) - br.getMotor().getVelocity(), brPower * TICKS_PER_SEC);
-
-            tl.setPower(tlCorr / API_POWER);
-            tr.setPower(trCorr / API_POWER);
-            bl.setPower(blCorr / API_POWER);
-            br.setPower(brCorr / API_POWER);
-        }else {
+        if(enabled){
             bl.setPower(MathUtils.signedMax((blPower + (FFConstants.DRIVETRAIN_KACCEL * blAccel)), DriveConstants.minVoltage));
             br.setPower(MathUtils.signedMax((brPower + (FFConstants.DRIVETRAIN_KACCEL * brAccel)), DriveConstants.minVoltage));
             tl.setPower(MathUtils.signedMax((tlPower + (FFConstants.DRIVETRAIN_KACCEL * tlAccel)), DriveConstants.minVoltage));
@@ -149,16 +137,16 @@ public class DrivetrainSystem implements HardwareSystem {
         tr.disableVoltageCorrection();
     }
 
-    public void useVelCorrection(){
-        useVelCorrection = true;
+    public void enable(){
+        enabled = true;
     }
 
-    public void disableVelCorrection(){
-        useVelCorrection = false;
+    public void disable(){
+        enabled = false;
     }
 
     public Angle getImuAngle(){
-        double ang = imu.getAngularOrientation().firstAngle;
+        double ang = imu.getAngularOrientation().firstAngle - angleOffset;
         double tau = 2 * Math.PI;
         ang = ((((ang % tau) + tau) % tau));
         return Angle.radians(ang);

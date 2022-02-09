@@ -113,6 +113,13 @@ public class IntakeSystem implements HardwareSystem {
             }
         });
         queue.submitAction(new Action() {
+            long timer = 0;
+
+            @Override
+            public void initialize() {
+                timer = System.currentTimeMillis() + 100;
+            }
+
             @Override
             public void update() {
 
@@ -120,7 +127,7 @@ public class IntakeSystem implements HardwareSystem {
 
             @Override
             public boolean shouldDeactivate() {
-                return hardware.getIntakeSystem().getIntakeCurrent() < 0.5;
+                return hardware.getIntakeSystem().getIntakeCurrent() < 0.5 || System.currentTimeMillis() > timer;
             }
         });
         queue.submitAction(new InstantAction() {
