@@ -7,6 +7,7 @@ import org.checkerframework.checker.units.qual.A;
 import Hardware.FFHardwareController;
 import MathSystems.Angle;
 import State.Action.Action;
+import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
@@ -54,7 +55,7 @@ public class BlueGoalAutoActions {
         queue.submitAction(new Action() {
             @Override
             public void update() {
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-42));
             }
 
             @Override
@@ -136,7 +137,7 @@ public class BlueGoalAutoActions {
             }
         });
 
-        queue.submitAction(new DelayAction(100));
+        queue.submitAction(new DelayAction(50));
 
         queue.submitAction(new InstantAction() {
             @Override
@@ -157,13 +158,43 @@ public class BlueGoalAutoActions {
             }
         });
 
+        queue.submitAction(new DelayAction(100));
+
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setBucketPosRaw(0.1);
+            }
+        });
+
         queue.submitAction(new DelayAction(300));
 
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getIntakeSystem().setPower(1);
-                hardware.getTurretSystem().setBucketPosRaw(0.1);
+                ActionController.addAction(new Action() {
+                    boolean deactive = false;
+                    long timer = 0;
+                    @Override
+                    public void initialize() {
+                        hardware.getIntakeSystem().setPower(1);
+                        timer = System.currentTimeMillis() + 1000;
+                    }
+
+                    @Override
+                    public void update() {
+                        if(hardware.getIntakeSystem().inIntake()){
+                            hardware.getIntakeSystem().setPower(-1);
+                            hardware.getTurretSystem().closeArm();
+                            deactive = true;
+                        }
+                    }
+
+                    @Override
+                    public boolean shouldDeactivate() {
+                        return deactive && System.currentTimeMillis() > timer;
+                    }
+                });
             }
         });
         return queue;
@@ -209,7 +240,7 @@ public class BlueGoalAutoActions {
             @Override
             public void update() {
                 hardware.getDrivetrainSystem().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-42));
                 hardware.getTurretSystem().movePitchRaw(Angle.degrees(-20));
             }
         });

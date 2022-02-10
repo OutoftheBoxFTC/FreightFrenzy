@@ -75,8 +75,7 @@ public class BlueAutoV2 extends BasicOpmode {
         //drive.setLocalizer(new FFFusionOdometer(hardware.getOdometrySystem(), hardware.getDrivetrainSystem()));
 
         TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                .strafeRight(3)
-                .waitSeconds(1);
+                .strafeRight(3);
 
         for(int i = 0; i < 4; i ++){
             builder.forward(19)
