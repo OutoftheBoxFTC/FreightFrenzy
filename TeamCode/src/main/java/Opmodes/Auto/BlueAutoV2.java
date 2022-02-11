@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import Hardware.HardwareSystems.FFSystems.Actions.BlueGoalAutoActions;
+import MathSystems.Vector.Vector3;
 import Odometry.FFFusionOdometer;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.SampleMecanumDrive;
@@ -75,24 +76,24 @@ public class BlueAutoV2 extends BasicOpmode {
         //drive.setLocalizer(new FFFusionOdometer(hardware.getOdometrySystem(), hardware.getDrivetrainSystem()));
 
         TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                .strafeRight(3);
+                .strafeRight(4);
 
         for(int i = 0; i < 4; i ++){
-            builder.forward(19)
+            builder.forward(21)
                     .addDisplacementMarker(() -> BlueGoalAutoActions.intoIntake(hardware).submit())
                     .forward(4)
                     .waitSeconds(0.5)
-                    .forward(12 + (i * 1))
+                    .forward(12 + (i * 1.6))
                     .addDisplacementMarker(() -> hardware.getIntakeSystem().getOuttakeAction(hardware).submit())
-                    .back(7 + (i * 1))
+                    .back(7 + (i * 1.8))
                     .addDisplacementMarker(() -> BlueGoalAutoActions.preloadToHighGoal(hardware).submit())
-                    .back(20 + (i * 1.5))
+                    .back(20 + (i * 1.2))
                     .addDisplacementMarker(() -> BlueGoalAutoActions.score(hardware).submit())
                     .back(4)
-                    .waitSeconds(1);
+                    .waitSeconds(0.25);
         }
 
-        builder.forward(25);
+        builder.forward(32);
 
         TrajectorySequence goIn1 = builder.build();
 
@@ -107,6 +108,17 @@ public class BlueAutoV2 extends BasicOpmode {
             @Override
             public void update() {
                 drive.update();
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return System.currentTimeMillis() - started > 29000;
+            }
+        });
+        startQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
             }
         });
 

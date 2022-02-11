@@ -117,7 +117,7 @@ public class IntakeSystem implements HardwareSystem {
 
             @Override
             public void initialize() {
-                timer = System.currentTimeMillis() + 100;
+                timer = System.currentTimeMillis() + 300;
             }
 
             @Override

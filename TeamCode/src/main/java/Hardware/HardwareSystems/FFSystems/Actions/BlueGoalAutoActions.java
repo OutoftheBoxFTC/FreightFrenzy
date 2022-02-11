@@ -55,7 +55,7 @@ public class BlueGoalAutoActions {
         queue.submitAction(new Action() {
             @Override
             public void update() {
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-42));
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
             }
 
             @Override
@@ -184,7 +184,7 @@ public class BlueGoalAutoActions {
                     @Override
                     public void update() {
                         if(hardware.getIntakeSystem().inIntake()){
-                            hardware.getIntakeSystem().setPower(-1);
+                            hardware.getIntakeSystem().setPower(-0.5);
                             hardware.getTurretSystem().closeArm();
                             deactive = true;
                         }

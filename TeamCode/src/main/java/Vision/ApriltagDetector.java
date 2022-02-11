@@ -89,7 +89,7 @@ public class ApriltagDetector implements Action {
 
     public void shutdown() {
         camera.closeCameraDeviceAsync(() -> {
-
+            camera.closeCameraDevice();
         });
     }
 
