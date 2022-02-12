@@ -59,21 +59,26 @@ public abstract class HardwareController {
         new Thread(() -> {
             long lastTime = System.currentTimeMillis();
             while((System.currentTimeMillis() - heartbeat.get()) < HEARTBEAT_TIMEOUT_MS){
-                controlHub.clearBulkCache();
-                if(!(expansionHub == null)) {
-                    expansionHub.clearBulkCache();
+                try {
+                    controlHub.clearBulkCache();
+                    if (!(expansionHub == null)) {
+                        expansionHub.clearBulkCache();
+                    }
+                    String s = "";
+                    for (HardwareSystem system : hardwareSystems) {
+                        long start = System.currentTimeMillis();
+                        system.update();
+                        long end = System.currentTimeMillis();
+                        s += (system.getClass().getSimpleName()) + ": " + (end - start) + " | ";
+                    }
+                    //RobotLog.ii("Timings", s);
+                    long now = System.currentTimeMillis();
+                    chubLatency.set(now - lastTime);
+                    lastTime = now;
+                }catch(Exception e){
+                    RobotLog.e(e.getMessage());
+                    RobotLog.setGlobalErrorMsg(e.getMessage());
                 }
-                String s = "";
-                for(HardwareSystem system : hardwareSystems){
-                    long start = System.currentTimeMillis();
-                    system.update();
-                    long end = System.currentTimeMillis();
-                    s += (system.getClass().getSimpleName()) + ": " + (end - start) + " | ";
-                }
-                //RobotLog.ii("Timings", s);
-                long now = System.currentTimeMillis();
-                chubLatency.set(now - lastTime);
-                lastTime = now;
             }
         }).start();
     }

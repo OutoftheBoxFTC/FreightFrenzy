@@ -8,6 +8,7 @@ public class SmartServo {
     private ServoImplEx servo;
     private PwmRange pmwRange;
     private double lastPosition;
+    private boolean enabled = true;
 
     public SmartServo(Servo servo){
         this.servo = (ServoImplEx) servo;
@@ -34,12 +35,14 @@ public class SmartServo {
     public void disableServo(){
         if(servo.isPwmEnabled()){
             servo.setPwmDisable();
+            enabled = false;
         }
     }
 
     public void enableServo(){
         if(!servo.isPwmEnabled()){
             servo.setPwmEnable();
+            enabled = true;
         }
     }
 

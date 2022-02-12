@@ -223,7 +223,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-35));
                                             hardware.getIntakeSystem().setPower(0);
                                             hardware.getTurretSystem().setBucketPosRaw(0.9);
-                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(20 + offset)));
+                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(30 + offset)));
                                             moving = false;
                                         }
                                     });
@@ -243,7 +243,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                 if(gamepad1.b && !moving && !inIntake){
                     hardware.getTurretSystem().setBucketPosRaw(1);
                     hardware.getTurretSystem().moveExtensionRaw(580);
-                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(20 + offset)));
+                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(30 + offset)));
                 }
 
                 if(gamepad1.y && !moving && !inIntake){

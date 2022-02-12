@@ -63,7 +63,7 @@ public class TurretSystem implements HardwareSystem {
         pitchPotentiometer = new SmartPotentiometer(ehub.getAnalogInput(FFConstants.ExpansionPorts.PITCH_POTENTIOMETER_PORT),
                 FFConstants.Pitch.PITCH_MIN_ANGLE, FFConstants.Pitch.PITCH_MAX_ANGLE);
 
-        pitchPotentiometer.setOffsetAngle(Angle.degrees(258+11.3));
+        pitchPotentiometer.setOffsetAngle(Angle.degrees(258+11.3+10));
 
         extensionMotor = ehub.getMotor(FFConstants.ExpansionPorts.EXTENSION_MOTOR_PORT);
 
@@ -93,7 +93,7 @@ public class TurretSystem implements HardwareSystem {
         initialPitch = getPitchPosition();
         timer = System.currentTimeMillis() + 100;
         MoveExtensionAction.P = -0.0045;
-        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 5 - 2.5); // 49, 8
+        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 12 - 15); // 49, 8
         initialTurret = (int) (turretAngle.degrees() * 11.0194174);
         //pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
         //pitchMotor.getMotor().setPower(0.4);

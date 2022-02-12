@@ -53,10 +53,6 @@ public class MovePitchAction implements Action {
             return;
         }
         numFrames = 0;
-        if(system.getPitchPosition().degrees() < -60){
-            system.setPitchMotorPower(0);
-            return;
-        }
         FtcDashboard.getInstance().getTelemetry().addData("Target Pos", targetPos);
         RobotLog.ii("Target Pos", targetPos + "|" + system.getPitchMotorPos());
         double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), 1);
