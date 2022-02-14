@@ -99,13 +99,13 @@ public class IntakeSystem implements HardwareSystem {
 
                     @Override
                     public void initialize() {
-                        timer = System.currentTimeMillis() + 50;
+                        timer = System.currentTimeMillis() + 150;
                     }
 
                     @Override
                     public void update() {
                         if(System.currentTimeMillis() > timer){
-                            hardware.getTurretSystem().openArm();
+                            //hardware.getTurretSystem().openArm();
                             ActionController.getInstance().terminateAction(this);
                         }
                     }
@@ -134,7 +134,7 @@ public class IntakeSystem implements HardwareSystem {
             @Override
             public void update() {
                 hardware.getIntakeSystem().setPower(1);
-                hardware.getTurretSystem().openArm();
+                //hardware.getTurretSystem().openArm();
                 hardware.getTurretSystem().setBucketPosRaw(0.4);
                 hardware.getTurretSystem().moveExtensionRaw(150);
             }

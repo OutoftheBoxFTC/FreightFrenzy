@@ -98,7 +98,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                 ActionController.addAction(new Action() {
                                     @Override
                                     public void update() {
-                                        if (Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 5) {
+                                        if (hardware.getTurretSystem().isTurretAtPos()) {
                                             hardware.getIntakeSystem().setPower(-1);
                                             ActionController.getInstance().terminateAction(this);
                                         }
@@ -108,7 +108,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                     @Override
                                     public void update() {
                                         if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 140 &&
-                                                Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 1) {
+                                                hardware.getTurretSystem().isTurretAtPos()) {
                                             //hardware.getTurretSystem().setBucketPosRaw(0.1);
                                             ActionController.getInstance().terminateAction(this);
                                             ActionQueue queue = new ActionQueue();
@@ -121,7 +121,7 @@ public class DumbTeleopV2 extends BasicOpmode {
 
                                                 @Override
                                                 public boolean shouldDeactivate() {
-                                                    return Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 1;
+                                                    return hardware.getTurretSystem().isTurretAtPos();
                                                 }
                                             });
                                             queue.submitAction(new InstantAction() {
@@ -222,7 +222,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                 if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) > 130) {
                                     hardware.getTurretSystem().getBucketServo().enableServo();
                                     hardware.getTurretSystem().getBucketServo().setPosition(0.4);
-                                    hardware.getTurretSystem().moveExtensionRaw(350);
+                                    hardware.getTurretSystem().moveExtensionRaw(250);
                                     ActionQueue queue = new ActionQueue();
                                     queue.submitAction(new DelayAction(100));
                                     queue.submitAction(new InstantAction() {
@@ -231,7 +231,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-35));
                                             hardware.getIntakeSystem().setPower(0);
                                             hardware.getTurretSystem().setBucketPosRaw(0.9);
-                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(20 + offset)));
+                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(27 + offset)));
                                             moving = false;
                                         }
                                     });
@@ -251,7 +251,7 @@ public class DumbTeleopV2 extends BasicOpmode {
                 if(gamepad1.b && !moving && !inIntake){
                     hardware.getTurretSystem().setBucketPosRaw(1);
                     hardware.getTurretSystem().moveExtensionRaw(580);
-                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(20 + offset)));
+                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(27 + offset)));
                 }
 
                 if(gamepad1.y && !moving && !inIntake){

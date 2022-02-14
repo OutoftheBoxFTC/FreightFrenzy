@@ -161,7 +161,7 @@ public class BlueGoalActions {
 
             @Override
             public boolean shouldDeactivate() {
-                return true;
+                return hardware.getTurretSystem().isExtensionAtPos();
             }
         });
         return queue;

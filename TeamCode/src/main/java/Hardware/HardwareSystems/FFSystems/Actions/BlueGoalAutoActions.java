@@ -33,7 +33,7 @@ public class BlueGoalAutoActions {
             public void update() {
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-38));
                 hardware.getTurretSystem().moveExtensionRaw(400);
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-25));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-40));
             }
         });
 
@@ -56,6 +56,7 @@ public class BlueGoalAutoActions {
             @Override
             public void update() {
                 hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-20));
             }
 
             @Override
@@ -240,8 +241,8 @@ public class BlueGoalAutoActions {
             @Override
             public void update() {
                 hardware.getDrivetrainSystem().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-42));
-                hardware.getTurretSystem().movePitchRaw(Angle.degrees(-20));
+                hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-40));
+                hardware.getTurretSystem().movePitchRaw(Angle.degrees(0));
             }
         });
         return initQueue;

@@ -6,7 +6,11 @@ import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import Hardware.HardwareSystems.FFSystems.Actions.BlueGoalActions;
 import Hardware.HardwareSystems.FFSystems.Actions.BlueGoalAutoActions;
+import Hardware.HardwareSystems.FFSystems.Actions.MoveExtensionAction;
+import MathSystems.Angle;
+import MathSystems.Position;
 import MathSystems.Vector.Vector3;
 import Odometry.FFFusionOdometer;
 import Opmodes.BasicOpmode;
@@ -17,6 +21,7 @@ import State.Action.Action;
 import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
+import State.Action.StandardActions.DelayAction;
 import Utils.OpmodeData;
 import Utils.OpmodeStatus;
 import Vision.ApriltagDetector;
@@ -78,7 +83,7 @@ public class BlueAutoV2 extends BasicOpmode {
         TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
                 .strafeRight(4);
 
-        for(int i = 0; i < 4; i ++){
+        for(int i = 0; i < 3; i ++){
             builder.forward(21)
                     .addDisplacementMarker(() -> BlueGoalAutoActions.intoIntake(hardware).submit())
                     .forward(4)
@@ -87,10 +92,10 @@ public class BlueAutoV2 extends BasicOpmode {
                     .addDisplacementMarker(() -> hardware.getIntakeSystem().getOuttakeAction(hardware).submit())
                     .back(7 + (i * 1.8))
                     .addDisplacementMarker(() -> BlueGoalAutoActions.preloadToHighGoal(hardware).submit())
-                    .back(20 + (i * 1.2))
+                    .back(20 + (i * 1.95))
                     .addDisplacementMarker(() -> BlueGoalAutoActions.score(hardware).submit())
                     .back(4)
-                    .waitSeconds(0.25);
+                    .waitSeconds(1);
         }
 
         builder.forward(32);
@@ -98,7 +103,93 @@ public class BlueAutoV2 extends BasicOpmode {
         TrajectorySequence goIn1 = builder.build();
 
         ActionQueue startQueue = new ActionQueue();
-        startQueue.submitAction(BlueGoalAutoActions.score(hardware));
+        startQueue.submitAction(new Action() {
+                    @Override
+                    public void update() {
+                        hardware.getTurretSystem().setBucketPosRaw(1);
+                        if(level == BlueAuto.LEVEL.HIGH) {
+                            MoveExtensionAction.P = -0.005;
+                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-20));
+                            hardware.getTurretSystem().moveExtensionRaw(650);
+                            hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
+                        }
+                        if(level == BlueAuto.LEVEL.MED){
+                            MoveExtensionAction.P = -0.002;
+                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(7));
+                            hardware.getTurretSystem().moveExtensionRaw(650);
+                            hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-50));
+                            hardware.getTurretSystem().setBucketPosRaw(0.9);
+                        }
+                        if(level == BlueAuto.LEVEL.LOW){
+                            MoveExtensionAction.P = -0.001;
+                            hardware.getTurretSystem().moveExtensionRaw(645);
+                            hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-38));
+                            hardware.getTurretSystem().setBucketPosRaw(0.85);
+                            ActionController.addAction(new Action() {
+                                @Override
+                                public void update() {
+                                    if(hardware.getTurretSystem().getExtensionPosition() > 200){
+                                        hardware.getTurretSystem().movePitchRaw(Angle.degrees(17));
+                                    }
+                                }
+
+                                @Override
+                                public boolean shouldDeactivate() {
+                                    return hardware.getTurretSystem().getExtensionPosition() > 250;
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public boolean shouldDeactivate() {
+                        return hardware.getTurretSystem().isExtensionAtPos();
+                    }
+                });
+        startQueue.submitAction(new Action() {
+                    @Override
+                    public void update() {
+                    }
+
+                    @Override
+                    public boolean shouldDeactivate() {
+                        return hardware.getTurretSystem().isExtensionAtPos();
+                    }
+                });
+        startQueue.submitAction(new DelayAction(75));
+        startQueue.submitAction(new InstantAction() {
+                    @Override
+                    public void update() {
+                        MoveExtensionAction.P = -0.005;
+                        hardware.getTurretSystem().openArm();
+                    }
+                });
+
+        startQueue.submitAction(new DelayAction(200));
+
+        startQueue.submitAction(new InstantAction() {
+                    @Override
+                    public void update() {
+                        hardware.getTurretSystem().closeArm();
+                        hardware.getTurretSystem().setBucketPosRaw(0.4);
+                    }
+                });
+        startQueue.submitAction(new DelayAction(50));
+        startQueue.submitAction(BlueGoalActions.getBlueAllianceReturnAuto(hardware));
+        startQueue.submitAction(new Action() {
+                    @Override
+                    public void update() {
+                        hardware.getIntakeSystem().setPower(-1);
+                        hardware.getTurretSystem().moveTurretRaw(Angle.degrees(0));
+                        hardware.getTurretSystem().openArm();
+                    }
+
+                    @Override
+                    public boolean shouldDeactivate() {
+                        return true;
+                    }
+                });
+        startQueue.submitAction(new DelayAction(500));
         startQueue.submitAction(new Action() {
             @Override
             public void initialize() {
@@ -112,7 +203,7 @@ public class BlueAutoV2 extends BasicOpmode {
 
             @Override
             public boolean shouldDeactivate() {
-                return System.currentTimeMillis() - started > 29000;
+                return System.currentTimeMillis() - started > 28000;
             }
         });
         startQueue.submitAction(new InstantAction() {
@@ -121,6 +212,7 @@ public class BlueAutoV2 extends BasicOpmode {
                 hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
             }
         });
+        startQueue.submitAction(BlueGoalAutoActions.intoIntake(hardware));
 
         OpmodeStatus.bindOnStart(startQueue);
     }

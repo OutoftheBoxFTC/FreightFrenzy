@@ -94,10 +94,12 @@ public class OperatorTeleopV2 extends BasicOpmode {
                                 ActionController.addAction(new Action() {
                                     @Override
                                     public void update() {
-                                        if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 130 &&
+                                        if(Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 450){
+                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
+                                        }
+                                        if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) < 150 &&
                                                 Math.abs(hardware.getTurretSystem().getTurretPosition().degrees()) < 5) {
                                             //hardware.getTurretSystem().setBucketPosRaw(0.1);
-                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-6.5));
                                             ActionController.getInstance().terminateAction(this);
                                             ActionQueue queue = new ActionQueue();
                                             queue.submitAction(new InstantAction() {
@@ -199,7 +201,7 @@ public class OperatorTeleopV2 extends BasicOpmode {
                                 if (Math.abs(hardware.getTurretSystem().getExtensionPosition()) > 130) {
                                     hardware.getTurretSystem().getBucketServo().enableServo();
                                     hardware.getTurretSystem().getBucketServo().setPosition(0.4);
-                                    hardware.getTurretSystem().moveExtensionRaw(350);
+                                    hardware.getTurretSystem().moveExtensionRaw(200);
                                     ActionQueue queue = new ActionQueue();
                                     queue.submitAction(new DelayAction(100));
                                     queue.submitAction(new InstantAction() {
@@ -208,7 +210,7 @@ public class OperatorTeleopV2 extends BasicOpmode {
                                             hardware.getTurretSystem().moveTurretRaw(Angle.degrees(-35));
                                             hardware.getIntakeSystem().setPower(0);
                                             hardware.getTurretSystem().setBucketPosRaw(0.9);
-                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(22 + offset)));
+                                            hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(27 + offset)));
                                             moving = false;
                                         }
                                     });
@@ -228,7 +230,7 @@ public class OperatorTeleopV2 extends BasicOpmode {
                 if(gamepad1.b && !moving && !inIntake){
                     hardware.getTurretSystem().setBucketPosRaw(1);
                     hardware.getTurretSystem().moveExtensionRaw(580);
-                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(22 + offset)));
+                    hardware.getTurretSystem().movePitchRaw(Angle.degrees(-(27 + offset)));
                 }
 
                 if(gamepad1.y && !moving && !inIntake){

@@ -93,7 +93,7 @@ public class TurretSystem implements HardwareSystem {
         initialPitch = getPitchPosition();
         timer = System.currentTimeMillis() + 100;
         MoveExtensionAction.P = -0.0045;
-        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 5 - 1.5); // 49, 8
+        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 12 - 15); // 49, 8
         initialTurret = (int) (turretAngle.degrees() * 11.0194174);
         //pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
         //pitchMotor.getMotor().setPower(0.4);
@@ -110,7 +110,7 @@ public class TurretSystem implements HardwareSystem {
         long now = System.currentTimeMillis();
         double dt = (now - last) / 1000.0;
 
-        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 5 - 2.5 - 2.5); // 49, 8
+        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 12 - 15); // 49, 8
 
         Angle dTurret = MathUtils.getRotDist(prevTurretAngle, turretAngle);
         turretVel = Angle.degrees(dTurret.degrees() / dt);

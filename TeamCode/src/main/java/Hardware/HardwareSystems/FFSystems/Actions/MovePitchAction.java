@@ -53,13 +53,9 @@ public class MovePitchAction implements Action {
             return;
         }
         numFrames = 0;
-        if(system.getPitchPosition().degrees() < -60){
-            system.setPitchMotorPower(0);
-            return;
-        }
         FtcDashboard.getInstance().getTelemetry().addData("Target Pos", targetPos);
-        RobotLog.ii("Target Pos", targetPos + "|" + system.getPitchMotorPos());
-        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), 1);
+        double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), 0);
+        RobotLog.ii("Target Pos", targetPos + "|" + system.getPitchMotorPos() + " | " + power);
         system.setPitchMotorPower(MathUtils.signedMax(power, FFConstants.Pitch.PITCH_KSTATIC));
     }
 
