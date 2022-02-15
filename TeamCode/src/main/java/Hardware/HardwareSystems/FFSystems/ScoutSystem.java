@@ -3,26 +3,20 @@ package Hardware.HardwareSystems.FFSystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 
 import Hardware.HardwareSystems.FFSystems.Actions.MoveExtensionAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MovePitchAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveTurretAction;
 import Hardware.HardwareSystems.HardwareSystem;
-import Hardware.SmartDevices.SmartAnalogInput.SmartPotentiometer;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 import MathSystems.Angle;
-import MathSystems.MathUtils;
 
 @Config
-public class TurretSystem implements HardwareSystem {
-    public static final double TICKS_PER_DEGREE_PANCAKES = -6.604477;
+public class ScoutSystem implements HardwareSystem {
     public static int TURRET_SMOOTHING = 5;
     private Angle finalTurretAngle = Angle.ZERO(), finalPitchAngle = Angle.ZERO();
 
@@ -32,13 +26,10 @@ public class TurretSystem implements HardwareSystem {
 
     private final SmartMotor turretMotor, pitchMotor, extensionMotor;
     private final SmartServo bucketServo, armServo;
-    private final SmartPotentiometer turretPotentiometer, pitchPotentiometer;
 
     private Angle turretAngle, prevTurretAngle, turretVel, initialPitch;
 
     private int initialTurret;
-
-    private final List<Angle> pitchFilter;
 
     private int offset = 0;
 
@@ -47,23 +38,17 @@ public class TurretSystem implements HardwareSystem {
     private long last;
 
     private LynxModule chub;
+    private IntakeSystem intake;
 
-    public TurretSystem(SmartLynxModule chub, SmartLynxModule ehub, HardwareMap map){
+    private SCOUT_STATE currentState = SCOUT_STATE.HOME_IN_INTAKE, targetState = SCOUT_STATE.HOME_IN_INTAKE, cachedTarget = SCOUT_STATE.HOME_IN_INTAKE;
+    private boolean transitionReady = false;
 
-        pitchFilter = Collections.synchronizedList(new ArrayList<>());
+    public ScoutSystem(SmartLynxModule chub, SmartLynxModule ehub, IntakeSystem intake){
 
         //turretMotor = new SmartMotor(map.dcMotor.get("turretMotor"));
         turretMotor = ehub.getMotor(FFConstants.ExpansionPorts.TURRET_MOTOR_PORT);
-        turretPotentiometer = new SmartPotentiometer(chub.getAnalogInput(FFConstants.ExpansionPorts.TURRET_POTENTIOMETER_PORT),
-                FFConstants.Turret.TURRET_MIN_ANGLE, FFConstants.Turret.TURRET_MAX_ANGLE);
-
-        turretPotentiometer.setOffsetAngle(Angle.degrees(150));
 
         pitchMotor = ehub.getMotor(FFConstants.ExpansionPorts.PITCH_MOTOR_PORT);
-        pitchPotentiometer = new SmartPotentiometer(ehub.getAnalogInput(FFConstants.ExpansionPorts.PITCH_POTENTIOMETER_PORT),
-                FFConstants.Pitch.PITCH_MIN_ANGLE, FFConstants.Pitch.PITCH_MAX_ANGLE);
-
-        pitchPotentiometer.setOffsetAngle(Angle.degrees(258+11.3));
 
         extensionMotor = ehub.getMotor(FFConstants.ExpansionPorts.EXTENSION_MOTOR_PORT);
 
@@ -78,6 +63,8 @@ public class TurretSystem implements HardwareSystem {
         prevTurretAngle = Angle.ZERO();
         turretVel = Angle.ZERO();
         this.chub = chub.getModule();
+
+        this.intake = intake;
     }
 
     @Override
@@ -90,14 +77,10 @@ public class TurretSystem implements HardwareSystem {
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        initialPitch = getPitchPosition();
+        initialPitch = Angle.ZERO();
         timer = System.currentTimeMillis() + 100;
         MoveExtensionAction.P = -0.0045;
-        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 12 - 15); // 49, 8
-        initialTurret = (int) (turretAngle.degrees() * 11.0194174);
-        //pitchMotor.getMotor().setTargetPosition(pitchMotor.getMotor().getCurrentPosition());
-        //pitchMotor.getMotor().setPower(0.4);
-        //pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        initialTurret = 0;
     }
 
     @Override
@@ -107,30 +90,61 @@ public class TurretSystem implements HardwareSystem {
             turretMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             timer = 0;
         }
-        long now = System.currentTimeMillis();
-        double dt = (now - last) / 1000.0;
 
-        turretAngle = Angle.degrees((turretPotentiometer.getAngle().degrees() * 1.066666669146008) - 9.13 + 12 - 15); // 49, 8
+        boolean forward = targetState.index > currentState.index;
 
-        Angle dTurret = MathUtils.getRotDist(prevTurretAngle, turretAngle);
-        turretVel = Angle.degrees(dTurret.degrees() / dt);
-
-        prevTurretAngle = turretAngle;
-
-        synchronized (pitchFilter) {
-            pitchFilter.add(turretAngle);
-            if (pitchFilter.size() > TURRET_SMOOTHING) {
-                pitchFilter.remove(0);
+        if(targetState != currentState){
+            switch (currentState){
+                case HOMING:
+                    break;
+                case HOME_IN_INTAKE:
+                    moveExtensionAction.setTargetPos(0);
+                    if(moveExtensionAction.isAtTarget()){
+                        transitionReady = true;
+                    }
+                    break;
+                case OUTTAKING:
+                    intake.outtake();
+                    if(intake.locked()){
+                        transitionReady = true;
+                    }
+                    break;
+                case TRANSFER:
+                    moveExtensionAction.setTargetPos(100);
+                    moveTurretAction.setTargetAngle(Angle.ZERO());
+                    movePitchAction.setTargetAngle(Angle.ZERO());
+                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                        transitionReady = true;
+                    }
+                    break;
+                case PRELOAD_ANGLE:
+                    moveExtensionAction.setTargetPos(200);
+                    moveTurretAction.setTargetAngle(Angle.degrees(30));
+                    movePitchAction.setTargetAngle(Angle.degrees(15));
+                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                        transitionReady = true;
+                    }
+                    break;
+                case SCORE:
+                    moveExtensionAction.setTargetPos(480);
+                    if(moveExtensionAction.isAtTarget()){
+                        transitionReady = true;
+                    }
+                    break;
             }
-            double sum = 0;
-            for(Angle a : pitchFilter){
-                sum += a.degrees();
-            }
-            sum = sum / pitchFilter.size();
-            turretAngle = Angle.degrees(sum);
+        }else{
+            transitionReady = true;
         }
 
-        last = now;
+        if(transitionReady){
+            if(cachedTarget != targetState){
+                targetState = cachedTarget;
+            }else {
+                if(currentState != targetState)
+                    currentState = SCOUT_STATE.fromValue((int) ((Math.signum(targetState.index - currentState.index)) + currentState.index));
+            }
+            transitionReady = false;
+        }
     }
 
     public Angle getTurretPosition(){
@@ -165,30 +179,15 @@ public class TurretSystem implements HardwareSystem {
         return pitchMotor.getMotor().getCurrentPosition();
     }
 
-    public Angle getPitchPosition(){
-        return pitchPotentiometer.getAngle();
-    }
-
-    public Angle getFakePitchPos(){
-        double pitchEncoder = getPitchMotorPos();
-        double encoderAngle = pitchEncoder / -TICKS_PER_DEGREE_PANCAKES;
-        return Angle.degrees(encoderAngle + initialPitch.degrees());
-    }
-
     public void movePitchRaw(Angle angle){
         if(!angle.equals(finalPitchAngle)){
             finalPitchAngle = angle;
-            int targetEncoderPos = (int) (MathUtils.getRotDist(angle, getPitchPosition()).degrees() * TICKS_PER_DEGREE_PANCAKES);
             movePitchAction.setTargetAngle(finalPitchAngle);
         }
     }
 
     public int getExtensionPosition(){
         return extensionMotor.getMotor().getCurrentPosition() - offset;
-    }
-
-    public SmartMotor getExtensionMotor() {
-        return extensionMotor;
     }
 
     public void moveExtensionRaw(double target) {
@@ -224,32 +223,6 @@ public class TurretSystem implements HardwareSystem {
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public double getExtensionTarget(){
-        return moveExtensionAction.getTargetPos();
-    }
-
-    public void setExPIDActive(boolean active){
-        moveExtensionAction.setPidActive(active);
-    }
-
-    public void setTurretPIDActive(boolean active){
-        moveTurretAction.setEnabled(active);
-    }
-
-    public void tareExtensionMotor(){
-        offset = extensionMotor.getMotor().getCurrentPosition();
-    }
-
-    public void tareExtensionMotor(int currentPos){
-        int pos = extensionMotor.getMotor().getCurrentPosition();
-
-        offset = pos - currentPos;
-    }
-
-    public SmartServo getBucketServo() {
-        return bucketServo;
-    }
-
     public void setArmPos(double pos){
         armServo.enableServo();
         this.armServo.setPosition(pos);
@@ -263,23 +236,33 @@ public class TurretSystem implements HardwareSystem {
         setArmPos(0.7);
     }
 
-    public double getTurretMotorPower() {
-        return turretMotor.getPower();
-    }
-
-    public Angle getTurretTarget() {
-        return finalTurretAngle;
-    }
-
-    public SmartPotentiometer getTurretPotentiometer() {
-        return turretPotentiometer;
-    }
-
     public double getTurretEncoderPos(){
         return turretMotor.getMotor().getCurrentPosition() - initialTurret;
     }
 
-    public SmartMotor getTurretMotor() {
-        return turretMotor;
+    public enum SCOUT_STATE {
+        HOMING(-1),
+        HOME_IN_INTAKE(0),
+        OUTTAKING(1),
+        TRANSFER(2),
+        PRELOAD_ANGLE(3),
+        SCORE(4);
+
+        private static final HashMap<Integer, SCOUT_STATE> states = new HashMap<>();
+        static{
+            for(SCOUT_STATE state : values()){
+                states.put(state.index, state);
+            }
+        }
+
+        public static SCOUT_STATE fromValue(int value){
+            return states.get(value);
+        }
+
+        public final int index;
+
+        SCOUT_STATE(int index) {
+            this.index = index;
+        }
     }
 }

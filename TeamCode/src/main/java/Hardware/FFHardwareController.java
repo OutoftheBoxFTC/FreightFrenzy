@@ -1,24 +1,18 @@
 package Hardware;
 
-import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import Hardware.HardwareController;
 import Hardware.HardwareSystems.FFSystems.DuckSystem;
 import Hardware.HardwareSystems.FFSystems.IntakeSystem;
-import Hardware.HardwareSystems.FFSystems.OdometrySystem;
-import Hardware.HardwareSystems.FFSystems.TurretSystem;
+import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Hardware.HardwareSystems.FFSystems.DrivetrainSystem;
-import Hardware.HardwareSystems.UGSystems.ShooterSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 
 public class FFHardwareController extends HardwareController {
-    private TurretSystem turretSystem;
+    private ScoutSystem turretSystem;
     private DrivetrainSystem drivetrainSystem;
     private IntakeSystem intakeSystem;
     private DuckSystem duckSystem;
-    private OdometrySystem odometrySystem;
 
     public FFHardwareController(HardwareMap hardwareMap) {
         super(hardwareMap);
@@ -26,20 +20,18 @@ public class FFHardwareController extends HardwareController {
 
     @Override
     public void setupSystems(HardwareMap hardwareMap, SmartLynxModule controlHub, SmartLynxModule revHub) {
-        turretSystem = new TurretSystem(controlHub, revHub, hardwareMap);
-        drivetrainSystem = new DrivetrainSystem(controlHub, hardwareMap);
+        drivetrainSystem = new DrivetrainSystem(revHub, hardwareMap);
         intakeSystem = new IntakeSystem(controlHub, revHub, hardwareMap);
-        this.duckSystem = new DuckSystem(controlHub);
-        odometrySystem = new OdometrySystem(controlHub, hardwareMap);
+        //turretSystem = new ScoutSystem(controlHub, revHub, intakeSystem);
+        //this.duckSystem = new DuckSystem(controlHub);
 
-        hardwareSystems.add(turretSystem);
+        //hardwareSystems.add(turretSystem);
         hardwareSystems.add(drivetrainSystem);
         hardwareSystems.add(intakeSystem);
-        hardwareSystems.add(duckSystem);
-        hardwareSystems.add(odometrySystem);
+       // hardwareSystems.add(duckSystem);
     }
 
-    public TurretSystem getTurretSystem() {
+    public ScoutSystem getTurretSystem() {
         return turretSystem;
     }
 
@@ -53,9 +45,5 @@ public class FFHardwareController extends HardwareController {
 
     public DuckSystem getDuckSystem() {
         return duckSystem;
-    }
-
-    public OdometrySystem getOdometrySystem() {
-        return odometrySystem;
     }
 }

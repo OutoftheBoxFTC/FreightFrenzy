@@ -22,7 +22,6 @@ public class DrivetrainSystem implements HardwareSystem {
     public static double API_POWER = 32767, TICKS_PER_SEC = 2800;
 
     private final SmartMotor bl, br, tl, tr;
-    private final SmartMotor tlE, trE, blE, brE;
 
     private final PIDFSystem tlPID, trPID, blPID, brPID;
 
@@ -35,15 +34,10 @@ public class DrivetrainSystem implements HardwareSystem {
     private final LynxModule module;
 
     public DrivetrainSystem(SmartLynxModule module, HardwareMap map){
-        this.tl = module.getMotor(0);//2
-        this.tr = module.getMotor(2);//3
-        this.bl = module.getMotor(1);//0
-        this.br = module.getMotor(3);//1
-
-        this.tlE = module.getMotor(0);
-        this.trE = module.getMotor(2);
-        this.blE = module.getMotor(1);
-        this.brE = module.getMotor(3);
+        this.tl = module.getMotor(3);//2
+        this.tr = module.getMotor(0);//3
+        this.bl = module.getMotor(2);//0
+        this.br = module.getMotor(1);//1
 
         this.tlPID = new PIDFSystem(P, I, D, F);
         this.trPID = new PIDFSystem(P, I, D, F);

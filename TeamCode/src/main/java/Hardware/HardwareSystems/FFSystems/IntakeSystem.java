@@ -1,152 +1,126 @@
 package Hardware.HardwareSystems.FFSystems;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
-import Hardware.FFHardwareController;
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
-import State.Action.Action;
-import State.Action.ActionController;
-import State.Action.ActionQueue;
-import State.Action.InstantAction;
-import State.Action.StandardActions.DelayAction;
+import Hardware.SmartDevices.SmartServo.SmartServo;
 
 public class IntakeSystem implements HardwareSystem {
     private SmartMotor intakeMotor;
-    private DigitalChannel intakeStop;
-    private RevColorSensorV3 bucketSensor;
+
+    private SmartServo intakeStop;
+
     private double power;
     private long timer = 0;
     private double distance = 0;
     private double hubVoltage = 12;
     private LynxModule expansionHub;
 
+    private INTAKE_STATE currentState = INTAKE_STATE.LOCKED, targetState = INTAKE_STATE.LOCKED;
+
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
-        intakeMotor = revHub.getMotor(FFConstants.ExpansionPorts.INTAKE_MOTOR_PORT);
-        intakeStop = chub.getDigitalController(1);
-        bucketSensor = map.get(RevColorSensorV3.class, "bucketSensor");
+        intakeMotor = chub.getMotor(0);
+        intakeStop = revHub.getServo(0);
         expansionHub = revHub.getModule();
     }
 
     @Override
     public void initialize() {
-        intakeStop.setMode(DigitalChannel.Mode.INPUT);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     @Override
     public void update() {
-        intakeMotor.setPower(power);
-        distance = bucketSensor.getDistance(DistanceUnit.MM);
+        double current = intakeMotor.getMotor().getCurrent(CurrentUnit.MILLIAMPS);
+        if(System.currentTimeMillis() > timer){
+            if(currentState != targetState){
+                currentState = targetState;
+            }
+        }
+        switch (currentState){
+            case IDLE:
+                setPower(0);
+                unlockIntake();
+                break;
+            case LOCKED:
+                setPower(-0.2);
+                lockIntake();
+                break;
+            case LOCKING:
+                setPower(-0.3);
+                if(System.currentTimeMillis() > timer){
+                    timer = System.currentTimeMillis() + 100;
+                }
+                targetState = INTAKE_STATE.LOCKED;
+                break;
+            case OUTTAKING:
+                setPower(-1);
+                if(System.currentTimeMillis() > timer) {
+                    timer = System.currentTimeMillis() + 100;
+                }
+                targetState = INTAKE_STATE.LOCKING;
+                break;
+            case INTAKING:
+                setPower(1);
+                break;
+        }
+        intakeMotor.setPower(-power);
     }
 
     public void setPower(double power){
         this.power = power;
     }
 
-    public void setPowerNormalized(double power){
-        hubVoltage = expansionHub.getInputVoltage(VoltageUnit.VOLTS);
-        double factor = 12.0 / hubVoltage;
-        setPower(power * factor);
-    }
-
-    public double getIntakeCurrent(){
-        return intakeMotor.getMotor().getCurrent(CurrentUnit.AMPS);
-    }
-
-    public boolean getIntakeStop(){
-        return !intakeStop.getState();
-    }
-
-    public boolean inIntake() {
-        return distance < 30 && distance != 0;
-    }
-
     public double getDistance() {
         return distance;
     }
 
-    public ActionQueue getOuttakeAction(FFHardwareController hardware){
-        ActionQueue queue = new ActionQueue();
-        queue.submitAction(new InstantAction() {
-            @Override
-            public void update() {
-                hardware.getTurretSystem().setExtensionMotorPower(-0.4);
-                hardware.getTurretSystem().setBucketPosRaw(0.1);
-            }
-        });
-        queue.submitAction(new DelayAction(75));
-        queue.submitAction(new InstantAction() {
-            @Override
-            public void update() {
-                hardware.getIntakeSystem().setPower(-1);
-                hardware.getDuckSystem().setDuckPower(1);
-                hardware.getTurretSystem().closeArm();
-                ActionController.addAction(new Action() {
-                    long timer = 0;
+    public void outtake() {
+        targetState = INTAKE_STATE.OUTTAKING;
+        if(currentState == INTAKE_STATE.LOCKED) {
+            unlockIntake();
+            timer = System.currentTimeMillis() + 100;
+        }
+    }
 
-                    @Override
-                    public void initialize() {
-                        timer = System.currentTimeMillis() + 150;
-                    }
+    public void intake(){
+        targetState = INTAKE_STATE.INTAKING;
+        if(currentState == INTAKE_STATE.LOCKED){
+            unlockIntake();
+            timer = System.currentTimeMillis() + 100;
+        }
+    }
 
-                    @Override
-                    public void update() {
-                        if(System.currentTimeMillis() > timer){
-                            //hardware.getTurretSystem().openArm();
-                            ActionController.getInstance().terminateAction(this);
-                        }
-                    }
-                });
-            }
-        });
-        queue.submitAction(new Action() {
-            long timer = 0;
+    public void idleIntake(){
+        targetState = INTAKE_STATE.IDLE;
+    }
 
-            @Override
-            public void initialize() {
-                timer = System.currentTimeMillis() + 300;
-            }
+    public boolean locked() {
+        return currentState == INTAKE_STATE.LOCKED;
+    }
 
-            @Override
-            public void update() {
+    public void lockIntake(){
+        intakeStop.setPosition(0.33);
+    }
 
-            }
+    public void unlockIntake(){
+        intakeStop.setPosition(0.23);
+    }
 
-            @Override
-            public boolean shouldDeactivate() {
-                return hardware.getIntakeSystem().getIntakeCurrent() < 0.5 || System.currentTimeMillis() > timer;
-            }
-        });
-        queue.submitAction(new InstantAction() {
-            @Override
-            public void update() {
-                hardware.getIntakeSystem().setPower(1);
-                //hardware.getTurretSystem().openArm();
-                hardware.getTurretSystem().setBucketPosRaw(0.4);
-                hardware.getTurretSystem().moveExtensionRaw(150);
-            }
-        });
-        queue.submitAction(new DelayAction(75));
-        queue.submitAction(new InstantAction() {
-            @Override
-            public void update() {
-                hardware.getTurretSystem().closeArm();
-                hardware.getDuckSystem().setDuckPower(0);
-            }
-        });
-        return queue;
+    enum INTAKE_STATE{
+        IDLE,
+        OUTTAKING,
+        INTAKING,
+        LOCKING,
+        LOCKED
     }
 }

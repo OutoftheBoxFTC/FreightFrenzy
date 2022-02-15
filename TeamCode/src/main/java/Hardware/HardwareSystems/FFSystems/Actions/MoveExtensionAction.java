@@ -3,8 +3,7 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 import com.acmerobotics.dashboard.config.Config;
 
 import Hardware.HardwareSystems.FFSystems.FFConstants;
-import Hardware.HardwareSystems.FFSystems.TurretSystem;
-import MathSystems.Angle;
+import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.MathUtils;
 import State.Action.Action;
 import Utils.PID.PIDSystem;
@@ -13,12 +12,12 @@ public class MoveExtensionAction implements Action {
     public static double P = -0.1, I = 0, D = 0;
 
     private double targetPos;
-    private TurretSystem system;
+    private ScoutSystem system;
     private PIDSystem pid;
 
     private boolean pidActive = true;
 
-    public MoveExtensionAction(TurretSystem system){
+    public MoveExtensionAction(ScoutSystem system){
         this.system = system;
         P = -0.1;
         pid = new PIDSystem(P, I, D, 0.1);
