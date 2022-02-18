@@ -9,6 +9,7 @@ import java.util.HashMap;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveExtensionAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MovePitchAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveTurretAction;
+import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
@@ -41,6 +42,10 @@ public class ScoutSystem implements HardwareSystem {
     private IntakeSystem intake;
 
     private SCOUT_STATE currentState = SCOUT_STATE.HOME_IN_INTAKE, targetState = SCOUT_STATE.HOME_IN_INTAKE, cachedTarget = SCOUT_STATE.HOME_IN_INTAKE;
+    private SCOUT_ALLIANCE scout_alliance;
+    private SCOUT_TARGET scout_target;
+    private ScoutTargets.SCOUTTarget scoutTarget;
+
     private boolean transitionReady = false;
 
     public ScoutSystem(SmartLynxModule chub, SmartLynxModule ehub, IntakeSystem intake){
@@ -81,6 +86,7 @@ public class ScoutSystem implements HardwareSystem {
         timer = System.currentTimeMillis() + 100;
         MoveExtensionAction.P = -0.0045;
         initialTurret = 0;
+        scoutTarget = new ScoutTargets.SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
     }
 
     @Override
@@ -93,47 +99,51 @@ public class ScoutSystem implements HardwareSystem {
 
         boolean forward = targetState.index > currentState.index;
 
-        if(targetState != currentState){
-            switch (currentState){
-                case HOMING:
-                    break;
-                case HOME_IN_INTAKE:
-                    moveExtensionAction.setTargetPos(0);
-                    if(moveExtensionAction.isAtTarget()){
-                        transitionReady = true;
-                    }
-                    break;
-                case OUTTAKING:
-                    intake.outtake();
-                    if(intake.locked()){
-                        transitionReady = true;
-                    }
-                    break;
-                case TRANSFER:
-                    moveExtensionAction.setTargetPos(100);
-                    moveTurretAction.setTargetAngle(Angle.ZERO());
-                    movePitchAction.setTargetAngle(Angle.ZERO());
-                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
-                        transitionReady = true;
-                    }
-                    break;
-                case PRELOAD_ANGLE:
-                    moveExtensionAction.setTargetPos(200);
-                    moveTurretAction.setTargetAngle(Angle.degrees(30));
-                    movePitchAction.setTargetAngle(Angle.degrees(15));
-                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
-                        transitionReady = true;
-                    }
-                    break;
-                case SCORE:
-                    moveExtensionAction.setTargetPos(480);
-                    if(moveExtensionAction.isAtTarget()){
-                        transitionReady = true;
-                    }
-                    break;
-            }
-        }else{
-            transitionReady = true;
+        switch (currentState){
+            case HOMING:
+                break;
+            case HOME_IN_INTAKE:
+                moveExtensionAction.setTargetPos(0);
+                setBucketIntakePos();
+                if(moveExtensionAction.isAtTarget()){
+                    transitionReady = true;
+                }
+                break;
+            case OUTTAKING:
+                intake.lockIntake();
+                if(intake.locked()){
+                    transitionReady = true;
+                }
+                break;
+            case TRANSFER:
+                moveExtensionAction.setTargetPos(100);
+                setBucketPreset();
+                moveTurretAction.setTargetAngle(Angle.ZERO());
+                movePitchAction.setTargetAngle(Angle.ZERO());
+                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                    transitionReady = true;
+                }
+                break;
+            case PRELOAD_ANGLE:
+                moveExtensionAction.setTargetPos(200);
+                moveTurretAction.setTargetAngle(scoutTarget.turretAngle);
+                movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                if(forward){
+                    setBucketScore();
+                }else {
+                    setBucketPreset();
+                }
+                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                    transitionReady = true;
+                }
+                break;
+            case SCORE:
+                moveExtensionAction.setTargetPos(scoutTarget.extension);
+                setBucketScore();
+                if(moveExtensionAction.isAtTarget()){
+                    transitionReady = true;
+                }
+                break;
         }
 
         if(transitionReady){
@@ -143,7 +153,9 @@ public class ScoutSystem implements HardwareSystem {
                 if(currentState != targetState)
                     currentState = SCOUT_STATE.fromValue((int) ((Math.signum(targetState.index - currentState.index)) + currentState.index));
             }
-            transitionReady = false;
+            if(currentState != targetState) {
+                transitionReady = false;
+            }
         }
     }
 
@@ -190,10 +202,6 @@ public class ScoutSystem implements HardwareSystem {
         return extensionMotor.getMotor().getCurrentPosition() - offset;
     }
 
-    public void moveExtensionRaw(double target) {
-        moveExtensionAction.setTargetPos(target);
-    }
-
     public boolean isTurretAtPos(){
         return moveTurretAction.isAtTarget();
     }
@@ -206,17 +214,16 @@ public class ScoutSystem implements HardwareSystem {
         return moveExtensionAction.isAtTarget();
     }
 
-    public void setBucketPosRaw(double pos){
-        bucketServo.enableServo();
-        bucketServo.setPosition(pos);
+    public void setBucketIntakePos(){
+        bucketServo.setPosition(0.1);
     }
 
-    public Angle getPitchTarget(){
-        return finalPitchAngle;
+    public void setBucketPreset(){
+        bucketServo.setPosition(0.4);
     }
 
-    public void setExtensionFloat() {
-        extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    public void setBucketScore(){
+        bucketServo.setPosition(0.9);
     }
 
     public void setExtensionBrake() {
@@ -238,6 +245,24 @@ public class ScoutSystem implements HardwareSystem {
 
     public double getTurretEncoderPos(){
         return turretMotor.getMotor().getCurrentPosition() - initialTurret;
+    }
+
+    public void setScoutAlliance(SCOUT_ALLIANCE scout_alliance) {
+        this.scout_alliance = scout_alliance;
+        scoutTarget = ScoutTargets.getTarget(scout_alliance, scout_target);
+    }
+
+    public void setScoutFieldTarget(SCOUT_TARGET scout_target) {
+        this.scout_target = scout_target;
+        scoutTarget = ScoutTargets.getTarget(scout_alliance, scout_target);
+    }
+
+    public boolean isScoutIdle(){
+        return currentState == targetState && transitionReady;
+    }
+
+    public void setScoutTarget(SCOUT_STATE state){
+        this.cachedTarget = state;
     }
 
     public enum SCOUT_STATE {
@@ -264,5 +289,17 @@ public class ScoutSystem implements HardwareSystem {
         SCOUT_STATE(int index) {
             this.index = index;
         }
+    }
+
+    public enum SCOUT_TARGET{
+        ALLIANCE_HIGH,
+        ALLIANCE_MID,
+        ALLIANCE_LOW,
+        SHARED
+    }
+
+    public enum SCOUT_ALLIANCE{
+        RED,
+        BLUE
     }
 }
