@@ -47,6 +47,13 @@ public class MathUtils {
         return val;
     }
 
+    public static double signedMin(double val, double compare){
+        if(Math.abs(val) > Math.abs(compare)){
+            return sign(val) * compare;
+        }
+        return val;
+    }
+
     public static boolean inBetween(Vector2 start, Vector2 end, Vector2 point) {
         double minX = Math.min(start.getA(), end.getA());
         double minY = Math.min(start.getB(), end.getB());

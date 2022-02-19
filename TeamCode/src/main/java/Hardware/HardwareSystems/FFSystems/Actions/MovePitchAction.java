@@ -11,7 +11,7 @@ import Utils.PID.PIDFSystem;
 
 @Config
 public class MovePitchAction implements Action {
-    public static double P = -0.1, I = 0, D = 0.0, F = 0;
+    public static double P = 0.01, I = 0, D = 0.0, F = 0;
 
     private double targetPos = 0;
     private int numFrames = 0;

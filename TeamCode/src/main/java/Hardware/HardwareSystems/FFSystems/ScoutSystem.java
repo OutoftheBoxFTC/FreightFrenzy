@@ -3,6 +3,7 @@ package Hardware.HardwareSystems.FFSystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import java.util.HashMap;
 
@@ -15,6 +16,7 @@ import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 import MathSystems.Angle;
+import MathSystems.MathUtils;
 
 @Config
 public class ScoutSystem implements HardwareSystem {
@@ -42,20 +44,20 @@ public class ScoutSystem implements HardwareSystem {
     private IntakeSystem intake;
 
     private SCOUT_STATE currentState = SCOUT_STATE.HOME_IN_INTAKE, targetState = SCOUT_STATE.HOME_IN_INTAKE, cachedTarget = SCOUT_STATE.HOME_IN_INTAKE;
-    private SCOUT_ALLIANCE scout_alliance;
-    private SCOUT_TARGET scout_target;
+    private SCOUT_ALLIANCE scout_alliance = SCOUT_ALLIANCE.BLUE;
+    private SCOUT_TARGET scout_target = SCOUT_TARGET.ALLIANCE_HIGH;
     private ScoutTargets.SCOUTTarget scoutTarget;
 
-    private boolean transitionReady = false;
+    private boolean transitionReady = true;
 
     public ScoutSystem(SmartLynxModule chub, SmartLynxModule ehub, IntakeSystem intake){
 
         //turretMotor = new SmartMotor(map.dcMotor.get("turretMotor"));
-        turretMotor = ehub.getMotor(FFConstants.ExpansionPorts.TURRET_MOTOR_PORT);
+        turretMotor = chub.getMotor(1);
 
-        pitchMotor = ehub.getMotor(FFConstants.ExpansionPorts.PITCH_MOTOR_PORT);
+        pitchMotor = chub.getMotor(2);
 
-        extensionMotor = ehub.getMotor(FFConstants.ExpansionPorts.EXTENSION_MOTOR_PORT);
+        extensionMotor = chub.getMotor(3);
 
         moveTurretAction = new MoveTurretAction(this);
         movePitchAction = new MovePitchAction(this);
@@ -84,13 +86,13 @@ public class ScoutSystem implements HardwareSystem {
         turretMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         initialPitch = Angle.ZERO();
         timer = System.currentTimeMillis() + 100;
-        MoveExtensionAction.P = -0.0045;
         initialTurret = 0;
         scoutTarget = new ScoutTargets.SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
     }
 
     @Override
     public void update() {
+
         if(System.currentTimeMillis() > timer && timer != 0) {
             pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             turretMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -110,7 +112,7 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 break;
             case OUTTAKING:
-                intake.lockIntake();
+                intake.lock();
                 if(intake.locked()){
                     transitionReady = true;
                 }
@@ -157,6 +159,7 @@ public class ScoutSystem implements HardwareSystem {
                 transitionReady = false;
             }
         }
+
     }
 
     public Angle getTurretPosition(){
@@ -187,6 +190,10 @@ public class ScoutSystem implements HardwareSystem {
         extensionMotor.setPower(power);
     }
 
+    public double getExtensionMotorPower(){
+        return extensionMotor.getPower();
+    }
+
     public int getPitchMotorPos(){
         return pitchMotor.getMotor().getCurrentPosition();
     }
@@ -196,6 +203,10 @@ public class ScoutSystem implements HardwareSystem {
             finalPitchAngle = angle;
             movePitchAction.setTargetAngle(finalPitchAngle);
         }
+    }
+
+    public void moveExtensionRaw(double position){
+        moveExtensionAction.setTargetPos(position);
     }
 
     public int getExtensionPosition(){
@@ -215,15 +226,15 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketIntakePos(){
-        bucketServo.setPosition(0.1);
+        //bucketServo.setPosition(0.1);
     }
 
     public void setBucketPreset(){
-        bucketServo.setPosition(0.4);
+        //bucketServo.setPosition(0.4);
     }
 
     public void setBucketScore(){
-        bucketServo.setPosition(0.9);
+        //bucketServo.setPosition(0.9);
     }
 
     public void setExtensionBrake() {

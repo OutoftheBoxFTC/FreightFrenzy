@@ -22,10 +22,10 @@ public class FFHardwareController extends HardwareController {
     public void setupSystems(HardwareMap hardwareMap, SmartLynxModule controlHub, SmartLynxModule revHub) {
         drivetrainSystem = new DrivetrainSystem(revHub, hardwareMap);
         intakeSystem = new IntakeSystem(controlHub, revHub, hardwareMap);
-        //turretSystem = new ScoutSystem(controlHub, revHub, intakeSystem);
-        //this.duckSystem = new DuckSystem(controlHub);
+        turretSystem = new ScoutSystem(controlHub, revHub, intakeSystem);
+        this.duckSystem = new DuckSystem(controlHub);
 
-        //hardwareSystems.add(turretSystem);
+        hardwareSystems.add(turretSystem);
         hardwareSystems.add(drivetrainSystem);
         hardwareSystems.add(intakeSystem);
        // hardwareSystems.add(duckSystem);

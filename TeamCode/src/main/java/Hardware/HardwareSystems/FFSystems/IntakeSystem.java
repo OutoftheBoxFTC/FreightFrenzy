@@ -1,10 +1,13 @@
 package Hardware.HardwareSystems.FFSystems;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
@@ -22,7 +25,7 @@ public class IntakeSystem implements HardwareSystem {
     private double hubVoltage = 12;
     private LynxModule expansionHub;
 
-    private INTAKE_STATE currentState = INTAKE_STATE.LOCKED, targetState = INTAKE_STATE.LOCKED;
+    private INTAKE_STATE currentState = INTAKE_STATE.IDLE, targetState = INTAKE_STATE.IDLE;
 
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
         intakeMotor = chub.getMotor(0);
@@ -46,18 +49,16 @@ public class IntakeSystem implements HardwareSystem {
         switch (currentState){
             case IDLE:
                 setPower(0);
-                setIntakeLockOff();
+                unlockIntake();
                 break;
             case LOCKED:
                 setPower(-0.2);
+                lockIntake();
                 break;
             case LOCKING:
                 setPower(-0.3);
                 if(System.currentTimeMillis() > timer){
                     timer = System.currentTimeMillis() + 100;
-                }
-                if(System.currentTimeMillis() > (timer - 50)){
-                    setIntakeLockOn();
                 }
                 targetState = INTAKE_STATE.LOCKED;
                 break;
@@ -84,23 +85,25 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void outtake() {
-        targetState = INTAKE_STATE.OUTTAKING;
+        if(currentState == INTAKE_STATE.IDLE) {
+            targetState = INTAKE_STATE.OUTTAKING;
+        }
         if(currentState == INTAKE_STATE.LOCKED) {
-            setIntakeLockOff();
+            unlockIntake();
             timer = System.currentTimeMillis() + 100;
         }
     }
 
-    public void lockIntake(){
-        if (currentState != INTAKE_STATE.LOCKED || targetState != INTAKE_STATE.LOCKED) {
-            outtake();
+    public void lock(){
+        if(currentState == INTAKE_STATE.IDLE) {
+            targetState = INTAKE_STATE.OUTTAKING;
         }
     }
 
     public void intake(){
         targetState = INTAKE_STATE.INTAKING;
         if(currentState == INTAKE_STATE.LOCKED){
-            setIntakeLockOff();
+            unlockIntake();
             timer = System.currentTimeMillis() + 100;
         }
     }
@@ -110,14 +113,14 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public boolean locked() {
-        return currentState == INTAKE_STATE.LOCKED && targetState == INTAKE_STATE.LOCKED;
+        return currentState == INTAKE_STATE.LOCKED;
     }
 
-    public void setIntakeLockOn(){
+    public void lockIntake(){
         intakeStop.setPosition(0.33);
     }
 
-    public void setIntakeLockOff(){
+    public void unlockIntake(){
         intakeStop.setPosition(0.23);
     }
 

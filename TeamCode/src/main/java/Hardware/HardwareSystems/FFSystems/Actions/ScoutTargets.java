@@ -8,22 +8,22 @@ public class ScoutTargets {
         if(alliance == ScoutSystem.SCOUT_ALLIANCE.BLUE){
             switch (target){
                 case ALLIANCE_HIGH:
-                    return new SCOUTTarget(Angle.degrees(-30), Angle.degrees(-15), 420);
+                    return new SCOUTTarget(Angle.degrees(-50), Angle.degrees(15), 600);
                 case ALLIANCE_MID:
-                    return new SCOUTTarget(Angle.degrees(-30), Angle.degrees(-5), 410);
+                    return new SCOUTTarget(Angle.degrees(-30), Angle.degrees(5), 410);
                 case ALLIANCE_LOW:
-                    return new SCOUTTarget(Angle.degrees(-30), Angle.degrees(15), 420);
+                    return new SCOUTTarget(Angle.degrees(-30), Angle.degrees(-15), 420);
                 case SHARED:
                     return new SCOUTTarget(Angle.degrees(-35), Angle.degrees(0), 250);
             }
         }else{
             switch (target){
                 case ALLIANCE_HIGH:
-                    return new SCOUTTarget(Angle.degrees(30), Angle.degrees(-15), 420);
-                case ALLIANCE_MID:
-                    return new SCOUTTarget(Angle.degrees(30), Angle.degrees(-5), 410);
-                case ALLIANCE_LOW:
                     return new SCOUTTarget(Angle.degrees(30), Angle.degrees(15), 420);
+                case ALLIANCE_MID:
+                    return new SCOUTTarget(Angle.degrees(30), Angle.degrees(5), 410);
+                case ALLIANCE_LOW:
+                    return new SCOUTTarget(Angle.degrees(30), Angle.degrees(-15), 420);
                 case SHARED:
                     return new SCOUTTarget(Angle.degrees(35), Angle.degrees(0), 250);
             }

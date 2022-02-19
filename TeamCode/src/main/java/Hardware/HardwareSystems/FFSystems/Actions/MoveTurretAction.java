@@ -10,7 +10,7 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveTurretAction implements Action {
-    public static double P = -0.2, I = 0, D = 0;
+    public static double P = 0.2, I = 0, D = 0;
 
     private Double targetPos = null;
     private ScoutSystem system;
