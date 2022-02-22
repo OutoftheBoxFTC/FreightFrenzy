@@ -3,6 +3,7 @@ package Hardware.HardwareSystems.FFSystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import java.util.HashMap;
@@ -79,7 +80,7 @@ public class ScoutSystem implements HardwareSystem {
         last = System.currentTimeMillis();
         moveTurretAction.submit();
         movePitchAction.submit();
-        moveExtensionAction.submit();
+        //moveExtensionAction.submit();
         offset = getExtensionPosition();
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -274,6 +275,10 @@ public class ScoutSystem implements HardwareSystem {
 
     public void setScoutTarget(SCOUT_STATE state){
         this.cachedTarget = state;
+    }
+
+    public DcMotorEx getExtensionMotor() {
+        return extensionMotor.getMotor();
     }
 
     public enum SCOUT_STATE {

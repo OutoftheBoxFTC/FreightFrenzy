@@ -67,7 +67,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private TrajectorySequenceRunner trajectorySequenceRunner;
 
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
-    private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
+    private static TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
     private TrajectoryFollower follower;
 
@@ -82,6 +82,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
                 new Pose2d(0.5, 0.5, Math.toRadians(5.0)), 0.5);
+
+        ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
@@ -274,7 +276,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public List<Double> getWheelPositions() {
         List<Double> wheelPositions = new ArrayList<>();
         for (DcMotorEx motor : motors) {
-            int sign = (motor == rightFront || motor == rightRear) ? -1 : 1;
+            int sign = (motor == rightFront || motor == rightRear) ? 1 : 1;
             wheelPositions.add(sign * encoderTicksToInches(motor.getCurrentPosition()));
         }
         return wheelPositions;
@@ -284,7 +286,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public List<Double> getWheelVelocities() {
         List<Double> wheelVelocities = new ArrayList<>();
         for (DcMotorEx motor : motors) {
-            int sign = (motor == rightFront || motor == rightRear) ? -1 : 1;
+            int sign = (motor == rightFront || motor == rightRear) ? 1 : 1;
             wheelVelocities.add(sign * encoderTicksToInches(motor.getVelocity()));
         }
         return wheelVelocities;

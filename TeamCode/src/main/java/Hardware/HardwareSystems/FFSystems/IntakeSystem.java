@@ -17,7 +17,7 @@ import Hardware.SmartDevices.SmartServo.SmartServo;
 public class IntakeSystem implements HardwareSystem {
     private SmartMotor intakeMotor;
 
-    private SmartServo intakeStop;
+    private SmartServo intakeStop, cameraServo;
 
     private double power;
     private long timer = 0;
@@ -30,6 +30,7 @@ public class IntakeSystem implements HardwareSystem {
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
         intakeMotor = chub.getMotor(0);
         intakeStop = revHub.getServo(0);
+        cameraServo = revHub.getServo(5);
         expansionHub = revHub.getModule();
     }
 
@@ -122,6 +123,22 @@ public class IntakeSystem implements HardwareSystem {
 
     public void unlockIntake(){
         intakeStop.setPosition(0.23);
+    }
+
+    public SmartServo getCameraServo() {
+        return cameraServo;
+    }
+
+    public void moveCameraInspection(){
+        cameraServo.setPosition(0.2);
+    }
+
+    public void moveCameraDown(){
+        cameraServo.setPosition(0.9);
+    }
+
+    public void moveCameraUp(){
+        cameraServo.setPosition(0.6);
     }
 
     enum INTAKE_STATE{

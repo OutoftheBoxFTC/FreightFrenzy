@@ -131,6 +131,22 @@ public class DrivetrainSystem implements HardwareSystem {
         tr.disableVoltageCorrection();
     }
 
+    public SmartMotor getTl() {
+        return tl;
+    }
+
+    public SmartMotor getTr() {
+        return tr;
+    }
+
+    public SmartMotor getBl() {
+        return bl;
+    }
+
+    public SmartMotor getBr() {
+        return br;
+    }
+
     public void enable(){
         enabled = true;
     }
