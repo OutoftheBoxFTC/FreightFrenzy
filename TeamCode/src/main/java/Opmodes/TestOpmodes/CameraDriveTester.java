@@ -48,6 +48,13 @@ public class CameraDriveTester extends BasicOpmode {
                 hardware.getIntakeSystem().moveCameraDown();
             }
         });
+        queue.submitAction(new DelayAction(50));
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getDrivetrainSystem().setPower(new Vector3(0, -0.7, 0));
+            }
+        });
         queue.submitAction(new DelayAction(300));
         queue.submitAction(new Action() {
             @Override
@@ -60,11 +67,15 @@ public class CameraDriveTester extends BasicOpmode {
                 return pipeline.getY() > 0;
             }
         });
-        queue.submitAction(new InstantAction() {
+        queue.submitAction(new Action() {
             @Override
             public void update() {
                 hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
-                hardware.getIntakeSystem().moveCameraUp();
+                hardware.getIntakeSystem().getCameraServo().setPosition(0.85);
+                pipeline.pitchOffset = -30;
+                //hardware.getIntakeSystem().moveCameraUp();
+                telemetry.addData("Distance", pipeline.getRealY());
+                telemetry.addData("Real Distance", pipeline.getRealY() + 10);
             }
         });
         OpmodeStatus.bindOnStart(queue);

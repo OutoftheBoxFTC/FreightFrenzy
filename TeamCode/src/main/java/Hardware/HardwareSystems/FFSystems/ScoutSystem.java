@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private final SmartMotor turretMotor, pitchMotor, extensionMotor;
     private final SmartServo bucketServo, armServo;
+    private DigitalChannel bucketHall;
 
     private Angle turretAngle, prevTurretAngle, turretVel, initialPitch;
 
@@ -60,12 +62,14 @@ public class ScoutSystem implements HardwareSystem {
 
         extensionMotor = chub.getMotor(3);
 
+        bucketHall = chub.getDigitalController(0);
+
         moveTurretAction = new MoveTurretAction(this);
         movePitchAction = new MovePitchAction(this);
         moveExtensionAction = new MoveExtensionAction(this);
 
-        bucketServo = ehub.getServo(2);
-        armServo = ehub.getServo(0);
+        bucketServo = chub.getServo(4);
+        armServo = chub.getServo(5);
 
         turretAngle = Angle.ZERO();
         prevTurretAngle = Angle.ZERO();
@@ -80,7 +84,7 @@ public class ScoutSystem implements HardwareSystem {
         last = System.currentTimeMillis();
         moveTurretAction.submit();
         movePitchAction.submit();
-        //moveExtensionAction.submit();
+        moveExtensionAction.submit();
         offset = getExtensionPosition();
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -108,12 +112,14 @@ public class ScoutSystem implements HardwareSystem {
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0);
                 setBucketIntakePos();
+                openArm();
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
                 }
                 break;
             case OUTTAKING:
                 intake.lock();
+                closeArm();
                 if(intake.locked()){
                     transitionReady = true;
                 }
@@ -123,20 +129,22 @@ public class ScoutSystem implements HardwareSystem {
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
                 movePitchAction.setTargetAngle(Angle.ZERO());
-                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && !bucketHall.getState()){
                     transitionReady = true;
                 }
                 break;
             case PRELOAD_ANGLE:
-                moveExtensionAction.setTargetPos(200);
+                moveExtensionAction.setTargetPos(300);
                 moveTurretAction.setTargetAngle(scoutTarget.turretAngle);
                 movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                boolean bucketReady = true;
                 if(forward){
                     setBucketScore();
                 }else {
+                    bucketReady = !bucketHall.getState();
                     setBucketPreset();
                 }
-                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && bucketReady){
                     transitionReady = true;
                 }
                 break;
@@ -227,15 +235,15 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketIntakePos(){
-        //bucketServo.setPosition(0.1);
+        bucketServo.setPosition(0.13);
     }
 
     public void setBucketPreset(){
-        //bucketServo.setPosition(0.4);
+        bucketServo.setPosition(0.5);
     }
 
     public void setBucketScore(){
-        //bucketServo.setPosition(0.9);
+        bucketServo.setPosition(1);
     }
 
     public void setExtensionBrake() {
@@ -243,16 +251,15 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setArmPos(double pos){
-        armServo.enableServo();
         this.armServo.setPosition(pos);
     }
 
     public void closeArm(){
-        setArmPos(0.525);
+        setArmPos(0.8);
     }
 
     public void openArm(){
-        setArmPos(0.7);
+        setArmPos(1);
     }
 
     public double getTurretEncoderPos(){
@@ -273,12 +280,20 @@ public class ScoutSystem implements HardwareSystem {
         return currentState == targetState && transitionReady;
     }
 
+    public SCOUT_STATE getCurrentState() {
+        return currentState;
+    }
+
     public void setScoutTarget(SCOUT_STATE state){
         this.cachedTarget = state;
     }
 
     public DcMotorEx getExtensionMotor() {
         return extensionMotor.getMotor();
+    }
+
+    public SCOUT_STATE getScoutTarget() {
+        return cachedTarget;
     }
 
     public enum SCOUT_STATE {

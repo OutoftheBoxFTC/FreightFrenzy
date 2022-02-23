@@ -16,13 +16,18 @@ import java.util.List;
 
 @Config
 public class LineFinderPipeline extends OpenCvPipeline {
-    public static double MIN = 180, MAX = 255, HEIGHT = 16;
+    public static double MIN = 180, MAX = 255, HEIGHT = 15.5;
 
     private double y = 0;
 
     private double realY = 0;
 
+    private double pitch = 0;
+
     public double pitchOffset = -15;
+
+    private long last = 0;
+    public double fps = 0;
 
     @Override
     public Mat processFrame(Mat input) {
@@ -36,7 +41,7 @@ public class LineFinderPipeline extends OpenCvPipeline {
         Rect bestRect = new Rect(0, 0, 0, 0);
         for(MatOfPoint p : contours){
             Rect r = Imgproc.boundingRect(p);
-            if(r.height > height && r.height > 200){
+            if(r.height > height && r.height > 150){
                 height = r.height;
                 bestRect = r;
             }
@@ -45,21 +50,41 @@ public class LineFinderPipeline extends OpenCvPipeline {
         if(height != 0) {
             y = bestRect.x;
             Point centre = getCenter(bestRect);
-            double pitch = Math.toDegrees(Math.atan2((centre.x) - ((input.width()/2.0) - 0.5), calcPinholeHor(60, input.width(), input.height())));
+            pitch = Math.toDegrees(Math.atan2((centre.x) - ((input.width()/2.0) - 0.5), calcPinholeHor(60, input.width(), input.height())));
             realY = HEIGHT * Math.tan(Math.toRadians(pitch - pitchOffset));
         }else{
             y = -1;
             realY = -1;
+            pitch = 0;
         }
 
         Imgproc.cvtColor(input, input, Imgproc.COLOR_GRAY2RGB);
         Imgproc.rectangle(input, bestRect, new Scalar(0, 255, 0), -1);
+
+        long now = System.currentTimeMillis();
+        if(last != 0){
+            long delta = now - last;
+            fps = 1/((delta) / 1000.0);
+        }
+        last = now;
 
         return input;
     }
 
     public double getY() {
         return y;
+    }
+
+    public double getRealY() {
+        return realY;
+    }
+
+    public double getPitch() {
+        return pitch;
+    }
+
+    public double getFps() {
+        return fps;
     }
 
     private static double calcPinholeHor(double fov, double imageWidth, double imageHeight){

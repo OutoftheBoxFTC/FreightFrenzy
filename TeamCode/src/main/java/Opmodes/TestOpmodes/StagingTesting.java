@@ -23,10 +23,10 @@ public class StagingTesting extends BasicOpmode {
             public void update() {
                 hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
-                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
             }
         });
-        queue.submitAction(new DelayAction(10000));
+        queue.submitAction(new DelayAction(5000));
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {

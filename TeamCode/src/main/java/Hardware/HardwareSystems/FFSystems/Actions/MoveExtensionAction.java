@@ -9,7 +9,7 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveExtensionAction implements Action {
-    public static double P = 0.003, I = 0, D = 0;
+    public static double P = 0.1, I = 0, D = 0;
 
     private double targetPos;
     private ScoutSystem system;
@@ -58,7 +58,7 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 20;
+        return Math.abs(error) < 10;
     }
 
     public double getTargetPos() {

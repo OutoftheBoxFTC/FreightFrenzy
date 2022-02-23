@@ -2,6 +2,7 @@ package Hardware.HardwareSystems.FFSystems;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -25,6 +26,8 @@ public class IntakeSystem implements HardwareSystem {
     private double hubVoltage = 12;
     private LynxModule expansionHub;
 
+    private RevColorSensorV3 sensor;
+
     private INTAKE_STATE currentState = INTAKE_STATE.IDLE, targetState = INTAKE_STATE.IDLE;
 
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
@@ -32,6 +35,7 @@ public class IntakeSystem implements HardwareSystem {
         intakeStop = revHub.getServo(0);
         cameraServo = revHub.getServo(5);
         expansionHub = revHub.getModule();
+        sensor = map.get(RevColorSensorV3.class, "intakeSensor");
     }
 
     @Override
@@ -41,6 +45,9 @@ public class IntakeSystem implements HardwareSystem {
 
     @Override
     public void update() {
+        if(power != 0){
+            distance = sensor.getDistance(DistanceUnit.MM);
+        }
         double current = intakeMotor.getMotor().getCurrent(CurrentUnit.MILLIAMPS);
         if(System.currentTimeMillis() > timer){
             if(currentState != targetState){
@@ -59,7 +66,7 @@ public class IntakeSystem implements HardwareSystem {
             case LOCKING:
                 setPower(-0.3);
                 if(System.currentTimeMillis() > timer){
-                    timer = System.currentTimeMillis() + 100;
+                    timer = System.currentTimeMillis() + 200;
                 }
                 targetState = INTAKE_STATE.LOCKED;
                 break;
