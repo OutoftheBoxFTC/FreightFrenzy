@@ -1,7 +1,6 @@
-package Opmodes.TestOpmodes;
+package Opmodes.Auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -13,14 +12,12 @@ import MathSystems.Vector.Vector3;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.SampleMecanumDrive;
 import State.Action.Action;
-import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 import Utils.OpmodeStatus;
 
-@TeleOp
-public class CameraDriveTester extends BasicOpmode {
+public class BlueAuto extends BasicOpmode {
     @Override
     public void setup() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);

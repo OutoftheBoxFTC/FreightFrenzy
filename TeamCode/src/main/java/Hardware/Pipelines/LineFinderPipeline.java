@@ -41,7 +41,7 @@ public class LineFinderPipeline extends OpenCvPipeline {
         Rect bestRect = new Rect(0, 0, 0, 0);
         for(MatOfPoint p : contours){
             Rect r = Imgproc.boundingRect(p);
-            if(r.height > height && r.height > 150){
+            if(r.height > height && r.height > 180){
                 height = r.height;
                 bestRect = r;
             }

@@ -61,13 +61,13 @@ public class IntakeSystem implements HardwareSystem {
                 break;
             case LOCKED:
                 setPower(-0.2);
-                lockIntake();
                 break;
             case LOCKING:
                 setPower(-0.3);
                 if(System.currentTimeMillis() > timer){
-                    timer = System.currentTimeMillis() + 200;
+                    timer = System.currentTimeMillis() + 400;
                 }
+                lockIntake();
                 targetState = INTAKE_STATE.LOCKED;
                 break;
             case OUTTAKING:

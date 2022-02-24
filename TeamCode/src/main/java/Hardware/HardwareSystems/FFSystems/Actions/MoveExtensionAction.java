@@ -43,7 +43,7 @@ public class MoveExtensionAction implements Action {
         }
         double power = pid.getCorrection(targetPos - system.getExtensionPosition());
 
-        system.setExtensionMotorPower(MathUtils.signedMax(power, 0.5));
+        system.setExtensionMotorPower(MathUtils.signedMax(power, 0.7));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < 10;
+        return Math.abs(error) < 5;
     }
 
     public double getTargetPos() {
