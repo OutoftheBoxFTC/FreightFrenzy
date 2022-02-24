@@ -144,8 +144,16 @@ public class IntakeSystem implements HardwareSystem {
         cameraServo.setPosition(0.9);
     }
 
+    public void moveCameraSearch(){
+        cameraServo.setPosition(0.85);
+    }
+
     public void moveCameraUp(){
         cameraServo.setPosition(0.6);
+    }
+
+    public boolean itemInIntake(){
+        return distance < 30;
     }
 
     enum INTAKE_STATE{

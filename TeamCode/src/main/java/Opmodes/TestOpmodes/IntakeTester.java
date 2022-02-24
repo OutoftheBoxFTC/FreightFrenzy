@@ -14,7 +14,11 @@ public class IntakeTester extends BasicOpmode {
                 hardware.getIntakeSystem().intake();
             }else if(gamepad1.left_bumper){
                 hardware.getIntakeSystem().outtake();
+            }else{
+                hardware.getIntakeSystem().lockIntake();
             }
         });
+
+        OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getDistance()));
     }
 }

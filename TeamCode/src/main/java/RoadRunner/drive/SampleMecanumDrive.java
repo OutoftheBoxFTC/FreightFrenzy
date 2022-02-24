@@ -30,6 +30,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import RoadRunner.trajectorysequence.TrajectorySequence;
 import RoadRunner.trajectorysequence.TrajectorySequenceBuilder;
 import RoadRunner.trajectorysequence.TrajectorySequenceRunner;
+import RoadRunner.trajectorysequence.TrajectorySequenceRunnerCancelable;
 import RoadRunner.util.AxisDirection;
 import RoadRunner.util.BNO055IMUUtil;
 import RoadRunner.util.LynxModuleUtil;
@@ -64,7 +65,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double VY_WEIGHT = 1;
     public static double OMEGA_WEIGHT = 1;
 
-    private TrajectorySequenceRunner trajectorySequenceRunner;
+    private TrajectorySequenceRunnerCancelable trajectorySequenceRunner;
 
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
@@ -151,7 +152,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
+        trajectorySequenceRunner = new TrajectorySequenceRunnerCancelable(follower, HEADING_PID);
     }
 
     public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
@@ -202,6 +203,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void followTrajectorySequenceAsync(TrajectorySequence trajectorySequence) {
         trajectorySequenceRunner.followTrajectorySequenceAsync(trajectorySequence);
+    }
+
+    public void breakFollowing() {
+        trajectorySequenceRunner.breakFollowing();
     }
 
     public void followTrajectorySequence(TrajectorySequence trajectorySequence) {

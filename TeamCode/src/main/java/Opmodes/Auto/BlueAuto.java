@@ -1,83 +1,145 @@
 package Opmodes.Auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import Hardware.HardwareSystems.FFSystems.Actions.FollowTrajectoryAction;
+import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
+import Hardware.HardwareSystems.FFSystems.ScoutSystem;
+import Hardware.Pipelines.LineFinderCamera;
 import Hardware.Pipelines.LineFinderPipeline;
 import MathSystems.Vector.Vector3;
+import Opmodes.Auto.AutoActions.FollowIntakeTrajectoryAction;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.SampleMecanumDrive;
+import RoadRunner.trajectorysequence.TrajectorySequence;
+import RoadRunner.trajectorysequence.sequencesegment.TrajectorySegment;
 import State.Action.Action;
+import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
+import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
 
 public class BlueAuto extends BasicOpmode {
+    private double startPos = 0;
+
     @Override
     public void setup() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        LineFinderPipeline pipeline = new LineFinderPipeline();
-        hardware.getIntakeSystem().moveCameraInspection();
-        WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                camera.openCameraDevice();
-                camera.setPipeline(pipeline);
-                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-            }
+        LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware);
 
-            @Override
-            public void onError(int errorCode) {
+        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
+        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
 
-            }
-        });
-        FtcDashboard.getInstance().startCameraStream(camera, 60);
-
-        ActionQueue queue = new ActionQueue();
-        queue.submitAction(new InstantAction() {
+        ActionQueue initQueue = new ActionQueue();
+        initQueue.submitAction(new InstantAction() {
             @Override
             public void update() {
                 hardware.getIntakeSystem().moveCameraDown();
             }
         });
-        queue.submitAction(new DelayAction(50));
+        initQueue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
+        initQueue.submitAction(new TimedAction(1000) {
+            @Override
+            public void update() {
+                startPos = lineCamera.getPipeline().getRealY();
+            }
+        });
+        initQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getIntakeSystem().moveCameraInspection();
+            }
+        });
+
+        ActionController.addAction(initQueue);
+
+        TrajectorySequence intoWarehouse = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
+                .forward(45)
+                .build();
+
+        TrajectorySequence back = drive.trajectorySequenceBuilder(intoWarehouse.end())
+                .back(45)
+                .build();
+
+        ActionQueue queue = new ActionQueue();
+        queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getDrivetrainSystem().setPower(new Vector3(0, -0.7, 0));
+                hardware.getTurretSystem().openArm();
             }
         });
         queue.submitAction(new DelayAction(300));
-        queue.submitAction(new Action() {
+        queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getDrivetrainSystem().setPower(new Vector3(0, -0.7, 0));
+                hardware.getTurretSystem().closeArm();
             }
+        });
+        queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
 
-            @Override
-            public boolean shouldDeactivate() {
-                return pipeline.getY() > 0;
-            }
-        });
-        queue.submitAction(new Action() {
-            @Override
-            public void update() {
-                hardware.getDrivetrainSystem().setPower(Vector3.ZERO());
-                hardware.getIntakeSystem().getCameraServo().setPosition(0.85);
-                pipeline.pitchOffset = -30;
-                //hardware.getIntakeSystem().moveCameraUp();
-                telemetry.addData("Distance", pipeline.getRealY());
-                telemetry.addData("Real Distance", pipeline.getRealY() + 10);
-            }
-        });
+        for(int i = 0; i < 1; i ++){
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    hardware.getIntakeSystem().intake();
+                }
+            });
+            queue.submitAction(new FollowIntakeTrajectoryAction(drive, intoWarehouse, hardware.getIntakeSystem()));
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    hardware.getTurretSystem().closeArm();
+                    hardware.getIntakeSystem().outtake();
+                    drive.setDrivePower(new Pose2d());
+                }
+            });
+            queue.submitAction(new DelayAction(250));
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
+                }
+            });
+            queue.submitAction(new FollowTrajectoryAction(drive, back));
+            queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    hardware.getTurretSystem().openArm();
+                }
+            });
+            queue.submitAction(new DelayAction(300));
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    hardware.getTurretSystem().closeArm();
+                    hardware.getIntakeSystem().moveCameraDown();
+                }
+            });
+            queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    double position = lineCamera.getPipeline().getRealY() - startPos;
+                    Pose2d estimate = drive.getPoseEstimate();
+                    drive.setPoseEstimate(new Pose2d(position, estimate.getY(), estimate.getHeading()));
+                    hardware.getIntakeSystem().moveCameraInspection();
+                }
+            });
+        }
+
+
+
         OpmodeStatus.bindOnStart(queue);
     }
 }
