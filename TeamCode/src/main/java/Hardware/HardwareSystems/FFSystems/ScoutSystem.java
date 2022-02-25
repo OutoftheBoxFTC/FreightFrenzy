@@ -239,7 +239,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketPreset(){
-        bucketServo.setPosition(0.5);
+        bucketServo.setPosition(0.51);
     }
 
     public void setBucketScore(){
@@ -255,11 +255,11 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void closeArm(){
-        setArmPos(0.8);
+        setArmPos(0.47);
     }
 
     public void openArm(){
-        setArmPos(1);
+        setArmPos(0.65);
     }
 
     public double getTurretEncoderPos(){

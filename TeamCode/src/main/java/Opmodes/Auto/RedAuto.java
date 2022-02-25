@@ -1,26 +1,15 @@
 package Opmodes.Auto;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-
-import Hardware.HardwareSystems.FFSystems.Actions.FollowTrajectoryAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Hardware.Pipelines.LineFinderCamera;
-import Hardware.Pipelines.LineFinderPipeline;
-import MathSystems.Vector.Vector3;
-import Opmodes.Auto.AutoActions.FollowIntakeTrajectoryAction;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
 import RoadRunner.trajectorysequence.TrajectorySequence;
-import RoadRunner.trajectorysequence.sequencesegment.TrajectorySegment;
 import State.Action.Action;
 import State.Action.ActionController;
 import State.Action.ActionQueue;
@@ -30,7 +19,7 @@ import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
 
 @Autonomous
-public class BlueAuto extends BasicOpmode {
+public class RedAuto extends BasicOpmode {
     private double startPos = 0;
 
     @Override
@@ -47,7 +36,7 @@ public class BlueAuto extends BasicOpmode {
 
         LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware);
 
-        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
+        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
         hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
 
         ActionQueue initQueue = new ActionQueue();
@@ -133,7 +122,7 @@ public class BlueAuto extends BasicOpmode {
                 public void update() {
                     double distance = 35 - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(Math.max(power, 1), 0.1, 0));
+                    drive.setDrivePower(new Pose2d(Math.max(power, 1), -0.4, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                 }
 
@@ -163,7 +152,7 @@ public class BlueAuto extends BasicOpmode {
                 public void update() {
                     double distance = drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(-Math.max(power, 1), 0.1, 0));
+                    drive.setDrivePower(new Pose2d(-Math.max(power, 1), -0.4, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {
                         hardware.getIntakeSystem().moveCameraDown();

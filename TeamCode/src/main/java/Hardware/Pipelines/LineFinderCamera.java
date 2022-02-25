@@ -12,6 +12,7 @@ import Hardware.FFHardwareController;
 
 public class LineFinderCamera {
     private LineFinderPipeline pipeline;
+    private boolean opened = false;
 
     public LineFinderCamera(HardwareMap hardwareMap, FFHardwareController hardware){
         pipeline = new LineFinderPipeline();
@@ -24,6 +25,7 @@ public class LineFinderCamera {
                 camera.openCameraDevice();
                 camera.setPipeline(pipeline);
                 camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                opened = true;
             }
 
             @Override
@@ -36,5 +38,9 @@ public class LineFinderCamera {
 
     public LineFinderPipeline getPipeline() {
         return pipeline;
+    }
+
+    public boolean isOpened() {
+        return opened;
     }
 }
