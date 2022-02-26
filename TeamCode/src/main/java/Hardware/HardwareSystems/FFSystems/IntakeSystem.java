@@ -45,9 +45,7 @@ public class IntakeSystem implements HardwareSystem {
 
     @Override
     public void update() {
-        if(power != 0){
-            distance = sensor.getDistance(DistanceUnit.MM);
-        }
+        distance = sensor.getDistance(DistanceUnit.MM);
         double current = intakeMotor.getMotor().getCurrent(CurrentUnit.MILLIAMPS);
         if(System.currentTimeMillis() > timer){
             if(currentState != targetState){

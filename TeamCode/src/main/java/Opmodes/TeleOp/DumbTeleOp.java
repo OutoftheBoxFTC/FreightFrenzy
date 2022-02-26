@@ -1,6 +1,9 @@
 package Opmodes.TeleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.Vector.Vector3;
@@ -23,8 +26,13 @@ public class DumbTeleOp extends BasicOpmode {
                 } else {
                     hardware.getIntakeSystem().idleIntake();
                 }
+                if(hardware.getIntakeSystem().itemInIntake()){
+                    hardware.getTurretSystem().closeArm();
+                }
             }
         });
+
+        OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getDistance()));
 
         OpmodeStatus.bindOnStart(() -> hardware.getDrivetrainSystem().setPower(new Vector3(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x)));
 
@@ -41,6 +49,14 @@ public class DumbTeleOp extends BasicOpmode {
             }
             if(gamepad1.b){
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+            }
+        });
+
+        OpmodeStatus.bindOnStart(new Action() {
+            @Override
+            public void update() {
+                FtcDashboard.getInstance().getTelemetry().addData("Current", hardware.getTurretSystem().getExtensionMotor().getCurrent(CurrentUnit.AMPS));
+                FtcDashboard.getInstance().getTelemetry().update();
             }
         });
     }

@@ -112,7 +112,9 @@ public class ScoutSystem implements HardwareSystem {
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0);
                 setBucketIntakePos();
-                openArm();
+                if(!forward || transitionReady) {
+                    openArm();
+                }
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
                 }
@@ -255,11 +257,11 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void closeArm(){
-        setArmPos(0.47);
+        setArmPos(0.55);
     }
 
     public void openArm(){
-        setArmPos(0.65);
+        setArmPos(0.7);
     }
 
     public double getTurretEncoderPos(){

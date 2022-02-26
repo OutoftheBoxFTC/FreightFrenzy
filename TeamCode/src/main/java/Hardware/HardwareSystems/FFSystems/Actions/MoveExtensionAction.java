@@ -43,6 +43,10 @@ public class MoveExtensionAction implements Action {
         }
         double power = pid.getCorrection(targetPos - system.getExtensionPosition());
 
+        if(targetPos == 0 && targetPos < system.getExtensionPosition()){
+            power = 0.75 * Math.signum(power);
+        }
+
         system.setExtensionMotorPower(MathUtils.signedMax(power, 0.7));
     }
 
