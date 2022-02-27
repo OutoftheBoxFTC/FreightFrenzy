@@ -20,6 +20,7 @@ public class ExtensionPowerTester extends BasicOpmode {
         OpmodeStatus.bindOnStart(new Action() {
             @Override
             public void update() {
+                hardware.getTurretSystem().setBucketPreset();
                 FtcDashboard.getInstance().getTelemetry().addData("Current", hardware.getTurretSystem().getExtensionMotor().getCurrent(CurrentUnit.MILLIAMPS));
                 FtcDashboard.getInstance().getTelemetry().update();
             }

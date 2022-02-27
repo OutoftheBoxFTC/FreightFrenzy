@@ -5,13 +5,12 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import MathSystems.Angle;
 
 public class SmartPotentiometer extends SmartAnalogInput{
-    private final Angle minAngle, maxAngle;
+    private double angleConstant;
     private Angle offsetAngle;
 
-    public SmartPotentiometer(SmartAnalogInput smartAnalogInput, Angle minAngle, Angle maxAngle) {
+    public SmartPotentiometer(SmartAnalogInput smartAnalogInput, double angleConstant) {
         super(smartAnalogInput.getAnalogInput());
-        this.minAngle = minAngle;
-        this.maxAngle = maxAngle;
+        this.angleConstant = angleConstant;
     }
 
     public void setOffsetAngle(Angle offsetAngle) {
@@ -19,8 +18,7 @@ public class SmartPotentiometer extends SmartAnalogInput{
     }
 
     public Angle getAngle(){
-        double travelRange = maxAngle.degrees() - minAngle.degrees();
-        double angle = minAngle.degrees() + (getValue() * travelRange);
+        double angle = getValue() * angleConstant;
         if(offsetAngle != null) {
             angle -= offsetAngle.degrees();
         }

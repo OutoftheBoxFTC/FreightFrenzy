@@ -27,7 +27,7 @@ public class MovePitchAction implements Action {
 
     public void setTargetAngle(Angle angle){
         targetAngle = angle;
-        targetPos = angle.degrees() * 19.6;
+        targetPos = angle.degrees() * 18.189;
     }
 
     @Override

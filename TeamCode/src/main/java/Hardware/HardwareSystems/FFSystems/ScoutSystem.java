@@ -14,6 +14,7 @@ import Hardware.HardwareSystems.FFSystems.Actions.MovePitchAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveTurretAction;
 import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.HardwareSystem;
+import Hardware.SmartDevices.SmartAnalogInput.SmartPotentiometer;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
@@ -28,6 +29,8 @@ public class ScoutSystem implements HardwareSystem {
     private final MoveTurretAction moveTurretAction;
     private final MovePitchAction movePitchAction;
     private final MoveExtensionAction moveExtensionAction;
+
+    private SmartPotentiometer pitchPot;
 
     private final SmartMotor turretMotor, pitchMotor, extensionMotor;
     private final SmartServo bucketServo, armServo;
@@ -64,6 +67,8 @@ public class ScoutSystem implements HardwareSystem {
 
         bucketHall = chub.getDigitalController(0);
 
+        pitchPot = new SmartPotentiometer(chub.getAnalogInput(1), 463.9175);
+
         moveTurretAction = new MoveTurretAction(this);
         movePitchAction = new MovePitchAction(this);
         moveExtensionAction = new MoveExtensionAction(this);
@@ -84,12 +89,12 @@ public class ScoutSystem implements HardwareSystem {
         last = System.currentTimeMillis();
         moveTurretAction.submit();
         movePitchAction.submit();
-        moveExtensionAction.submit();
+        //moveExtensionAction.submit();
         offset = getExtensionPosition();
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        initialPitch = Angle.ZERO();
+        initialPitch = Angle.degrees(-(pitchPot.getAngle().degrees() - 226.61668   ));
         timer = System.currentTimeMillis() + 100;
         initialTurret = 0;
         scoutTarget = new ScoutTargets.SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
@@ -97,7 +102,7 @@ public class ScoutSystem implements HardwareSystem {
 
     @Override
     public void update() {
-
+        //RobotLog.i(initialPitch.degrees()+"");
         if(System.currentTimeMillis() > timer && timer != 0) {
             pitchMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             turretMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -111,8 +116,9 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0);
-                setBucketIntakePos();
+                //setBucketIntakePos();
                 if(!forward || transitionReady) {
+                    //setBucketIntakePos();
                     openArm();
                 }
                 if(moveExtensionAction.isAtTarget()){
@@ -206,7 +212,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public int getPitchMotorPos(){
-        return pitchMotor.getMotor().getCurrentPosition();
+        return (int) (pitchMotor.getMotor().getCurrentPosition() + (initialPitch.degrees() * 18.189));
     }
 
     public void movePitchRaw(Angle angle){
@@ -296,6 +302,10 @@ public class ScoutSystem implements HardwareSystem {
 
     public SCOUT_STATE getScoutTarget() {
         return cachedTarget;
+    }
+
+    public SmartPotentiometer getPitchPot() {
+        return pitchPot;
     }
 
     public enum SCOUT_STATE {
