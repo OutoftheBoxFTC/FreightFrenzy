@@ -46,6 +46,10 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
+    private double extensionPreload = 25;
+
+    private boolean forward = false;
+
     private long last;
 
     private LynxModule chub;
@@ -57,6 +61,8 @@ public class ScoutSystem implements HardwareSystem {
     private ScoutTargets.SCOUTTarget scoutTarget;
 
     private boolean transitionReady = true;
+
+    private boolean auto = false;
 
     public ScoutSystem(SmartLynxModule chub, SmartLynxModule ehub, IntakeSystem intake){
 
@@ -91,7 +97,7 @@ public class ScoutSystem implements HardwareSystem {
         last = System.currentTimeMillis();
         moveTurretAction.submit();
         movePitchAction.submit();
-        //moveExtensionAction.submit();
+        moveExtensionAction.submit();
         offset = getExtensionPosition();
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -110,8 +116,6 @@ public class ScoutSystem implements HardwareSystem {
             turretMotor.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             timer = 0;
         }
-
-        boolean forward = targetState.index > currentState.index;
 
         switch (currentState){
             case HOMING:
@@ -136,17 +140,26 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 break;
             case TRANSFER:
+                if(forward) {
+                    if(!moveExtensionAction.isAtTarget()) {
+                        bucketServo.disableServo();
+                    }
+                }
                 moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
-                movePitchAction.setTargetAngle(Angle.degrees(15));
+                movePitchAction.setTargetAngle(Angle.degrees(9.5));
+                if(moveExtensionAction.isAtTarget()){
+                    bucketServo.enableServo();
+                    setBucketPreset();
+                }
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && !bucketHall.getState()){
                     transitionReady = true;
                 }
                 break;
             case PRELOAD_ANGLE:
-                moveExtensionAction.setTargetPos(20, DistanceUnit.INCH);
-
+                moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
+                bucketServo.enableServo();
                 boolean bucketReady = true;
                 if(forward){
                     setBucketScore();
@@ -154,14 +167,21 @@ public class ScoutSystem implements HardwareSystem {
                     movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                 }else {
                     bucketReady = !bucketHall.getState();
-                    moveTurretAction.setTargetAngle(Angle.ZERO());
+                    if(scout_target != SCOUT_TARGET.SHARED)
+                        moveTurretAction.setTargetAngle(Angle.ZERO());
                     setBucketPreset();
                 }
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && bucketReady){
                     transitionReady = true;
                 }
+                if(this.auto){
+                    MoveExtensionAction.P = 0.1;
+                }
                 break;
             case SCORE:
+                if(this.auto){
+                    MoveExtensionAction.P = 0.01;
+                }
                 moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
                 setBucketScore();
                 if(moveExtensionAction.isAtTarget()){
@@ -252,7 +272,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketPreset(){
-        bucketServo.setPosition(0.51);
+        bucketServo.setPosition(0.48);
     }
 
     public void setBucketScore(){
@@ -272,7 +292,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void openArm(){
-        setArmPos(0.7);
+        setArmPos(0.75);
     }
 
     public double getTurretEncoderPos(){
@@ -298,6 +318,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setScoutTarget(SCOUT_STATE state){
+        forward = state.index > currentState.index;
         this.cachedTarget = state;
     }
 
@@ -311,6 +332,25 @@ public class ScoutSystem implements HardwareSystem {
 
     public SmartPotentiometer getPitchPot() {
         return pitchPot;
+    }
+
+    public SmartServo getBucketServo() {
+        return bucketServo;
+    }
+
+    public void bypassSetState(SCOUT_STATE state){
+        this.cachedTarget = state;
+        this.targetState = state;
+        this.currentState = state;
+        transitionReady = false;
+    }
+
+    public void setExtensionPreload(double distance) {
+        this.extensionPreload = distance;
+    }
+
+    public void setAuto(boolean auto) {
+        this.auto = auto;
     }
 
     public enum SCOUT_STATE {

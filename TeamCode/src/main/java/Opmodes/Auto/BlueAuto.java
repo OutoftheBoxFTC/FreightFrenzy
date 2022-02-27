@@ -1,16 +1,19 @@
 package Opmodes.Auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Hardware.HardwareSystems.FFSystems.Actions.FollowTrajectoryAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
+import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Hardware.Pipelines.LineFinderCamera;
 import Hardware.Pipelines.LineFinderPipeline;
@@ -30,8 +33,10 @@ import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
 
 @Autonomous
+@Config
 public class BlueAuto extends BasicOpmode {
     private double startPos = 0;
+    public static PRELOAD_POSITION preload = PRELOAD_POSITION.HIGH;
 
     @Override
     public void setup() {
@@ -47,14 +52,11 @@ public class BlueAuto extends BasicOpmode {
 
         LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware);
 
-        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
-        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
-
         ActionQueue initQueue = new ActionQueue();
         initQueue.submitAction(new Action() {
             @Override
             public void update() {
-
+                hardware.getTurretSystem().setAuto(true);
             }
 
             @Override
@@ -66,12 +68,22 @@ public class BlueAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getIntakeSystem().moveCameraDown();
+                hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
+                hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
             }
         });
-        /**
         initQueue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
-         */
         initQueue.submitAction(new DelayAction(1000));
+        initQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setBucketScore();
+                //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.HOMING);
+                //hardware.getTurretSystem().moveTurretRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).turretAngle);
+                //hardware.getTurretSystem().movePitchRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).pitchAngle);
+                hardware.getTurretSystem().setExtensionPreload(0);
+            }
+        });
         initQueue.submitAction(new TimedAction(1000) {
             @Override
             public void update() {
@@ -102,6 +114,43 @@ public class BlueAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
+                ScoutTargets.SCOUTTarget target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                switch (preload){
+                    case HIGH:
+                        target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                        break;
+                    case MEDIUM:
+                        target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID);
+                        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_MID);
+                        break;
+                    case LOW:
+                        target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
+                        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
+                        break;
+                }
+                //hardware.getTurretSystem().moveTurretRaw(target.turretAngle);
+                //hardware.getTurretSystem().movePitchRaw(target.pitchAngle);
+                //hardware.getTurretSystem().moveExtensionRaw(target.extension, DistanceUnit.INCH);
+                //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.SCORE);
+                hardware.getTurretSystem().setExtensionPreload(25);
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+            }
+        });
+        queue.submitAction(new Action() {
+            @Override
+            public void update() {
+
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.SCORE && hardware.getTurretSystem().isScoutIdle();
+            }
+        });
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
                 hardware.getIntakeSystem().lock();
             }
         });
@@ -121,6 +170,13 @@ public class BlueAuto extends BasicOpmode {
         });
         queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
 
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                requestOpModeStop();
+            }
+        });
+        /**
         for(int i = 0; i < 4; i ++){
             queue.submitAction(new InstantAction() {
                 @Override
@@ -214,7 +270,13 @@ public class BlueAuto extends BasicOpmode {
         }
 
 
-
+        */
         OpmodeStatus.bindOnStart(queue);
+    }
+
+    public enum PRELOAD_POSITION{
+        HIGH,
+        MEDIUM,
+        LOW
     }
 }

@@ -1,6 +1,7 @@
 package Opmodes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -12,11 +13,16 @@ import State.Action.Action;
 import Utils.OpmodeStatus;
 
 @TeleOp
+@Config
 public class DumbTeleOp extends BasicOpmode {
+    public static ScoutSystem.SCOUT_ALLIANCE alliance = ScoutSystem.SCOUT_ALLIANCE.RED;
+    public static ScoutSystem.SCOUT_TARGET target = ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH;
     @Override
     public void setup() {
-        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
-        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+        OpmodeStatus.bindOnStart(() -> {
+            hardware.getTurretSystem().setScoutAlliance(alliance);
+            hardware.getTurretSystem().setScoutFieldTarget(target);
+        });
         OpmodeStatus.bindOnStart(() -> {
             if(hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE) {
                 if (gamepad1.right_bumper) {

@@ -32,15 +32,11 @@ public class SmartServo {
     }
 
     public void disableServo(){
-        if(servo.isPwmEnabled()){
-            servo.setPwmDisable();
-        }
+        servo.setPwmDisable();
     }
 
     public void enableServo(){
-        if(!servo.isPwmEnabled()){
-            servo.setPwmEnable();
-        }
+        servo.setPwmEnable();
     }
 
     public ServoImplEx getServo() {

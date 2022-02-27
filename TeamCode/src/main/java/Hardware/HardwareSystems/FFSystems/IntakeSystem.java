@@ -40,7 +40,7 @@ public class IntakeSystem implements HardwareSystem {
 
     @Override
     public void initialize() {
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     @Override
@@ -55,10 +55,10 @@ public class IntakeSystem implements HardwareSystem {
         switch (currentState){
             case IDLE:
                 setPower(0);
-                unlockIntake();
                 break;
             case LOCKED:
-                setPower(-0.2);
+                setPower(-0.1);
+                intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                 break;
             case LOCKING:
                 setPower(-0.3);
@@ -70,12 +70,14 @@ public class IntakeSystem implements HardwareSystem {
                 break;
             case OUTTAKING:
                 setPower(-1);
+                unlockIntake();
                 if(System.currentTimeMillis() > timer) {
                     timer = System.currentTimeMillis() + 100;
                 }
                 targetState = INTAKE_STATE.LOCKING;
                 break;
             case INTAKING:
+                unlockIntake();
                 setPower(1);
                 break;
         }

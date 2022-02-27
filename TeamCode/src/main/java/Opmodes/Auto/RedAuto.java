@@ -1,13 +1,14 @@
 package Opmodes.Auto;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
+import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Hardware.Pipelines.LineFinderCamera;
 import Opmodes.BasicOpmode;
-import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
 import RoadRunner.trajectorysequence.TrajectorySequence;
 import State.Action.Action;
@@ -19,8 +20,10 @@ import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
 
 @Autonomous
+@Config
 public class RedAuto extends BasicOpmode {
     private double startPos = 0;
+    public static PRELOAD_POSITION preload = PRELOAD_POSITION.HIGH;
 
     @Override
     public void setup() {
@@ -36,14 +39,11 @@ public class RedAuto extends BasicOpmode {
 
         LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware);
 
-        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
-        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
-
         ActionQueue initQueue = new ActionQueue();
         initQueue.submitAction(new Action() {
             @Override
             public void update() {
-
+                hardware.getTurretSystem().setAuto(true);
             }
 
             @Override
@@ -55,12 +55,22 @@ public class RedAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getIntakeSystem().moveCameraDown();
+                hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
+                hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
             }
         });
-        /**
         initQueue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
-         */
         initQueue.submitAction(new DelayAction(1000));
+        initQueue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setBucketScore();
+                //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.HOMING);
+                //hardware.getTurretSystem().moveTurretRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).turretAngle);
+                //hardware.getTurretSystem().movePitchRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).pitchAngle);
+                hardware.getTurretSystem().setExtensionPreload(0);
+            }
+        });
         initQueue.submitAction(new TimedAction(1000) {
             @Override
             public void update() {
@@ -91,6 +101,43 @@ public class RedAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
+                ScoutTargets.SCOUTTarget target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.RED, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                switch (preload){
+                    case HIGH:
+                        target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.RED, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                        break;
+                    case MEDIUM:
+                        target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.RED, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID);
+                        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_MID);
+                        break;
+                    case LOW:
+                        target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.RED, ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
+                        hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
+                        break;
+                }
+                //hardware.getTurretSystem().moveTurretRaw(target.turretAngle);
+                //hardware.getTurretSystem().movePitchRaw(target.pitchAngle);
+                //hardware.getTurretSystem().moveExtensionRaw(target.extension, DistanceUnit.INCH);
+                //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.SCORE);
+                hardware.getTurretSystem().setExtensionPreload(25);
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+            }
+        });
+        queue.submitAction(new Action() {
+            @Override
+            public void update() {
+
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.SCORE && hardware.getTurretSystem().isScoutIdle();
+            }
+        });
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
                 hardware.getIntakeSystem().lock();
             }
         });
@@ -102,14 +149,15 @@ public class RedAuto extends BasicOpmode {
             }
         });
         queue.submitAction(new DelayAction(300));
+        queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
+
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getTurretSystem().closeArm();
+                requestOpModeStop();
             }
         });
-        queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
-
+        /**
         for(int i = 0; i < 4; i ++){
             queue.submitAction(new InstantAction() {
                 @Override
@@ -122,7 +170,7 @@ public class RedAuto extends BasicOpmode {
                 public void update() {
                     double distance = 35 - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(Math.max(power, 1), -0.4, 0));
+                    drive.setDrivePower(new Pose2d(Math.max(power, 1), 0.1, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                 }
 
@@ -152,10 +200,11 @@ public class RedAuto extends BasicOpmode {
                 public void update() {
                     double distance = drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(-Math.max(power, 1), -0.4, 0));
+                    drive.setDrivePower(new Pose2d(-Math.max(power, 1), 0.1, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {
                         hardware.getIntakeSystem().moveCameraDown();
+                        //queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
                     }
                 }
 
@@ -202,7 +251,13 @@ public class RedAuto extends BasicOpmode {
         }
 
 
-
+        */
         OpmodeStatus.bindOnStart(queue);
+    }
+
+    public enum PRELOAD_POSITION{
+        HIGH,
+        MEDIUM,
+        LOW
     }
 }

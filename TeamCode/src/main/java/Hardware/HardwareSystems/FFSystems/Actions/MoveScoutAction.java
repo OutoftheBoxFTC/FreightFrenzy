@@ -6,6 +6,7 @@ import State.Action.Action;
 public class MoveScoutAction implements Action {
     private ScoutSystem.SCOUT_STATE target;
     private ScoutSystem system;
+    private int numFrames = 0;
 
     public MoveScoutAction(ScoutSystem system, ScoutSystem.SCOUT_STATE target){
         this.system = system;
@@ -13,12 +14,19 @@ public class MoveScoutAction implements Action {
     }
 
     @Override
-    public void update() {
+    public void initialize() {
         system.setScoutTarget(target);
     }
 
     @Override
+    public void update() {
+    }
+
+    @Override
     public boolean shouldDeactivate() {
-        return system.getCurrentState() == target && system.isScoutIdle();
+        if(system.getCurrentState() == target && system.isScoutIdle()){
+            numFrames ++;
+        }
+        return numFrames > 3;
     }
 }
