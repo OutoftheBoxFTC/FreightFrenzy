@@ -167,6 +167,7 @@ public class BlueAuto extends BasicOpmode {
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {
                         hardware.getIntakeSystem().moveCameraDown();
+                        //queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
                     }
                 }
 

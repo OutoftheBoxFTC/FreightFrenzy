@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import java.util.HashMap;
 
 import Hardware.HardwareSystems.FFSystems.Actions.MoveExtensionAction;
@@ -115,10 +117,11 @@ public class ScoutSystem implements HardwareSystem {
             case HOMING:
                 break;
             case HOME_IN_INTAKE:
-                moveExtensionAction.setTargetPos(0);
-                //setBucketIntakePos();
-                if(!forward || transitionReady) {
-                    //setBucketIntakePos();
+                moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
+                setBucketIntakePos();
+                if(intake.itemInIntake()){
+                    closeArm();
+                }else{
                     openArm();
                 }
                 if(moveExtensionAction.isAtTarget()){
@@ -133,23 +136,25 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 break;
             case TRANSFER:
-                moveExtensionAction.setTargetPos(100);
+                moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
-                movePitchAction.setTargetAngle(Angle.ZERO());
+                movePitchAction.setTargetAngle(Angle.degrees(15));
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && !bucketHall.getState()){
                     transitionReady = true;
                 }
                 break;
             case PRELOAD_ANGLE:
-                moveExtensionAction.setTargetPos(300);
-                moveTurretAction.setTargetAngle(scoutTarget.turretAngle);
-                movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                moveExtensionAction.setTargetPos(20, DistanceUnit.INCH);
+
                 boolean bucketReady = true;
                 if(forward){
                     setBucketScore();
+                    moveTurretAction.setTargetAngle(scoutTarget.turretAngle);
+                    movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                 }else {
                     bucketReady = !bucketHall.getState();
+                    moveTurretAction.setTargetAngle(Angle.ZERO());
                     setBucketPreset();
                 }
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && bucketReady){
@@ -157,7 +162,7 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 break;
             case SCORE:
-                moveExtensionAction.setTargetPos(scoutTarget.extension);
+                moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
                 setBucketScore();
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
@@ -222,8 +227,8 @@ public class ScoutSystem implements HardwareSystem {
         }
     }
 
-    public void moveExtensionRaw(double position){
-        moveExtensionAction.setTargetPos(position);
+    public void moveExtensionRaw(double position, DistanceUnit unit){
+        moveExtensionAction.setTargetPos(position, unit);
     }
 
     public int getExtensionPosition(){

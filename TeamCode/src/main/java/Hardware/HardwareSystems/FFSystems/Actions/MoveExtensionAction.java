@@ -2,6 +2,8 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import Hardware.HardwareSystems.FFSystems.FFConstants;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.MathUtils;
@@ -9,6 +11,8 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveExtensionAction implements Action {
+    public static final double MM_PER_TICk = 0.473894341;
+
     public static double P = 0.1, I = 0, D = 0;
 
     private double targetPos;
@@ -23,7 +27,8 @@ public class MoveExtensionAction implements Action {
         targetPos = Double.NaN;
     }
 
-    public void setTargetPos(double pos){
+    public void setTargetPos(double pos, DistanceUnit unit){
+        pos = unit.toMm(pos) / MM_PER_TICk;
         if(pos == this.targetPos){
             return;
         }
