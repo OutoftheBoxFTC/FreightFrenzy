@@ -46,7 +46,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
-    private double extensionPreload = 25;
+    private double extensionPreload = 15;
 
     private boolean forward = false;
 
@@ -158,21 +158,29 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 break;
             case PRELOAD_ANGLE:
-                moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
-                bucketServo.enableServo();
-                boolean bucketReady = true;
                 if(forward){
+                    moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
+                    bucketServo.enableServo();
+
+                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
+                        transitionReady = true;
+                    }
+
                     setBucketScore();
                     moveTurretAction.setTargetAngle(scoutTarget.turretAngle);
                     movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
-                }else {
-                    bucketReady = !bucketHall.getState();
-                    if(scout_target != SCOUT_TARGET.SHARED)
+                }else{
+                    moveExtensionAction.setTargetPos(bucketHall.getState() ? extensionPreload : 9, DistanceUnit.INCH);
+                    if(getExtensionRealDistance(DistanceUnit.INCH) < 33){
                         moveTurretAction.setTargetAngle(Angle.ZERO());
+                        movePitchAction.setTargetAngle(Angle.degrees(9.5));
+                    }
+
+                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 11){
+                        transitionReady = true;
+                    }
+
                     setBucketPreset();
-                }
-                if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && bucketReady){
-                    transitionReady = true;
                 }
                 if(this.auto){
                     MoveExtensionAction.P = 0.1;
@@ -351,6 +359,10 @@ public class ScoutSystem implements HardwareSystem {
 
     public void setAuto(boolean auto) {
         this.auto = auto;
+    }
+
+    public double getExtensionRealDistance(DistanceUnit unit){
+        return unit.fromMm(getExtensionPosition() * MoveExtensionAction.MM_PER_TICK);
     }
 
     public enum SCOUT_STATE {
