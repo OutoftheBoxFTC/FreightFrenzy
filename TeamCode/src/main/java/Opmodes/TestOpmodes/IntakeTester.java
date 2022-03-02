@@ -12,13 +12,10 @@ public class IntakeTester extends BasicOpmode {
         OpmodeStatus.bindOnStart(() -> {
             if(gamepad1.right_bumper){
                 hardware.getIntakeSystem().intake();
-                hardware.getTurretSystem().openArm();
             }else if(gamepad1.left_bumper){
                 hardware.getIntakeSystem().outtake();
-                hardware.getTurretSystem().openArm();
             }else{
                 hardware.getIntakeSystem().idleIntake();
-                hardware.getTurretSystem().closeArm();
             }
         });
 

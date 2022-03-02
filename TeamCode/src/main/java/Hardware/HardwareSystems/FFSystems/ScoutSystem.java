@@ -46,7 +46,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
-    private double extensionPreload = 25;
+    private double extensionPreload = 15;
 
     private boolean forward = false;
 
@@ -313,7 +313,7 @@ public class ScoutSystem implements HardwareSystem {
         return currentState == targetState && transitionReady;
     }
 
-    public SCOUT_STATE getCurrentState() {
+    public SCOUT_STATE   getCurrentState() {
         return currentState;
     }
 

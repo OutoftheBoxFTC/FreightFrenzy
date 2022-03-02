@@ -14,11 +14,12 @@ import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
+import MathSystems.Angle;
 
 public class IntakeSystem implements HardwareSystem {
     private SmartMotor intakeMotor;
 
-    private SmartServo intakeStop, cameraServo;
+    private SmartServo intakeStop, cameraServo, panServo;
 
     private double power;
     private long timer = 0;
@@ -34,6 +35,7 @@ public class IntakeSystem implements HardwareSystem {
         intakeMotor = chub.getMotor(0);
         intakeStop = revHub.getServo(0);
         cameraServo = revHub.getServo(5);
+        panServo = revHub.getServo(1);
         expansionHub = revHub.getModule();
         sensor = map.get(RevColorSensorV3.class, "intakeSensor");
     }
@@ -93,9 +95,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void outtake() {
-        if(currentState == INTAKE_STATE.IDLE) {
-            targetState = INTAKE_STATE.OUTTAKING;
-        }
+        targetState = INTAKE_STATE.OUTTAKING;
         if(currentState == INTAKE_STATE.LOCKED) {
             unlockIntake();
             timer = System.currentTimeMillis() + 100;
@@ -141,7 +141,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void moveCameraDown(){
-        cameraServo.setPosition(0.9);
+        cameraServo.setPosition(0.777);
     }
 
     public void moveCameraSearch(){
@@ -154,6 +154,10 @@ public class IntakeSystem implements HardwareSystem {
 
     public boolean itemInIntake(){
         return distance < 30;
+    }
+
+    public void panCamera(Angle angle){
+        this.panServo.setPosition(angle.degrees() / 270.0);
     }
 
     enum INTAKE_STATE{

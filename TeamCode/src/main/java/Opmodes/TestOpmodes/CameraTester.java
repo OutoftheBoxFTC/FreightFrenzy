@@ -26,7 +26,7 @@ public class CameraTester extends BasicOpmode {
         CAMERA_ANGLE = hardware.getIntakeSystem().getCameraServo().getServo().getPosition();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
-        LineFinderPipeline pipeline = new LineFinderPipeline();
+        LineFinderPipeline pipeline = new LineFinderPipeline(hardware.getIntakeSystem());
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {

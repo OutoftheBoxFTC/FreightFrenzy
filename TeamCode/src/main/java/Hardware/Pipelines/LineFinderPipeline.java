@@ -14,6 +14,8 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import java.util.ArrayList;
 import java.util.List;
 
+import Hardware.HardwareSystems.FFSystems.IntakeSystem;
+
 @Config
 public class LineFinderPipeline extends OpenCvPipeline {
     public static double MIN = 180, MAX = 255, HEIGHT = 15.5;
@@ -28,9 +30,17 @@ public class LineFinderPipeline extends OpenCvPipeline {
 
     private long last = 0;
     public double fps = 0;
+    private IntakeSystem intakeSystem;
+
+    public LineFinderPipeline(IntakeSystem intakeSystem){
+        this.intakeSystem = intakeSystem;
+    }
 
     @Override
     public Mat processFrame(Mat input) {
+        pitchOffset = (intakeSystem.getCameraServo().getServo().getPosition() - 0.87187) * 270;
+
+        Mat inClone = input.clone();
         Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2GRAY);
         Imgproc.threshold(input, input, MIN, MAX, Imgproc.THRESH_BINARY);
 
@@ -59,7 +69,7 @@ public class LineFinderPipeline extends OpenCvPipeline {
         }
 
         Imgproc.cvtColor(input, input, Imgproc.COLOR_GRAY2RGB);
-        Imgproc.rectangle(input, bestRect, new Scalar(0, 255, 0), -1);
+        Imgproc.rectangle(inClone, bestRect, new Scalar(0, 255, 0), -1);
 
         long now = System.currentTimeMillis();
         if(last != 0){
@@ -68,7 +78,9 @@ public class LineFinderPipeline extends OpenCvPipeline {
         }
         last = now;
 
-        return input;
+        input.release();
+
+        return inClone;
     }
 
     public double getY() {

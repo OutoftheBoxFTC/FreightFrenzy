@@ -21,7 +21,7 @@ import Utils.OpmodeStatus;
 public class CameraRepeatTester extends BasicOpmode {
     @Override
     public void setup() {
-        LineFinderPipeline pipeline = new LineFinderPipeline();
+        LineFinderPipeline pipeline = new LineFinderPipeline(hardware.getIntakeSystem());
         hardware.getIntakeSystem().moveCameraInspection();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);

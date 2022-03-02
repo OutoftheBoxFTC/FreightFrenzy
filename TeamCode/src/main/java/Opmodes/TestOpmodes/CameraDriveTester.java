@@ -25,7 +25,7 @@ public class CameraDriveTester extends BasicOpmode {
     public void setup() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        LineFinderPipeline pipeline = new LineFinderPipeline();
+        LineFinderPipeline pipeline = new LineFinderPipeline(hardware.getIntakeSystem());
         hardware.getIntakeSystem().moveCameraInspection();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);

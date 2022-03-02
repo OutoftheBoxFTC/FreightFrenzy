@@ -29,11 +29,11 @@ public class DumbTeleOp extends BasicOpmode {
                     hardware.getIntakeSystem().intake();
                 } else if (gamepad1.left_bumper) {
                     hardware.getIntakeSystem().outtake();
-                } else {
-                    hardware.getIntakeSystem().idleIntake();
                 }
                 if(hardware.getIntakeSystem().itemInIntake()){
+                    hardware.getIntakeSystem().idleIntake();
                     hardware.getTurretSystem().closeArm();
+                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
                 }
             }
         });

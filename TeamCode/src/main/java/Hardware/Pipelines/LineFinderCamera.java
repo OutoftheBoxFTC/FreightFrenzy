@@ -15,7 +15,7 @@ public class LineFinderCamera {
     private boolean opened = false;
 
     public LineFinderCamera(HardwareMap hardwareMap, FFHardwareController hardware){
-        pipeline = new LineFinderPipeline();
+        pipeline = new LineFinderPipeline(hardware.getIntakeSystem());
         hardware.getIntakeSystem().moveCameraInspection();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
