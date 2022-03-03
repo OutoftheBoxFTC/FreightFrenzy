@@ -9,16 +9,19 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Hardware.FFHardwareController;
+import Hardware.HardwareSystems.FFSystems.IntakeSystem;
 
 public class LineFinderCamera {
     private LineFinderPipeline pipeline;
+    private TSEPipeline tsePipeline;
+    private OpenCvCamera camera;
     private boolean opened = false;
 
-    public LineFinderCamera(HardwareMap hardwareMap, FFHardwareController hardware){
+    public LineFinderCamera(HardwareMap hardwareMap, IntakeSystem intakeSystem){
         pipeline = new LineFinderPipeline();
-        hardware.getIntakeSystem().moveCameraInspection();
+        tsePipeline = new TSEPipeline();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
@@ -36,8 +39,20 @@ public class LineFinderCamera {
         FtcDashboard.getInstance().startCameraStream(camera, 60);
     }
 
-    public LineFinderPipeline getPipeline() {
+    public LineFinderPipeline getLinePipeline() {
         return pipeline;
+    }
+
+    public TSEPipeline getTSEPipeline(){
+        return tsePipeline;
+    }
+
+    public void switchTSE(){
+        camera.setPipeline(tsePipeline);
+    }
+
+    public void switchLine(){
+        camera.setPipeline(pipeline);
     }
 
     public boolean isOpened() {

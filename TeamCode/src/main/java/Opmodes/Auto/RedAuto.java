@@ -37,7 +37,7 @@ public class RedAuto extends BasicOpmode {
             }
         });
 
-        LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware);
+        LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware.getIntakeSystem());
 
         ActionQueue initQueue = new ActionQueue();
         initQueue.submitAction(new Action() {
@@ -74,7 +74,7 @@ public class RedAuto extends BasicOpmode {
         initQueue.submitAction(new TimedAction(1000) {
             @Override
             public void update() {
-                startPos = lineCamera.getPipeline().getRealY();
+                startPos = lineCamera.getLinePipeline().getRealY();
             }
         });
         initQueue.submitAction(new InstantAction() {

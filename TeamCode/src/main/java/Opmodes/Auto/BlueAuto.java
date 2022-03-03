@@ -1,29 +1,16 @@
 package Opmodes.Auto;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-
-import Hardware.HardwareSystems.FFSystems.Actions.FollowTrajectoryAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
 import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Hardware.Pipelines.LineFinderCamera;
-import Hardware.Pipelines.LineFinderPipeline;
-import MathSystems.Vector.Vector3;
-import Opmodes.Auto.AutoActions.FollowIntakeTrajectoryAction;
 import Opmodes.BasicOpmode;
-import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
 import RoadRunner.trajectorysequence.TrajectorySequence;
-import RoadRunner.trajectorysequence.sequencesegment.TrajectorySegment;
 import State.Action.Action;
 import State.Action.ActionController;
 import State.Action.ActionQueue;
@@ -50,7 +37,7 @@ public class BlueAuto extends BasicOpmode {
             }
         });
 
-        LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware);
+        LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware.getIntakeSystem());
 
         ActionQueue initQueue = new ActionQueue();
         initQueue.submitAction(new Action() {
@@ -87,7 +74,7 @@ public class BlueAuto extends BasicOpmode {
         initQueue.submitAction(new TimedAction(1000) {
             @Override
             public void update() {
-                startPos = lineCamera.getPipeline().getRealY();
+                startPos = lineCamera.getLinePipeline().getRealY();
             }
         });
         initQueue.submitAction(new InstantAction() {

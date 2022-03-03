@@ -102,7 +102,7 @@ public class ScoutSystem implements HardwareSystem {
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        initialPitch = Angle.degrees(-(pitchPot.getAngle().degrees() - 226.61668   ));
+        initialPitch = Angle.degrees(-(pitchPot.getAngle().degrees() - 226.61668));
         timer = System.currentTimeMillis() + 100;
         initialTurret = 0;
         scoutTarget = new ScoutTargets.SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
@@ -363,6 +363,12 @@ public class ScoutSystem implements HardwareSystem {
 
     public double getExtensionRealDistance(DistanceUnit unit){
         return unit.fromMm(getExtensionPosition() * MoveExtensionAction.MM_PER_TICK);
+    }
+
+    public void disableScout(){
+        moveTurretAction.deactivateNow();
+        moveExtensionAction.deactivateNow();
+        movePitchAction.deactivateNow();
     }
 
     public enum SCOUT_STATE {
