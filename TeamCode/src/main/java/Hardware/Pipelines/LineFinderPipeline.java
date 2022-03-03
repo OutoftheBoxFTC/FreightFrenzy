@@ -8,13 +8,12 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import Hardware.HardwareSystems.FFSystems.IntakeSystem;
 
 @Config
 public class LineFinderPipeline extends OpenCvPipeline {
@@ -30,16 +29,18 @@ public class LineFinderPipeline extends OpenCvPipeline {
 
     private long last = 0;
     public double fps = 0;
-    private IntakeSystem intakeSystem;
 
-    public LineFinderPipeline(IntakeSystem intakeSystem){
-        this.intakeSystem = intakeSystem;
+    private double zoomFactor = 1;
+
+    private Size size;
+
+    @Override
+    public void init(Mat mat) {
+        size = mat.size();
     }
 
     @Override
     public Mat processFrame(Mat input) {
-        pitchOffset = (intakeSystem.getCameraServo().getServo().getPosition() - 0.87187) * 270;
-
         Mat inClone = input.clone();
         Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2GRAY);
         Imgproc.threshold(input, input, MIN, MAX, Imgproc.THRESH_BINARY);
@@ -69,7 +70,7 @@ public class LineFinderPipeline extends OpenCvPipeline {
         }
 
         Imgproc.cvtColor(input, input, Imgproc.COLOR_GRAY2RGB);
-        Imgproc.rectangle(inClone, bestRect, new Scalar(0, 255, 0), -1);
+        Imgproc.rectangle(input, bestRect, new Scalar(0, 255, 0), -1);
 
         long now = System.currentTimeMillis();
         if(last != 0){
@@ -78,7 +79,9 @@ public class LineFinderPipeline extends OpenCvPipeline {
         }
         last = now;
 
-        input.release();
+        inClone = inClone.submat(new Rect(new Point(size.width * zoomFactor, size.height * zoomFactor), new Point(
+                size.width - (size.width * zoomFactor), size.height - (size.height * zoomFactor))));
+        Imgproc.resize(inClone, inClone, size);
 
         return inClone;
     }
@@ -108,6 +111,10 @@ public class LineFinderPipeline extends OpenCvPipeline {
         double horizontalView = Math.atan(Math.tan(diagonalView / 2) * (horizontalRatio / diagonalAspect)) * 2;
 
         return imageWidth / (2 * Math.tan(horizontalView / 2));
+    }
+
+    public void setZoomFactor(double zoomFactor) {
+        this.zoomFactor = zoomFactor;
     }
 
     private static Point getCenter(Rect rect){

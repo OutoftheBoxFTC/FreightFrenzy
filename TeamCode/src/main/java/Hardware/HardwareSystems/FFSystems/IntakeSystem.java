@@ -11,10 +11,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import Hardware.HardwareSystems.HardwareSystem;
+import Hardware.Pipelines.LineFinderCamera;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
-import MathSystems.Angle;
 
 public class IntakeSystem implements HardwareSystem {
     private SmartMotor intakeMotor;
@@ -31,13 +31,18 @@ public class IntakeSystem implements HardwareSystem {
 
     private INTAKE_STATE currentState = INTAKE_STATE.IDLE, targetState = INTAKE_STATE.IDLE;
 
+    private LineFinderCamera camera;
+    private HardwareMap map;
+
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
         intakeMotor = chub.getMotor(0);
         intakeStop = revHub.getServo(0);
         cameraServo = revHub.getServo(5);
         panServo = revHub.getServo(1);
         expansionHub = revHub.getModule();
+        this.map = map;
         sensor = map.get(RevColorSensorV3.class, "intakeSensor");
+        camera = new LineFinderCamera(map, this);
     }
 
     @Override
@@ -95,7 +100,9 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void outtake() {
-        targetState = INTAKE_STATE.OUTTAKING;
+        if(currentState == INTAKE_STATE.IDLE) {
+            targetState = INTAKE_STATE.OUTTAKING;
+        }
         if(currentState == INTAKE_STATE.LOCKED) {
             unlockIntake();
             timer = System.currentTimeMillis() + 100;
@@ -136,12 +143,12 @@ public class IntakeSystem implements HardwareSystem {
         return cameraServo;
     }
 
-    public void moveCameraInspection(){
-        cameraServo.setPosition(0.2);
+    public SmartServo getPanServo() {
+        return panServo;
     }
 
     public void moveCameraDown(){
-        cameraServo.setPosition(0.777);
+        cameraServo.setPosition(0.9);
     }
 
     public void moveCameraSearch(){
@@ -156,8 +163,37 @@ public class IntakeSystem implements HardwareSystem {
         return distance < 30;
     }
 
-    public void panCamera(Angle angle){
-        this.panServo.setPosition(angle.degrees() / 270.0);
+    public void panCameraNeutral(){
+        panServo.setPosition(0.5);
+        cameraServo.setPosition(0.2483);
+    }
+
+    public void moveCameraLine(){
+        cameraServo.setPosition(0.87187);
+        panServo.setPosition(0.5);
+        camera.switchLine();
+    }
+
+    public void moveCameraInspection(){
+        cameraServo.setPosition(0.2);
+        panServo.setPosition(0.5);
+        camera.switchLine();
+    }
+
+    public void moveCameraRedTSE(){
+        panServo.setPosition(13/270.0);
+        cameraServo.setPosition(0.6796);
+        camera.switchTSE();
+    }
+
+    public void moveCameraBlueTSE(){
+        panServo.setPosition(243.7563/270.0);
+        cameraServo.setPosition(0.66841);
+        camera.switchTSE();
+    }
+
+    public void setZoom(double zoom){
+        camera.getLinePipeline().setZoomFactor(zoom);
     }
 
     enum INTAKE_STATE{

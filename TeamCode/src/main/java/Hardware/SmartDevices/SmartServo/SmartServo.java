@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.hardware.PwmControl.*;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
+import MathSystems.Angle;
+
 public class SmartServo {
     private ServoImplEx servo;
     private PwmRange pmwRange;
@@ -37,6 +39,10 @@ public class SmartServo {
 
     public void enableServo(){
         servo.setPwmEnable();
+    }
+
+    public void setAngleGobilda(Angle angle){
+        setPosition(angle.degrees() / 270.0);
     }
 
     public ServoImplEx getServo() {
