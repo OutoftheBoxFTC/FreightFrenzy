@@ -46,7 +46,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
-    private double extensionPreload = 15;
+    private double extensionPreload = 15, extensionScoreOffset = 0;
 
     private boolean forward = false;
 
@@ -122,7 +122,7 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
-                MoveExtensionAction.P = 0.001;
+                moveExtensionAction.setMaxSpeed(0.6);
                 setBucketIntakePos();
                 if(intake.itemInIntake()){
                     closeArm();
@@ -135,7 +135,7 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case OUTTAKING:
                 intake.lock();
-                MoveExtensionAction.P = 0.1;
+                moveExtensionAction.setMaxSpeed(1);
                 closeArm();
                 if(intake.locked()){
                     transitionReady = true;
@@ -184,15 +184,13 @@ public class ScoutSystem implements HardwareSystem {
 
                     setBucketPreset();
                 }
-                if(this.auto){
-                    MoveExtensionAction.P = 0.1;
-                }
+                moveExtensionAction.setMaxSpeed(1);
                 break;
             case SCORE:
                 if(this.auto){
-                    MoveExtensionAction.P = 0.01;
+                    moveExtensionAction.setMaxSpeed(0.6);
                 }
-                moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
+                moveExtensionAction.setTargetPos(scoutTarget.extension+extensionScoreOffset, DistanceUnit.INCH);
                 setBucketScore();
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
@@ -365,6 +363,14 @@ public class ScoutSystem implements HardwareSystem {
 
     public double getExtensionRealDistance(DistanceUnit unit){
         return unit.fromMm(getExtensionPosition() * MoveExtensionAction.MM_PER_TICK);
+    }
+
+    public void setExtensionScoreOffset(double extensionScoreOffset) {
+        this.extensionScoreOffset = extensionScoreOffset;
+    }
+
+    public void moveExtensionScoreOffset(double offset){
+        this.extensionScoreOffset += offset;
     }
 
     public void disableScout(){

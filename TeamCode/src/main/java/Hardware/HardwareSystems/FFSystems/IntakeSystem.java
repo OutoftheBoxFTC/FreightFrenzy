@@ -64,13 +64,13 @@ public class IntakeSystem implements HardwareSystem {
                 setPower(0);
                 break;
             case LOCKED:
-                setPower(-0.1);
+                setPower(-0.2);
                 intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                 break;
             case LOCKING:
                 setPower(-0.3);
                 if(System.currentTimeMillis() > timer){
-                    timer = System.currentTimeMillis() + 400;
+                    timer = System.currentTimeMillis() + 250;
                 }
                 lockIntake();
                 targetState = INTAKE_STATE.LOCKED;

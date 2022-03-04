@@ -15,6 +15,8 @@ public class MoveExtensionAction implements Action {
 
     public static double P = 0.1, I = 0, D = 0;
 
+    private double maxSpeed = 1;
+
     private double targetPos;
     private ScoutSystem system;
     private PIDSystem pid;
@@ -23,7 +25,6 @@ public class MoveExtensionAction implements Action {
 
     public MoveExtensionAction(ScoutSystem system){
         this.system = system;
-        P = 0.1;
         pid = new PIDSystem(P, I, D, 0.1);
         targetPos = Double.NaN;
     }
@@ -53,7 +54,7 @@ public class MoveExtensionAction implements Action {
             power = 0.75 * Math.signum(power);
         }
 
-        system.setExtensionMotorPower(MathUtils.signedMax(power, 0.5));
+        system.setExtensionMotorPower(MathUtils.signedMin(MathUtils.signedMax(power, 0.5), maxSpeed));
     }
 
     @Override
@@ -77,5 +78,9 @@ public class MoveExtensionAction implements Action {
 
     public void setPidActive(boolean pidActive) {
         this.pidActive = pidActive;
+    }
+
+    public void setMaxSpeed(double maxSpeed) {
+        this.maxSpeed = maxSpeed;
     }
 }

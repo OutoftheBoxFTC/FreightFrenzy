@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
 import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
+import MathSystems.MathUtils;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
@@ -196,7 +197,7 @@ public class BlueAuto extends BasicOpmode {
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (20 + (finalI * 3)) - drive.getPoseEstimate().getX();
+                    double distance = (24 + (finalI * 3)) - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
                     drive.setDrivePower(new Pose2d(Math.max(power, 1), -0.3, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
@@ -235,6 +236,10 @@ public class BlueAuto extends BasicOpmode {
                 public void update() {
                     double distance = drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
+                    double headingPower = 0;
+                    if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
+                        headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
+                    }
                     drive.setDrivePower(new Pose2d(-1, -0.3, -0.2));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {

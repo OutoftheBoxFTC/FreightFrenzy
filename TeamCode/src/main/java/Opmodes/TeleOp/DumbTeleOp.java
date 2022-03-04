@@ -10,15 +10,29 @@ import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.Vector.Vector3;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
+import Utils.GamepadEx.GamepadCallback;
+import Utils.GamepadEx.GamepadEx;
+import Utils.GamepadEx.GamepadValueCallback;
 import Utils.OpmodeStatus;
+import Utils.ProgramClock;
 
-@TeleOp
+
 @Config
-public class DumbTeleOp extends BasicOpmode {
+public abstract class DumbTeleOp extends BasicOpmode {
     public static ScoutSystem.SCOUT_ALLIANCE alliance = ScoutSystem.SCOUT_ALLIANCE.RED;
     public static ScoutSystem.SCOUT_TARGET target = ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH;
+
+    public GamepadEx gamepad1Ex, gamepad2Ex;
     @Override
     public void setup() {
+        gamepad1Ex = new GamepadEx(gamepad1);
+        gamepad2Ex = new GamepadEx(gamepad2);
+
+        OpmodeStatus.bindOnStart(gamepad1Ex);
+        OpmodeStatus.bindOnStart(gamepad2Ex);
+
+        startTeleop();
+
         OpmodeStatus.bindOnStart(() -> {
             hardware.getTurretSystem().setScoutAlliance(alliance);
             hardware.getTurretSystem().setScoutFieldTarget(target);
@@ -58,16 +72,26 @@ public class DumbTeleOp extends BasicOpmode {
             }
         });
 
-        OpmodeStatus.bindOnStart(new Action() {
-            @Override
-            public void update() {
-                FtcDashboard.getInstance().getTelemetry().addData("Current", hardware.getTurretSystem().getExtensionMotor().getCurrent(CurrentUnit.AMPS));
-                FtcDashboard.getInstance().getTelemetry().addData("Bl", hardware.getDrivetrainSystem().getBl().getMotor().getCurrent(CurrentUnit.AMPS));
-                FtcDashboard.getInstance().getTelemetry().addData("Br", hardware.getDrivetrainSystem().getBr().getMotor().getCurrent(CurrentUnit.AMPS));
-                FtcDashboard.getInstance().getTelemetry().addData("Tl", hardware.getDrivetrainSystem().getTl().getMotor().getCurrent(CurrentUnit.AMPS));
-                FtcDashboard.getInstance().getTelemetry().addData("Tr", hardware.getDrivetrainSystem().getTr().getMotor().getCurrent(CurrentUnit.AMPS));
-                FtcDashboard.getInstance().getTelemetry().update();
-            }
+        OpmodeStatus.bindOnStart(() -> {
+            FtcDashboard.getInstance().getTelemetry().addData("Current", hardware.getTurretSystem().getExtensionMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().addData("Bl", hardware.getDrivetrainSystem().getBl().getMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().addData("Br", hardware.getDrivetrainSystem().getBr().getMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().addData("Tl", hardware.getDrivetrainSystem().getTl().getMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().addData("Tr", hardware.getDrivetrainSystem().getTr().getMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().update();
+        });
+
+        gamepad2Ex.dpad.bindOnYChange(val -> hardware.getTurretSystem().moveExtensionScoreOffset(val * ProgramClock.getFrameTimeSeconds()));
+
+        gamepad2Ex.b.bindOnPress(() -> {
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
+            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+        });
+        gamepad2Ex.x.bindOnPress(() -> {
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
+            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.SHARED);
         });
     }
+
+    public abstract void startTeleop();
 }
