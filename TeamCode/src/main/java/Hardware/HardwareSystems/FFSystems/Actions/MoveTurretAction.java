@@ -57,7 +57,7 @@ public class MoveTurretAction implements Action {
         if(targetPos == null){
             return false;
         }
-        return Math.abs(targetPos - system.getTurretEncoderPos()) < 8;
+        return Math.abs(targetPos - system.getTurretEncoderPos()) < 13;
     }
 
     public void setEnabled(boolean enabled) {

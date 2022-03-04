@@ -27,6 +27,6 @@ public class MoveScoutAction implements Action {
         if(system.getCurrentState() == target && system.isScoutIdle()){
             numFrames ++;
         }
-        return numFrames > 3;
+        return numFrames > 5;
     }
 }

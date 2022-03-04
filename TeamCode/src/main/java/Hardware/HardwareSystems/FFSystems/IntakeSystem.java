@@ -110,7 +110,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void lock(){
-        if(currentState == INTAKE_STATE.IDLE) {
+        if(currentState == INTAKE_STATE.IDLE || currentState == INTAKE_STATE.INTAKING) {
             targetState = INTAKE_STATE.OUTTAKING;
         }
     }
@@ -169,7 +169,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void moveCameraLine(){
-        cameraServo.setPosition(0.87187);
+        cameraServo.setPosition(0.8);
         panServo.setPosition(0.5);
         camera.switchLine();
     }
@@ -194,6 +194,10 @@ public class IntakeSystem implements HardwareSystem {
 
     public void setZoom(double zoom){
         camera.getLinePipeline().setZoomFactor(zoom);
+    }
+
+    public LineFinderCamera getCamera() {
+        return camera;
     }
 
     enum INTAKE_STATE{

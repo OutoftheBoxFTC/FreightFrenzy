@@ -9,6 +9,7 @@ import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Hardware.Pipelines.LineFinderCamera;
 import Opmodes.BasicOpmode;
+import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
 import RoadRunner.trajectorysequence.TrajectorySequence;
 import State.Action.Action;
@@ -37,8 +38,6 @@ public class RedAuto extends BasicOpmode {
             }
         });
 
-        LineFinderCamera lineCamera = new LineFinderCamera(hardwareMap, hardware.getIntakeSystem());
-
         ActionQueue initQueue = new ActionQueue();
         initQueue.submitAction(new Action() {
             @Override
@@ -48,13 +47,13 @@ public class RedAuto extends BasicOpmode {
 
             @Override
             public boolean shouldDeactivate() {
-                return lineCamera.isOpened();
+                return hardware.getIntakeSystem().getCamera().isOpened();
             }
         });
         initQueue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getIntakeSystem().moveCameraDown();
+                hardware.getIntakeSystem().moveCameraLine();
                 hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
             }
@@ -74,17 +73,40 @@ public class RedAuto extends BasicOpmode {
         initQueue.submitAction(new TimedAction(1000) {
             @Override
             public void update() {
-                startPos = lineCamera.getLinePipeline().getRealY();
+                startPos = hardware.getIntakeSystem().getCamera().getLinePipeline().getRealY();
             }
         });
         initQueue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getIntakeSystem().moveCameraInspection();
+                hardware.getIntakeSystem().moveCameraRedTSE();
             }
         });
 
         ActionController.addAction(initQueue);
+
+        ActionController.addAction(new Action() {
+            @Override
+            public void update() {
+                switch ((int) hardware.getIntakeSystem().getCamera().getTSEPipeline().getPosition()){
+                    case 1:
+                        preload = PRELOAD_POSITION.LOW;
+                        break;
+                    case 2:
+                        preload = PRELOAD_POSITION.MEDIUM;
+                        break;
+                    default:
+                        preload = PRELOAD_POSITION.HIGH;
+                        break;
+                }
+                telemetry.addData("Preload", preload);
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return isStarted();
+            }
+        });
 
         TrajectorySequence intoWarehouse = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
                 .forward(45)
@@ -151,18 +173,12 @@ public class RedAuto extends BasicOpmode {
         queue.submitAction(new DelayAction(300));
         queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
 
-        queue.submitAction(new InstantAction() {
-            @Override
-            public void update() {
-                requestOpModeStop();
-            }
-        });
-        /**
-        for(int i = 0; i < 4; i ++){
+
+        for(int i = 0; i < 1; i ++){
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
-                    //hardware.getIntakeSystem().intake();
+                    hardware.getIntakeSystem().intake();
                 }
             });
             queue.submitAction(new Action() {
@@ -176,7 +192,7 @@ public class RedAuto extends BasicOpmode {
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() > 35;
+                    return drive.getPoseEstimate().getX() > 35 || hardware.getIntakeSystem().itemInIntake();
                 }
             });
             queue.submitAction(new InstantAction() {
@@ -192,7 +208,7 @@ public class RedAuto extends BasicOpmode {
                 @Override
                 public void update() {
 
-                    //hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
+                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
                 }
             });
             queue.submitAction(new Action() {
@@ -204,7 +220,7 @@ public class RedAuto extends BasicOpmode {
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {
                         hardware.getIntakeSystem().moveCameraDown();
-                        //queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
+                        hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
                     }
                 }
 
@@ -212,7 +228,8 @@ public class RedAuto extends BasicOpmode {
                 public boolean shouldDeactivate() {
                     return drive.getPoseEstimate().getX() < 0;
                 }
-            });            //queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
+            });
+            queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
@@ -237,7 +254,7 @@ public class RedAuto extends BasicOpmode {
             queue.submitAction(new TimedAction(500) {
                 @Override
                 public void update() {
-                    double position = startPos - lineCamera.getPipeline().getRealY();
+                    double position = startPos - hardware.getIntakeSystem().getCamera().getLinePipeline().getRealY();
                     Pose2d estimate = drive.getPoseEstimate();
                     drive.setPoseEstimate(new Pose2d(position, estimate.getY(), estimate.getHeading()));
                 }
@@ -251,7 +268,7 @@ public class RedAuto extends BasicOpmode {
         }
 
 
-        */
+
         OpmodeStatus.bindOnStart(queue);
     }
 

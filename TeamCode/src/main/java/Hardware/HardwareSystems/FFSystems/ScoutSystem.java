@@ -122,6 +122,7 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
+                MoveExtensionAction.P = 0.001;
                 setBucketIntakePos();
                 if(intake.itemInIntake()){
                     closeArm();
@@ -134,6 +135,7 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case OUTTAKING:
                 intake.lock();
+                MoveExtensionAction.P = 0.1;
                 closeArm();
                 if(intake.locked()){
                     transitionReady = true;

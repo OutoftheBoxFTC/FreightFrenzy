@@ -53,7 +53,7 @@ public class MoveExtensionAction implements Action {
             power = 0.75 * Math.signum(power);
         }
 
-        system.setExtensionMotorPower(MathUtils.signedMax(power, 0.7));
+        system.setExtensionMotorPower(MathUtils.signedMax(power, 0.5));
     }
 
     @Override
@@ -68,7 +68,7 @@ public class MoveExtensionAction implements Action {
 
     public boolean isAtTarget(){
         double error = targetPos - system.getExtensionPosition();
-        return Math.abs(error) < DistanceUnit.INCH.toMm(0.75) / MM_PER_TICK ;
+        return Math.abs(error) < DistanceUnit.INCH.toMm(1) / MM_PER_TICK ;
     }
 
     public double getTargetPos() {
