@@ -197,9 +197,9 @@ public class BlueAuto extends BasicOpmode {
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (24 + (finalI * 3)) - drive.getPoseEstimate().getX();
+                    double distance = (24 + (finalI * 1)) - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(Math.max(power, 1), -0.3, 0));
+                    drive.setDrivePower(new Pose2d(Math.max(0.75, Math.min(power, 1)), 0.3, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                 }
 
@@ -211,7 +211,7 @@ public class BlueAuto extends BasicOpmode {
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
-                    if(System.currentTimeMillis() - startTimer > 25000){
+                    if(System.currentTimeMillis() - startTimer > 27500){
                         ActionController.getInstance().terminateAction(queue);
                     }
                 }
@@ -219,12 +219,11 @@ public class BlueAuto extends BasicOpmode {
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
-                    hardware.getTurretSystem().closeArm();
                     hardware.getIntakeSystem().outtake();
                     drive.setDrivePower(new Pose2d());
                 }
             });
-            queue.submitAction(new DelayAction(100));
+            queue.submitAction(new DelayAction(200));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
@@ -240,7 +239,7 @@ public class BlueAuto extends BasicOpmode {
                     if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
                         headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
                     }
-                    drive.setDrivePower(new Pose2d(-1, -0.3, -0.2));
+                    drive.setDrivePower(new Pose2d(-1, 0.3));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {
                         hardware.getIntakeSystem().moveCameraLine();
@@ -299,6 +298,7 @@ public class BlueAuto extends BasicOpmode {
                     hardware.getIntakeSystem().moveCameraInspection();
                 }
             });
+            queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
         }
 
 

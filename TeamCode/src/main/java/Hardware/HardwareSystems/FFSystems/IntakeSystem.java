@@ -23,7 +23,7 @@ public class IntakeSystem implements HardwareSystem {
 
     private double power;
     private long timer = 0;
-    private double distance = 0;
+    private double distance = 100;
     private double hubVoltage = 12;
     private LynxModule expansionHub;
 
@@ -64,13 +64,13 @@ public class IntakeSystem implements HardwareSystem {
                 setPower(0);
                 break;
             case LOCKED:
-                setPower(-0.2);
+                setPower(-0.3);
                 intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                 break;
             case LOCKING:
-                setPower(-0.3);
+                setPower(-0.5);
                 if(System.currentTimeMillis() > timer){
-                    timer = System.currentTimeMillis() + 250;
+                    timer = System.currentTimeMillis() + 300;
                 }
                 lockIntake();
                 targetState = INTAKE_STATE.LOCKED;

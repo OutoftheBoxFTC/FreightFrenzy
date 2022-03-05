@@ -46,7 +46,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
-    private double extensionPreload = 15, extensionScoreOffset = 0;
+    private double extensionPreload = 15, extensionScoreOffset = 0, turretOffset;
 
     private boolean forward = false;
 
@@ -147,10 +147,10 @@ public class ScoutSystem implements HardwareSystem {
                         bucketServo.disableServo();
                     }
                 }
-                moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
+                moveExtensionAction.setTargetPos(10.5, DistanceUnit.INCH);
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
-                movePitchAction.setTargetAngle(Angle.degrees(9.5));
+                movePitchAction.setTargetAngle(Angle.degrees(12));
                 if(moveExtensionAction.isAtTarget()){
                     bucketServo.enableServo();
                     setBucketPreset();
@@ -169,7 +169,7 @@ public class ScoutSystem implements HardwareSystem {
                     }
 
                     setBucketScore();
-                    moveTurretAction.setTargetAngle(scoutTarget.turretAngle);
+                    moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                     movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                 }else{
                     moveExtensionAction.setTargetPos(bucketHall.getState() ? extensionPreload : 9, DistanceUnit.INCH);
@@ -191,6 +191,7 @@ public class ScoutSystem implements HardwareSystem {
                     moveExtensionAction.setMaxSpeed(0.6);
                 }
                 moveExtensionAction.setTargetPos(scoutTarget.extension+extensionScoreOffset, DistanceUnit.INCH);
+                moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                 setBucketScore();
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
@@ -371,6 +372,10 @@ public class ScoutSystem implements HardwareSystem {
 
     public void moveExtensionScoreOffset(double offset){
         this.extensionScoreOffset += offset;
+    }
+
+    public void moveTurretOffset(double offset){
+        this.turretOffset += offset;
     }
 
     public void disableScout(){
