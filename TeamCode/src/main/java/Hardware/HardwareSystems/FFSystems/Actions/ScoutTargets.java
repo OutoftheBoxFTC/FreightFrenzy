@@ -19,14 +19,17 @@ public class ScoutTargets {
         }else{
             switch (target){
                 case ALLIANCE_HIGH:
-                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(26), 42);
+                    return new SCOUTTarget(Angle.degrees(59), Angle.degrees(31), 43.5);
                 case ALLIANCE_MID:
                     return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(15.2), 40.3);
                 case ALLIANCE_LOW:
                     return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(6), 36);
                 case SHARED:
-                    return new SCOUTTarget(Angle.degrees(-70), Angle.degrees(15), 20);
+                    return new SCOUTTarget(Angle.degrees(-70), Angle.degrees(0), 20);
             }
+        }
+        if(target == ScoutSystem.SCOUT_TARGET.PASSTHROUGH){
+            return new SCOUTTarget(Angle.ZERO(), Angle.degrees(50), 20);
         }
         return new SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
     }

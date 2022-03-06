@@ -54,7 +54,7 @@ public class MoveExtensionAction implements Action {
             power = 0.75 * Math.signum(power);
         }
 
-        system.setExtensionMotorPower(MathUtils.signedMin(MathUtils.signedMax(power, 0.5), maxSpeed));
+        system.setExtensionMotorPower(MathUtils.signedMin(MathUtils.signedMax(power, 0.6), maxSpeed));
     }
 
     @Override

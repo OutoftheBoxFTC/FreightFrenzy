@@ -2,12 +2,15 @@ package Opmodes.Auto;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import Hardware.HardwareSystems.FFSystems.Actions.FollowTrajectoryAction;
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
 import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.MathUtils;
+import Opmodes.Auto.AutoActions.FollowIntakeTrajectoryAction;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
@@ -118,11 +121,15 @@ public class BlueAuto extends BasicOpmode {
         });
 
         TrajectorySequence intoWarehouse = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                .forward(45)
+                .forward(20)
                 .build();
 
         TrajectorySequence back = drive.trajectorySequenceBuilder(intoWarehouse.end())
-                .back(45)
+                .addDisplacementMarker(0.8, () -> {
+                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                    hardware.getIntakeSystem().moveCameraLine();
+                })
+                .back(20)
                 .build();
 
         ActionQueue queue = new ActionQueue();
@@ -178,12 +185,11 @@ public class BlueAuto extends BasicOpmode {
             public void update() {
                 hardware.getTurretSystem().openArm();
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
-                hardware.getTurretSystem().setAuto(false);
             }
         });
         queue.submitAction(new DelayAction(300));
         queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
-        queue.submitAction(new DelayAction(1000));
+        queue.submitAction(new DelayAction(750));
 
 
         for(int i = 0; i < 5; i ++){
@@ -194,20 +200,24 @@ public class BlueAuto extends BasicOpmode {
                 }
             });
             int finalI = i;
+
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (24 + (finalI * 1)) - drive.getPoseEstimate().getX();
+                    double distance = (18 + (finalI * 1)) - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(Math.max(0.75, Math.min(power, 1)), 0.3, 0));
+                    drive.setDrivePower(new Pose2d(Math.max(0.75, Math.min(power, 1)), 0.2, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
+                    hardware.getIntakeSystem().intake();
                 }
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() > 35 || hardware.getIntakeSystem().itemInIntake();
+                    return drive.getPoseEstimate().getX() >= 18 + (finalI * 1) || hardware.getIntakeSystem().itemInIntake();
                 }
             });
+
+            //queue.submitAction(new FollowIntakeTrajectoryAction(drive, intoWarehouse, hardware.getIntakeSystem()));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
@@ -216,20 +226,22 @@ public class BlueAuto extends BasicOpmode {
                     }
                 }
             });
+
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
-                    hardware.getIntakeSystem().outtake();
                     drive.setDrivePower(new Pose2d());
                 }
             });
-            queue.submitAction(new DelayAction(200));
+            queue.submitAction(new DelayAction(500));
+            /**
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
                     hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
                 }
             });
+            */
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
@@ -239,10 +251,12 @@ public class BlueAuto extends BasicOpmode {
                     if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
                         headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
                     }
-                    drive.setDrivePower(new Pose2d(-1, 0.3));
+                    drive.setDrivePower(new Pose2d(-Math.max(Math.min(power, 1), 0.8), 0.2));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
                     if(drive.getPoseEstimate().getX() < 10) {
                         hardware.getIntakeSystem().moveCameraLine();
+                    }
+                    if(hardware.getIntakeSystem().itemInIntake()){
                         hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
                     }
                 }
@@ -252,6 +266,8 @@ public class BlueAuto extends BasicOpmode {
                     return drive.getPoseEstimate().getX() < 0;
                 }
             });
+
+            //queue.submitAction(new FollowTrajectoryAction(drive, back));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {

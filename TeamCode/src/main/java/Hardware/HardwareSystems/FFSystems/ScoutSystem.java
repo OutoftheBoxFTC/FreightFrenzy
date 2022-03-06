@@ -46,7 +46,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
-    private double extensionPreload = 15, extensionScoreOffset = 0, turretOffset;
+    private double extensionPreload = 12.5, extensionScoreOffset = 0, turretOffset;
 
     private boolean forward = false;
 
@@ -129,15 +129,23 @@ public class ScoutSystem implements HardwareSystem {
                 }else{
                     openArm();
                 }
+                if(!forward && !moveExtensionAction.isAtTarget()){
+                    intake.outtake();
+                }
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
                 }
                 break;
             case OUTTAKING:
-                intake.lock();
-                moveExtensionAction.setMaxSpeed(1);
-                closeArm();
-                if(intake.locked()){
+                if(forward) {
+                    intake.lock();
+                    moveExtensionAction.setMaxSpeed(1);
+                    closeArm();
+                    if (intake.locked()) {
+                        transitionReady = true;
+                    }
+                }else{
+                    intake.outtake();
                     transitionReady = true;
                 }
                 break;
@@ -175,7 +183,8 @@ public class ScoutSystem implements HardwareSystem {
                     moveExtensionAction.setTargetPos(bucketHall.getState() ? extensionPreload : 9, DistanceUnit.INCH);
                     if(getExtensionRealDistance(DistanceUnit.INCH) < 33){
                         moveTurretAction.setTargetAngle(Angle.ZERO());
-                        movePitchAction.setTargetAngle(Angle.degrees(9.5));
+                        if(getFieldTarget() != SCOUT_TARGET.PASSTHROUGH)
+                            movePitchAction.setTargetAngle(Angle.degrees(9.5));
                     }
 
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 11){
@@ -188,7 +197,11 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case SCORE:
                 if(this.auto){
-                    moveExtensionAction.setMaxSpeed(0.6);
+                    if(forward) {
+                        moveExtensionAction.setMaxSpeed(0.8);
+                    }else{
+                        moveExtensionAction.setMaxSpeed(1);
+                    }
                 }
                 moveExtensionAction.setTargetPos(scoutTarget.extension+extensionScoreOffset, DistanceUnit.INCH);
                 moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
@@ -214,7 +227,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public Angle getTurretPosition(){
-        return turretAngle;
+        return Angle.degrees(getTurretEncoderPos() / 8.07333333);
     }
 
     public Angle getTurretVel() {
@@ -301,7 +314,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void openArm(){
-        setArmPos(0.75);
+        setArmPos(0.85);
     }
 
     public double getTurretEncoderPos(){
@@ -339,6 +352,10 @@ public class ScoutSystem implements HardwareSystem {
         return cachedTarget;
     }
 
+    public SCOUT_TARGET getFieldTarget(){
+        return this.scout_target;
+    }
+
     public SmartPotentiometer getPitchPot() {
         return pitchPot;
     }
@@ -370,6 +387,10 @@ public class ScoutSystem implements HardwareSystem {
         this.extensionScoreOffset = extensionScoreOffset;
     }
 
+    public double getExtensionTarget(){
+        return scoutTarget.extension+extensionScoreOffset;
+    }
+
     public void moveExtensionScoreOffset(double offset){
         this.extensionScoreOffset += offset;
     }
@@ -378,10 +399,30 @@ public class ScoutSystem implements HardwareSystem {
         this.turretOffset += offset;
     }
 
+    public void setTurretOffset(double offset){
+        this.turretOffset = offset;
+    }
+
     public void disableScout(){
         moveTurretAction.deactivateNow();
         moveExtensionAction.deactivateNow();
         movePitchAction.deactivateNow();
+    }
+
+    public void disableTurretPID(){
+        moveTurretAction.setEnabled(false);
+    }
+
+    public void enableTurretPID(){
+        moveTurretAction.setEnabled(true);
+    }
+
+    public void disableExtensionPID(){
+        moveExtensionAction.setPidActive(false);
+    }
+
+    public void enableExtensionPID(){
+        moveExtensionAction.setPidActive(true);
     }
 
     public enum SCOUT_STATE {
@@ -414,7 +455,8 @@ public class ScoutSystem implements HardwareSystem {
         ALLIANCE_HIGH,
         ALLIANCE_MID,
         ALLIANCE_LOW,
-        SHARED
+        SHARED,
+        PASSTHROUGH
     }
 
     public enum SCOUT_ALLIANCE{

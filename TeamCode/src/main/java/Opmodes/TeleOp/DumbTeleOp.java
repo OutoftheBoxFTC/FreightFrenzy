@@ -3,8 +3,10 @@ package Opmodes.TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.Vector.Vector3;
@@ -34,32 +36,51 @@ public abstract class DumbTeleOp extends BasicOpmode {
 
         hardware.getTurretSystem().setScoutFieldTarget(target);
 
+        OpmodeStatus.bindOnStart(new Action() {
+            @Override
+            public void update() {
+                if(hardware.getIntakeSystem().itemInIntake()){
+                    gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
+                }else{
+                    gamepad1.stopRumble();
+                }
+            }
+        });
 
         OpmodeStatus.bindOnStart(() -> {
             if(hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE) {
-                if (gamepad1.right_bumper) {
-                    hardware.getIntakeSystem().intake();
-                } else if (gamepad1.left_bumper) {
-                    hardware.getIntakeSystem().outtake();
-                }else {
-                    hardware.getIntakeSystem().idleIntake();
-                }
-                if(hardware.getIntakeSystem().itemInIntake()){
-                    hardware.getIntakeSystem().idleIntake();
-                    hardware.getTurretSystem().closeArm();
-                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
+                if(!gamepad2Ex.left_trigger.pressed() && !gamepad2Ex.right_trigger.pressed()) {
+                    if (gamepad1.right_bumper) {
+                        hardware.getIntakeSystem().intake();
+                    } else if (gamepad1.left_bumper) {
+                        hardware.getIntakeSystem().outtake();
+                    } else {
+                        hardware.getIntakeSystem().idleIntake();
+                    }
+                    if (hardware.getIntakeSystem().itemInIntake()) {
+                        hardware.getIntakeSystem().idleIntake();
+                        hardware.getTurretSystem().closeArm();
+                        hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
+                    }
                 }
             }
         });
 
         OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getDistance()));
 
-        OpmodeStatus.bindOnStart(() -> hardware.getDrivetrainSystem().setPower(new Vector3(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x)));
+        OpmodeStatus.bindOnStart(() -> {
+            double speed = 1;
+            if(hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.PASSTHROUGH){
+                if(gamepad1.left_stick_y > 0){
+                    speed = 0.8;
+                }
+            }
+            hardware.getDrivetrainSystem().setPower(new Vector3(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x).scale(speed));
+        });
 
         OpmodeStatus.bindOnStart(() -> {
             if(gamepad1.a){
-                hardware.getIntakeSystem().idleIntake();
-                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.TRANSFER);
             }
             if(gamepad1.x){
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
@@ -80,29 +101,46 @@ public abstract class DumbTeleOp extends BasicOpmode {
             FtcDashboard.getInstance().getTelemetry().addData("Tr", hardware.getDrivetrainSystem().getTr().getMotor().getCurrent(CurrentUnit.AMPS));
             FtcDashboard.getInstance().getTelemetry().update();
         });
-
-        OpmodeStatus.bindOnStart(() -> {
-            if(gamepad2.dpad_up){
-                hardware.getTurretSystem().moveExtensionScoreOffset(ProgramClock.getFrameTimeSeconds()*10);
-            }
-            if(gamepad2.dpad_down){
-                hardware.getTurretSystem().moveExtensionScoreOffset(-ProgramClock.getFrameTimeSeconds()*10);
-            }
-            if(gamepad2.dpad_left){
-                hardware.getTurretSystem().moveTurretOffset(ProgramClock.getFrameTimeSeconds() * 10);
-            }
-            if(gamepad2.dpad_right){
-                hardware.getTurretSystem().moveTurretOffset(-ProgramClock.getFrameTimeSeconds() * 10);
+        OpmodeStatus.bindOnStart(new Action() {
+            double extendVal = 0, turretVal = 0;
+            boolean change = false;
+            @Override
+            public void update() {
+                if (gamepad2.dpad_up) {
+                    hardware.getTurretSystem().moveExtensionScoreOffset(ProgramClock.getFrameTimeSeconds() * 10);
+                } else if (gamepad2.dpad_down) {
+                    hardware.getTurretSystem().moveExtensionScoreOffset(ProgramClock.getFrameTimeSeconds() * -10);
+                }
+                if (gamepad2.dpad_left) {
+                    hardware.getTurretSystem().disableTurretPID();
+                    hardware.getTurretSystem().setTurretMotorPower(0.5);
+                    hardware.getTurretSystem().setTurretOffset(hardware.getTurretSystem().getTurretPosition().degrees() - turretVal);
+                } else if (gamepad2.dpad_right) {
+                    hardware.getTurretSystem().disableTurretPID();
+                    hardware.getTurretSystem().setTurretMotorPower(-0.5);
+                    hardware.getTurretSystem().setTurretOffset(hardware.getTurretSystem().getTurretPosition().degrees() - turretVal);
+                }else{
+                    hardware.getTurretSystem().enableTurretPID();
+                    turretVal = hardware.getTurretSystem().getTurretPosition().degrees();
+                }
             }
         });
+
+        gamepad1Ex.dpad_up.bindOnPress(() -> hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
 
         gamepad2Ex.b.bindOnPress(() -> {
-            //hardware.getTurretSystem().setExtensionScoreOffset(0);
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
             hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+            hardware.getTurretSystem().setExtensionPreload(12.5);
         });
         gamepad2Ex.x.bindOnPress(() -> {
-            //hardware.getTurretSystem().setExtensionScoreOffset(0);
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
             hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.SHARED);
+            hardware.getTurretSystem().setExtensionPreload(12.5);
+        });
+        gamepad2Ex.y.bindOnPress(() -> {
+            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.PASSTHROUGH);
+            hardware.getTurretSystem().setExtensionPreload(20);
         });
     }
 

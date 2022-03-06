@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.Pipelines.LineFinderCamera;
@@ -25,6 +26,7 @@ public class IntakeSystem implements HardwareSystem {
     private long timer = 0;
     private double distance = 100;
     private double hubVoltage = 12;
+    private double duckPower = 0;
     private LynxModule expansionHub;
 
     private RevColorSensorV3 sensor;
@@ -87,6 +89,11 @@ public class IntakeSystem implements HardwareSystem {
                 unlockIntake();
                 setPower(1);
                 break;
+            case DUCK:
+                setPower(duckPower);
+                unlockIntake();
+                break;
+
         }
         intakeMotor.setPower(-power);
     }
@@ -100,11 +107,10 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void outtake() {
-        if(currentState == INTAKE_STATE.IDLE) {
-            targetState = INTAKE_STATE.OUTTAKING;
-        }
+        targetState = INTAKE_STATE.OUTTAKING;
         if(currentState == INTAKE_STATE.LOCKED) {
             unlockIntake();
+            currentState = INTAKE_STATE.IDLE;
             timer = System.currentTimeMillis() + 100;
         }
     }
@@ -119,6 +125,7 @@ public class IntakeSystem implements HardwareSystem {
         targetState = INTAKE_STATE.INTAKING;
         if(currentState == INTAKE_STATE.LOCKED){
             unlockIntake();
+            currentState = INTAKE_STATE.IDLE;
             timer = System.currentTimeMillis() + 100;
         }
     }
@@ -132,11 +139,11 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void lockIntake(){
-        intakeStop.setPosition(0.33);
+        intakeStop.setPosition(0.3);
     }
 
     public void unlockIntake(){
-        intakeStop.setPosition(0.23);
+        intakeStop.setPosition(0.26);
     }
 
     public SmartServo getCameraServo() {
@@ -192,6 +199,20 @@ public class IntakeSystem implements HardwareSystem {
         camera.switchTSE();
     }
 
+    public void setDuckPower(double duckPower) {
+        targetState = INTAKE_STATE.DUCK;
+        double scale = 12 / expansionHub.getInputVoltage(VoltageUnit.VOLTS);
+        this.duckPower = (duckPower * scale);
+    }
+
+    public void spinDuckBlue(){
+        setDuckPower(0.38);
+    }
+
+    public void spinDuckRed(){
+        setDuckPower(-0.38);
+    }
+
     public void setZoom(double zoom){
         camera.getLinePipeline().setZoomFactor(zoom);
     }
@@ -205,6 +226,7 @@ public class IntakeSystem implements HardwareSystem {
         OUTTAKING,
         INTAKING,
         LOCKING,
-        LOCKED
+        LOCKED,
+        DUCK
     }
 }
