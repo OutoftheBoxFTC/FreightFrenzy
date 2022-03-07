@@ -20,7 +20,6 @@ public class FullGamepadControl extends BasicOpmode {
             hardware.getTurretSystem().setTurretMotorPower(gamepad1.left_stick_x);
             hardware.getTurretSystem().setPitchMotorPower(-gamepad1.left_stick_y);
 
-
             if(gamepad1.a){
                 hardware.getTurretSystem().setArmPos(1);
             }
@@ -37,6 +36,11 @@ public class FullGamepadControl extends BasicOpmode {
             telemetry.addData("Extension", hardware.getTurretSystem().getExtensionPosition());
             telemetry.addData("Pitch", hardware.getTurretSystem().getPitchMotorPos());
             telemetry.addData("Turret", hardware.getTurretSystem().getTurretEncoderPos());
+            telemetry.addData("Turret Angle", hardware.getTurretSystem().getTurretPotAngle().degrees());
+            telemetry.addData("Pitch Angle", hardware.getTurretSystem().getPitchPot().getAngle().degrees());
+            FtcDashboard.getInstance().getTelemetry().addData("Pitch Angle", hardware.getTurretSystem().getPitchPot().getAngle().degrees());
+            FtcDashboard.getInstance().getTelemetry().addData("Turret Angle", hardware.getTurretSystem().getTurretPotAngle().degrees());
+            FtcDashboard.getInstance().getTelemetry().update();
         });
     }
 }

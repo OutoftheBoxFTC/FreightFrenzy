@@ -204,7 +204,7 @@ public class BlueAuto extends BasicOpmode {
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (18 + (finalI * 1)) - drive.getPoseEstimate().getX();
+                    double distance = (14 + (finalI * 1)) - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
                     drive.setDrivePower(new Pose2d(Math.max(0.75, Math.min(power, 1)), 0.2, 0));
                     telemetry.addData("X", drive.getPoseEstimate().getX());
@@ -213,7 +213,7 @@ public class BlueAuto extends BasicOpmode {
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() >= 18 + (finalI * 1) || hardware.getIntakeSystem().itemInIntake();
+                    return drive.getPoseEstimate().getX() >= 16 + (finalI * 1) || hardware.getIntakeSystem().itemInIntake();
                 }
             });
 
@@ -263,7 +263,7 @@ public class BlueAuto extends BasicOpmode {
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() < 0;
+                    return drive.getPoseEstimate().getX() < 3;
                 }
             });
 
@@ -275,7 +275,7 @@ public class BlueAuto extends BasicOpmode {
                 }
             });
             queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
-            queue.submitAction(new DelayAction(350));
+            queue.submitAction(new DelayAction(500));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {

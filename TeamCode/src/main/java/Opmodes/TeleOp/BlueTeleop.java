@@ -20,7 +20,7 @@ public class BlueTeleop extends DumbTeleOp {
                 }else if(gamepad2Ex.left_trigger.pressed()){
                     hardware.getIntakeSystem().setDuckPower(1);
                 }else{
-                    hardware.getIntakeSystem().idleIntake();
+                   // hardware.getIntakeSystem().idleIntake();
                 }
             }
         });

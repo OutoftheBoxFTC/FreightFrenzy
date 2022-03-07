@@ -70,7 +70,7 @@ public class IntakeSystem implements HardwareSystem {
                 intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                 break;
             case LOCKING:
-                setPower(-0.5);
+                setPower(-0.3);
                 if(System.currentTimeMillis() > timer){
                     timer = System.currentTimeMillis() + 300;
                 }
@@ -139,7 +139,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void lockIntake(){
-        intakeStop.setPosition(0.3);
+        intakeStop.setPosition(0.32);
     }
 
     public void unlockIntake(){

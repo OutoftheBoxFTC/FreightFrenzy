@@ -13,6 +13,11 @@ public class SmartPotentiometer extends SmartAnalogInput{
         this.angleConstant = angleConstant;
     }
 
+    public SmartPotentiometer(SmartAnalogInput smartAnalogInput, double angleConstant, double maxVoltage) {
+        super(smartAnalogInput.getAnalogInput(), maxVoltage);
+        this.angleConstant = angleConstant;
+    }
+
     public void setOffsetAngle(Angle offsetAngle) {
         this.offsetAngle = offsetAngle;
     }
