@@ -22,7 +22,7 @@ public class CameraTester extends BasicOpmode {
     @Override
     public void setup() {
         hardware.getIntakeSystem().moveCameraDown();
-        hardware.getIntakeSystem().unlockIntake();
+        hardware.getIntakeSystem().transferFlipIn();
         CAMERA_ANGLE = hardware.getIntakeSystem().getCameraServo().getServo().getPosition();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);

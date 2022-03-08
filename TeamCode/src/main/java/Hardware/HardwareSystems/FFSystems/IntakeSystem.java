@@ -2,9 +2,7 @@ package Hardware.HardwareSystems.FFSystems;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -18,12 +16,14 @@ import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 public class IntakeSystem implements HardwareSystem {
+    public ScoutSystem scoutSystem;
+
     private SmartMotor intakeMotor;
 
-    private SmartServo intakeStop, cameraServo, panServo;
+    private SmartServo intakeTransfer, cameraServo, panServo;
 
     private double power;
-    private long timer = 0;
+    private long timer = 0, timer2 = 0;
     private double distance = 100;
     private double hubVoltage = 12;
     private double duckPower = 0;
@@ -31,14 +31,14 @@ public class IntakeSystem implements HardwareSystem {
 
     private RevColorSensorV3 sensor;
 
-    private INTAKE_STATE currentState = INTAKE_STATE.IDLE, targetState = INTAKE_STATE.IDLE;
+    private INTAKE_STATE currentState = INTAKE_STATE.IDLE;
 
     private LineFinderCamera camera;
     private HardwareMap map;
 
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
         intakeMotor = chub.getMotor(0);
-        intakeStop = revHub.getServo(0);
+        intakeTransfer = revHub.getServo(0);
         cameraServo = revHub.getServo(5);
         panServo = revHub.getServo(1);
         expansionHub = revHub.getModule();
@@ -49,53 +49,51 @@ public class IntakeSystem implements HardwareSystem {
 
     @Override
     public void initialize() {
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     @Override
     public void update() {
         distance = sensor.getDistance(DistanceUnit.MM);
-        double current = intakeMotor.getMotor().getCurrent(CurrentUnit.MILLIAMPS);
-        if(System.currentTimeMillis() > timer){
-            if(currentState != targetState){
-                currentState = targetState;
-            }
+        double current = intakeMotor.getMotor().getCurrent(CurrentUnit.AMPS);
+        if(current > 4.5 && currentState == INTAKE_STATE.IDLE){
+            currentState = INTAKE_STATE.TRANSFER_READY;
+            intakeMotor.setPower(0);
         }
         switch (currentState){
             case IDLE:
-                setPower(0);
+                intakeMotor.setPower(-power);
+                if(power == 0){
+                    transferMid();
+                }else{
+                    transferFlipOut();
+                }
                 break;
-            case LOCKED:
-                setPower(-0.3);
-                intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            case TRANSFER_READY:
+                transferMid();
+                if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.isScoutIdle() && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
+                    currentState = INTAKE_STATE.TRANSFER_UP;
+                    timer = System.currentTimeMillis() + 500;
+                }
                 break;
-            case LOCKING:
-                setPower(-0.3);
+            case TRANSFER_UP:
+                transferFlipIn();
                 if(System.currentTimeMillis() > timer){
-                    timer = System.currentTimeMillis() + 300;
+                    currentState = INTAKE_STATE.TRANSFERRING;
+                    timer2 = System.currentTimeMillis() + 350;
                 }
-                lockIntake();
-                targetState = INTAKE_STATE.LOCKED;
                 break;
-            case OUTTAKING:
-                setPower(-1);
-                unlockIntake();
-                if(System.currentTimeMillis() > timer) {
-                    timer = System.currentTimeMillis() + 100;
+            case TRANSFERRING:
+                intakeMotor.setPower(1);
+                if(itemInIntake() && timer2 < System.currentTimeMillis()){
+                    intakeMotor.setPower(0);
+                    currentState = INTAKE_STATE.IDLE;
                 }
-                targetState = INTAKE_STATE.LOCKING;
-                break;
-            case INTAKING:
-                unlockIntake();
-                setPower(1);
-                break;
             case DUCK:
                 setPower(duckPower);
-                unlockIntake();
                 break;
 
         }
-        intakeMotor.setPower(-power);
     }
 
     public void setPower(double power){
@@ -107,43 +105,27 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void outtake() {
-        targetState = INTAKE_STATE.OUTTAKING;
-        if(currentState == INTAKE_STATE.LOCKED) {
-            unlockIntake();
-            currentState = INTAKE_STATE.IDLE;
-            timer = System.currentTimeMillis() + 100;
-        }
-    }
-
-    public void lock(){
-        if(currentState == INTAKE_STATE.IDLE || currentState == INTAKE_STATE.INTAKING) {
-            targetState = INTAKE_STATE.OUTTAKING;
-        }
+        setPower(-1);
     }
 
     public void intake(){
-        targetState = INTAKE_STATE.INTAKING;
-        if(currentState == INTAKE_STATE.LOCKED){
-            unlockIntake();
-            currentState = INTAKE_STATE.IDLE;
-            timer = System.currentTimeMillis() + 100;
-        }
+        setPower(1);
     }
 
     public void idleIntake(){
-        targetState = INTAKE_STATE.IDLE;
+        setPower(0);
     }
 
-    public boolean locked() {
-        return currentState == INTAKE_STATE.LOCKED;
+    public void transferFlipOut(){
+        intakeTransfer.setPosition(0.18);
     }
 
-    public void lockIntake(){
-        intakeStop.setPosition(0.32);
+    public void transferFlipIn(){
+        intakeTransfer.setPosition(0.89);
     }
 
-    public void unlockIntake(){
-        intakeStop.setPosition(0.26);
+    public void transferMid(){
+        intakeTransfer.setPosition(0.5);
     }
 
     public SmartServo getCameraServo() {
@@ -200,7 +182,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void setDuckPower(double duckPower) {
-        targetState = INTAKE_STATE.DUCK;
+        currentState = INTAKE_STATE.DUCK;
         double scale = 12 / expansionHub.getInputVoltage(VoltageUnit.VOLTS);
         this.duckPower = (duckPower * scale);
     }
@@ -221,12 +203,15 @@ public class IntakeSystem implements HardwareSystem {
         return camera;
     }
 
+    public SmartMotor getIntakeMotor() {
+        return intakeMotor;
+    }
+
     enum INTAKE_STATE{
         IDLE,
-        OUTTAKING,
-        INTAKING,
-        LOCKING,
-        LOCKED,
+        TRANSFER_READY,
+        TRANSFER_UP,
+        TRANSFERRING,
         DUCK
     }
 }

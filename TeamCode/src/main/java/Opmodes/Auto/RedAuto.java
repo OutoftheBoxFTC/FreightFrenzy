@@ -172,7 +172,7 @@ public class RedAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getIntakeSystem().lock();
+                //hardware.getIntakeSystem().lock();
             }
         });
         queue.submitAction(new DelayAction(600));

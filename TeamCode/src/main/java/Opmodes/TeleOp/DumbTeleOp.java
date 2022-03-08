@@ -48,20 +48,13 @@ public abstract class DumbTeleOp extends BasicOpmode {
         });
 
         OpmodeStatus.bindOnStart(() -> {
-            if(hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE) {
-                if(!gamepad2Ex.left_trigger.pressed() && !gamepad2Ex.right_trigger.pressed()) {
-                    if (gamepad1.right_bumper) {
-                        hardware.getIntakeSystem().intake();
-                    } else if (gamepad1.left_bumper) {
-                        hardware.getIntakeSystem().outtake();
-                    } else {
-                        hardware.getIntakeSystem().idleIntake();
-                    }
-                    if (hardware.getIntakeSystem().itemInIntake()) {
-                        hardware.getIntakeSystem().idleIntake();
-                        hardware.getTurretSystem().closeArm();
-                        hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
-                    }
+            if(!gamepad2Ex.left_trigger.pressed() && !gamepad2Ex.right_trigger.pressed()) {
+                if (gamepad1.right_bumper) {
+                    hardware.getIntakeSystem().intake();
+                } else if (gamepad1.left_bumper) {
+                    hardware.getIntakeSystem().outtake();
+                } else {
+                    hardware.getIntakeSystem().idleIntake();
                 }
             }
         });

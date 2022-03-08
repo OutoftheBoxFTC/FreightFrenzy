@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,6 +41,7 @@ public abstract class HardwareController {
                 smartEhub = new SmartLynxModule(lynx, hardwareMap);
             }
         }
+        controlHub.getCurrent(CurrentUnit.AMPS);
     }
 
     public abstract void setupSystems(HardwareMap hardwareMap, SmartLynxModule controlHub, SmartLynxModule expansionHub);
