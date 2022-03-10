@@ -28,7 +28,7 @@ public class FollowIntakeTrajectoryAction implements Action {
 
     @Override
     public boolean shouldDeactivate() {
-        if(intakeSystem.itemInIntake()){
+        if(intakeSystem.itemInTransfer()){
             drive.breakFollowing();
             return true;
         }

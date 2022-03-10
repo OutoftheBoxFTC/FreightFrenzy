@@ -129,6 +129,7 @@ public class ScoutSystem implements HardwareSystem {
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
                 moveExtensionAction.setMaxSpeed(0.6);
+                movePitchAction.setTargetAngle(Angle.degrees(10));
                 if(intake.itemInIntake()){
                     closeArm();
                 }else{
@@ -169,7 +170,7 @@ public class ScoutSystem implements HardwareSystem {
                 moveExtensionAction.setTargetPos(10.5, DistanceUnit.INCH);
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
-                movePitchAction.setTargetAngle(Angle.degrees(15));
+                movePitchAction.setTargetAngle(Angle.degrees(10));
                 if(moveExtensionAction.isAtTarget()){
                     bucketServo.enableServo();
                     setBucketPreset();

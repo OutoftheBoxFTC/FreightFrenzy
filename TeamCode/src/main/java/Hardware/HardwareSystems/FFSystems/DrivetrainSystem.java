@@ -6,6 +6,8 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import Drive.DriveConstants;
 import Hardware.HardwareSystems.HardwareSystem;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
@@ -21,9 +23,15 @@ public class DrivetrainSystem implements HardwareSystem {
 
     public static double API_POWER = 32767, TICKS_PER_SEC = 2800;
 
+    private static final double CPI = 8192 / (DistanceUnit.MM.toInches(35) * Math.PI);
+
+    private long timer = 0;
+
     private final SmartMotor bl, br, tl, tr;
 
     private final PIDFSystem tlPID, trPID, blPID, brPID;
+
+    private double odometryPosition = 0;
 
     private final BNO055IMU imu;
     private double angleOffset;
@@ -32,6 +40,8 @@ public class DrivetrainSystem implements HardwareSystem {
     private boolean enabled = true;
 
     private final LynxModule module;
+
+    private double lastPos = 0;
 
     public DrivetrainSystem(SmartLynxModule module, HardwareMap map){
         this.tl = module.getMotor(3);//2
@@ -56,12 +66,21 @@ public class DrivetrainSystem implements HardwareSystem {
 
         angleOffset = getImuAngle().radians();
 
-        setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
+        timer = System.currentTimeMillis() + 100;
     }
 
     @Override
     public void update() {
+        double pos = tr.getMotor().getCurrentPosition() / CPI;
+        double delta = pos - lastPos;
+        odometryPosition += delta;
+        lastPos = pos;
+        if(System.currentTimeMillis() > timer && timer != -1){
+            setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            timer = -1;
+        }
         if(enabled){
             bl.setPower(MathUtils.signedMax((blPower + (FFConstants.DRIVETRAIN_KACCEL * blAccel)), DriveConstants.minVoltage));
             br.setPower(MathUtils.signedMax((brPower + (FFConstants.DRIVETRAIN_KACCEL * brAccel)), DriveConstants.minVoltage));
@@ -153,6 +172,14 @@ public class DrivetrainSystem implements HardwareSystem {
 
     public void disable(){
         enabled = false;
+    }
+
+    public double getOdometryPosition(){
+        return tr.getMotor().getCurrentPosition() / CPI;
+    }
+
+    public void setOdometryPosition(double odometryPosition){
+        this.odometryPosition = odometryPosition;
     }
 
     public Angle getImuAngle(){

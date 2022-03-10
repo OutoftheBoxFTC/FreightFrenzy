@@ -12,6 +12,10 @@ import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.Vector.Vector3;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
+import State.Action.ActionController;
+import State.Action.ActionQueue;
+import State.Action.InstantAction;
+import State.Action.StandardActions.DelayAction;
 import Utils.GamepadEx.GamepadCallback;
 import Utils.GamepadEx.GamepadEx;
 import Utils.GamepadEx.GamepadValueCallback;
@@ -24,6 +28,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
     public static ScoutSystem.SCOUT_TARGET target = ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH;
 
     public GamepadEx gamepad1Ex, gamepad2Ex;
+    private boolean queuedRetract = false;
     @Override
     public void setup() {
         gamepad1Ex = new GamepadEx(gamepad1);
@@ -36,21 +41,42 @@ public abstract class DumbTeleOp extends BasicOpmode {
 
         hardware.getTurretSystem().setScoutFieldTarget(target);
 
-        OpmodeStatus.bindOnStart(new Action() {
-            @Override
-            public void update() {
-                if(hardware.getIntakeSystem().itemInIntake()){
-                    gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
-                }else{
-                    gamepad1.stopRumble();
-                }
+        OpmodeStatus.bindOnStart(() -> {
+            if(hardware.getIntakeSystem().itemInTransfer()){
+                gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
+            }else{
+                gamepad1.stopRumble();
+            }
+
+            if(gamepad1Ex.right_trigger.pressed()){
+                hardware.getIntakeSystem().startTransfer();
             }
         });
 
         OpmodeStatus.bindOnStart(() -> {
             if(!gamepad2Ex.left_trigger.pressed() && !gamepad2Ex.right_trigger.pressed()) {
                 if (gamepad1.right_bumper) {
-                    hardware.getIntakeSystem().intake();
+                    if(!queuedRetract && hardware.getTurretSystem().getScoutTarget() == ScoutSystem.SCOUT_STATE.SCORE && hardware.getTurretSystem().isScoutIdle()){
+                        queuedRetract = true;
+                        ActionQueue queue = new ActionQueue();
+                        queue.submitAction(new InstantAction() {
+                            @Override
+                            public void update() {
+                                hardware.getTurretSystem().openArm();
+                            }
+                        });
+                        queue.submitAction(new DelayAction(300));
+                        queue.submitAction(new InstantAction() {
+                            @Override
+                            public void update() {
+                                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+                                queuedRetract = false;
+                            }
+                        });
+                        ActionController.addAction(queue);
+                    } else {
+                        hardware.getIntakeSystem().intake();
+                    }
                 } else if (gamepad1.left_bumper) {
                     hardware.getIntakeSystem().outtake();
                 } else {
@@ -59,7 +85,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
             }
         });
 
-        OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getDistance()));
+        OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getBucketSensorDistance()));
 
         OpmodeStatus.bindOnStart(() -> {
             double speed = 1;
@@ -81,7 +107,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
             if(gamepad1.y){
                 hardware.getTurretSystem().openArm();
             }
-            if(gamepad1.b){
+            if(gamepad1Ex.left_trigger.pressed()){
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
             }
         });
@@ -92,6 +118,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
             FtcDashboard.getInstance().getTelemetry().addData("Br", hardware.getDrivetrainSystem().getBr().getMotor().getCurrent(CurrentUnit.AMPS));
             FtcDashboard.getInstance().getTelemetry().addData("Tl", hardware.getDrivetrainSystem().getTl().getMotor().getCurrent(CurrentUnit.AMPS));
             FtcDashboard.getInstance().getTelemetry().addData("Tr", hardware.getDrivetrainSystem().getTr().getMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().addData("ODO", hardware.getDrivetrainSystem().getOdometryPosition());
             FtcDashboard.getInstance().getTelemetry().update();
         });
         OpmodeStatus.bindOnStart(new Action() {

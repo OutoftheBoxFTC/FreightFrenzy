@@ -57,6 +57,6 @@ public class MovePitchAction implements Action {
     }
 
     public boolean isAtTarget(){
-        return Math.abs(targetPos - system.getPitchMotorPos()) < (10);
+        return Math.abs(targetPos - system.getPitchMotorPos()) < (15);
     }
 }

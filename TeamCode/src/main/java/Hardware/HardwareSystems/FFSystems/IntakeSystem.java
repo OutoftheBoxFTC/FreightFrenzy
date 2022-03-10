@@ -2,7 +2,10 @@ package Hardware.HardwareSystems.FFSystems;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DigitalChannelImpl;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -24,12 +27,14 @@ public class IntakeSystem implements HardwareSystem {
 
     private double power;
     private long timer = 0, timer2 = 0;
-    private double distance = 100;
+    private double distance = 100, transferDistance = 100;
     private double hubVoltage = 12;
     private double duckPower = 0;
     private LynxModule expansionHub;
 
-    private RevColorSensorV3 sensor;
+    private ColorRangeSensor sensor;
+    private RevColorSensorV3 transferSensor;
+    private DigitalChannel t1, t2;
 
     private INTAKE_STATE currentState = INTAKE_STATE.IDLE;
 
@@ -43,8 +48,15 @@ public class IntakeSystem implements HardwareSystem {
         panServo = revHub.getServo(1);
         expansionHub = revHub.getModule();
         this.map = map;
-        sensor = map.get(RevColorSensorV3.class, "intakeSensor");
+        sensor = map.get(ColorRangeSensor.class, "intakeSensor");
+        transferSensor = map.get(RevColorSensorV3.class, "transferSensor");
         camera = new LineFinderCamera(map, this);
+
+        t1 = revHub.getDigitalController(0);
+        t2 = revHub.getDigitalController(1);
+
+        t1.setMode(DigitalChannel.Mode.INPUT);
+        t2.setMode(DigitalChannel.Mode.INPUT);
     }
 
     @Override
@@ -54,12 +66,7 @@ public class IntakeSystem implements HardwareSystem {
 
     @Override
     public void update() {
-        distance = sensor.getDistance(DistanceUnit.MM);
-        double current = intakeMotor.getMotor().getCurrent(CurrentUnit.AMPS);
-        if(current > 4.5 && currentState == INTAKE_STATE.IDLE){
-            currentState = INTAKE_STATE.TRANSFER_READY;
-            intakeMotor.setPower(0);
-        }
+        transferDistance = transferSensor.getDistance(DistanceUnit.INCH);
         switch (currentState){
             case IDLE:
                 intakeMotor.setPower(-power);
@@ -73,21 +80,24 @@ public class IntakeSystem implements HardwareSystem {
                 transferMid();
                 if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.isScoutIdle() && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
                     currentState = INTAKE_STATE.TRANSFER_UP;
-                    timer = System.currentTimeMillis() + 500;
+                    timer = System.currentTimeMillis() + 300;
                 }
                 break;
             case TRANSFER_UP:
                 transferFlipIn();
                 if(System.currentTimeMillis() > timer){
                     currentState = INTAKE_STATE.TRANSFERRING;
-                    timer2 = System.currentTimeMillis() + 350;
+                    timer2 = System.currentTimeMillis() + (150 + 200);
                 }
                 break;
             case TRANSFERRING:
                 intakeMotor.setPower(1);
-                if(itemInIntake() && timer2 < System.currentTimeMillis()){
+                if((itemInIntake() && (timer2 < System.currentTimeMillis() - 500)) || timer2 < System.currentTimeMillis()){
                     intakeMotor.setPower(0);
                     currentState = INTAKE_STATE.IDLE;
+                    if(itemInIntake()) {
+                        scoutSystem.setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                    }
                 }
             case DUCK:
                 setPower(duckPower);
@@ -96,12 +106,20 @@ public class IntakeSystem implements HardwareSystem {
         }
     }
 
+    public boolean itemInTransfer(){
+        return transferDistance < 0.5;
+    }
+
+    public double getNormalizedColour(){
+        return transferSensor.getLightDetected();
+    }
+
     public void setPower(double power){
         this.power = power;
     }
 
     public double getDistance() {
-        return distance;
+        return transferDistance;
     }
 
     public void outtake() {
@@ -117,15 +135,15 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void transferFlipOut(){
-        intakeTransfer.setPosition(0.18);
+        intakeTransfer.setPosition(0.22);
     }
 
     public void transferFlipIn(){
-        intakeTransfer.setPosition(0.89);
+        intakeTransfer.setPosition(0.87);
     }
 
     public void transferMid(){
-        intakeTransfer.setPosition(0.5);
+        intakeTransfer.setPosition(0.75);
     }
 
     public SmartServo getCameraServo() {
@@ -149,7 +167,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public boolean itemInIntake(){
-        return distance < 30;
+        return sensor.getDistance(DistanceUnit.INCH) < 3.1;
     }
 
     public void panCameraNeutral(){
@@ -187,6 +205,15 @@ public class IntakeSystem implements HardwareSystem {
         this.duckPower = (duckPower * scale);
     }
 
+    public void startTransfer(){
+        currentState = INTAKE_STATE.TRANSFER_READY;
+        intakeMotor.setPower(0);
+    }
+
+    public double getBucketSensorDistance(){
+        return sensor.getDistance(DistanceUnit.INCH);
+    }
+
     public void spinDuckBlue(){
         setDuckPower(0.38);
     }
@@ -207,7 +234,11 @@ public class IntakeSystem implements HardwareSystem {
         return intakeMotor;
     }
 
-    enum INTAKE_STATE{
+    public INTAKE_STATE getCurrentState() {
+        return currentState;
+    }
+
+    public enum INTAKE_STATE{
         IDLE,
         TRANSFER_READY,
         TRANSFER_UP,
