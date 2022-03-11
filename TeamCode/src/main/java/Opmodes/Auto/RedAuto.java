@@ -4,8 +4,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
 import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
+import Hardware.HardwareSystems.FFSystems.IntakeSystem;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.DriveConstants;
@@ -31,7 +34,6 @@ public class RedAuto extends BasicOpmode {
     public void setup() {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        OpmodeStatus.bindOnStart(drive::updatePoseEstimate);
         OpmodeStatus.bindOnStart(new Action() {
             @Override
             public void update() {
@@ -64,6 +66,7 @@ public class RedAuto extends BasicOpmode {
                 hardware.getIntakeSystem().moveCameraLine();
                 hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
+                hardware.getIntakeSystem().transferFlipOut();
             }
         });
         initQueue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
@@ -71,7 +74,7 @@ public class RedAuto extends BasicOpmode {
         initQueue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getTurretSystem().setBucketScore();
+                //hardware.getTurretSystem().setBucketScore();
                 //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.HOMING);
                 //hardware.getTurretSystem().moveTurretRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).turretAngle);
                 //hardware.getTurretSystem().movePitchRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).pitchAngle);
@@ -88,6 +91,7 @@ public class RedAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getIntakeSystem().moveCameraRedTSE();
+                hardware.getIntakeSystem().transferFlipIn();
             }
         });
 
@@ -116,13 +120,13 @@ public class RedAuto extends BasicOpmode {
             }
         });
 
-        TrajectorySequence intoWarehouse = drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                .forward(20)
+        TrajectorySequence intoWarehouse = drive.trajectorySequenceBuilder(new Pose2d(0, 2, 0))
+                .forward(18)
                 .build();
 
         TrajectorySequence back = drive.trajectorySequenceBuilder(intoWarehouse.end())
-                .addDisplacementMarker(0.8, () -> {
-                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                .addDisplacementMarker(0.4, () -> {
+                    hardware.getIntakeSystem().startTransfer();
                     hardware.getIntakeSystem().moveCameraLine();
                 })
                 .back(20)
@@ -175,7 +179,7 @@ public class RedAuto extends BasicOpmode {
                 //hardware.getIntakeSystem().lock();
             }
         });
-        queue.submitAction(new DelayAction(600));
+        queue.submitAction(new DelayAction(300));
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
@@ -184,32 +188,53 @@ public class RedAuto extends BasicOpmode {
             }
         });
         queue.submitAction(new DelayAction(300));
-        queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                hardware.getIntakeSystem().transferFlipOut();
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+            }
+        });
+        queue.submitAction(new Action() {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setAuto(false);
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getTurretSystem().getExtensionRealDistance(DistanceUnit.INCH) < 20;
+            }
+        });
         queue.submitAction(new DelayAction(750));
 
 
         for(int i = 0; i < 5; i ++){
-            queue.submitAction(new InstantAction() {
-                @Override
-                public void update() {
-                    hardware.getIntakeSystem().intake();
-                }
-            });
             int finalI = i;
 
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (14 + (finalI * 1)) - drive.getPoseEstimate().getX();
+                    double distance = (25 + (finalI * 1)) - hardware.getDrivetrainSystem().getOdometryPosition();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
-                    drive.setDrivePower(new Pose2d(Math.max(0.75, Math.min(power, 1)), -0.2, 0));
-                    telemetry.addData("X", drive.getPoseEstimate().getX());
+                    double headingPower = 0;
+                    if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
+                        headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
+                    }
+                    drive.setDrivePower(new Pose2d(Math.max(1, Math.min(power, 0.8)), -0.3, headingPower));
+                    if(finalI > 2 && distance < 5) {
+                        drive.setDrivePower(new Pose2d(Math.max(1, Math.min(power, 0.8)), 0.2, headingPower));
+                    }
+                    if(distance < 20){
+                        hardware.getIntakeSystem().intake();
+                    }
+                    telemetry.addData("X", hardware.getDrivetrainSystem().getOdometryPosition());
                     hardware.getIntakeSystem().intake();
                 }
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() >= 16 + (finalI * 1) || hardware.getIntakeSystem().itemInIntake();
+                    return hardware.getDrivetrainSystem().getOdometryPosition() >= 24 + (finalI * 1) || hardware.getIntakeSystem().itemInTransfer();
                 }
             });
 
@@ -229,7 +254,7 @@ public class RedAuto extends BasicOpmode {
                     drive.setDrivePower(new Pose2d());
                 }
             });
-            queue.submitAction(new DelayAction(500));
+            //queue.submitAction(new DelayAction(200));
             /**
             queue.submitAction(new InstantAction() {
                 @Override
@@ -238,28 +263,31 @@ public class RedAuto extends BasicOpmode {
                 }
             });
             */
+
             queue.submitAction(new Action() {
+                long timer = Long.MAX_VALUE;
                 @Override
                 public void update() {
-                    double distance = drive.getPoseEstimate().getX();
+                    double distance = hardware.getDrivetrainSystem().getOdometryPosition();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
                     double headingPower = 0;
                     if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
                         headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
                     }
-                    drive.setDrivePower(new Pose2d(-Math.max(Math.min(power, 1), 0.8), -0.2));
-                    telemetry.addData("X", drive.getPoseEstimate().getX());
-                    if(drive.getPoseEstimate().getX() < 10) {
+                    drive.setDrivePower(new Pose2d(-Math.max(Math.min(power, 1), 0.8), -0.3, headingPower));
+                    telemetry.addData("X", hardware.getDrivetrainSystem().getOdometryPosition());
+                    if(hardware.getDrivetrainSystem().getOdometryPosition() < 18 || hardware.getIntakeSystem().itemInTransfer()) {
                         hardware.getIntakeSystem().moveCameraLine();
-                    }
-                    if(hardware.getIntakeSystem().itemInIntake()){
-                        hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                        if(timer == 0){
+                            timer = System.currentTimeMillis() + 500;
+                        }
+                        hardware.getIntakeSystem().startTransfer();
                     }
                 }
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() < 3;
+                    return hardware.getDrivetrainSystem().getOdometryPosition() < 6;
                 }
             });
 
@@ -270,15 +298,26 @@ public class RedAuto extends BasicOpmode {
                     drive.setDrivePower(new Pose2d());
                 }
             });
+            queue.submitAction(new Action() {
+                @Override
+                public void update() {
+
+                }
+
+                @Override
+                public boolean shouldDeactivate() {
+                    return hardware.getIntakeSystem().getCurrentState() == IntakeSystem.INTAKE_STATE.IDLE;
+                }
+            });
             queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
-            queue.submitAction(new DelayAction(500));
+            queue.submitAction(new DelayAction(50));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
                     hardware.getTurretSystem().openArm();
                 }
             });
-            queue.submitAction(new DelayAction(200));
+            queue.submitAction(new DelayAction(100));
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
@@ -288,32 +327,47 @@ public class RedAuto extends BasicOpmode {
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-
+                    double position = startPos - hardware.getIntakeSystem().getCamera().getLinePipeline().getRealY();
+                    hardware.getDrivetrainSystem().setOdometryPosition(position);
                 }
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE;
-                }
-            });
-            queue.submitAction(new TimedAction(250) {
-                @Override
-                public void update() {
-                    double position = startPos - hardware.getIntakeSystem().getCamera().getLinePipeline().getRealY();
-                    Pose2d estimate = drive.getPoseEstimate();
-                    drive.setPoseEstimate(new Pose2d(position, estimate.getY(), estimate.getHeading()));
+                    return hardware.getTurretSystem().getExtensionRealDistance(DistanceUnit.INCH) < 40;
                 }
             });
             queue.submitAction(new InstantAction() {
                 @Override
                 public void update() {
                     hardware.getIntakeSystem().moveCameraInspection();
+                    hardware.getIntakeSystem().outtake();
                 }
             });
-            queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE));
+            queue.submitAction(new DelayAction(200));
         }
 
+        queue.submitAction(new Action() {
+            @Override
+            public void update() {
+                double distance = (25) - hardware.getDrivetrainSystem().getOdometryPosition();
+                double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
+                drive.setDrivePower(new Pose2d(Math.max(1, Math.min(power, 0.8)), -0.3, 0));
+                telemetry.addData("X", hardware.getDrivetrainSystem().getOdometryPosition());
+                hardware.getIntakeSystem().intake();
+            }
 
+            @Override
+            public boolean shouldDeactivate() {
+                return hardware.getDrivetrainSystem().getOdometryPosition() >= 23 || hardware.getIntakeSystem().itemInTransfer();
+            }
+        });
+
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                drive.setDrivePower(new Pose2d());
+            }
+        });
 
         OpmodeStatus.bindOnStart(queue);
     }

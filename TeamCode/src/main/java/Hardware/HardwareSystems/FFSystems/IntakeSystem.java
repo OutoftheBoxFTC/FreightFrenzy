@@ -26,7 +26,7 @@ public class IntakeSystem implements HardwareSystem {
     private SmartServo intakeTransfer, cameraServo, panServo;
 
     private double power;
-    private long timer = 0, timer2 = 0;
+    private long timer = 0, timer2 = 0, startMid = 0;
     private double distance = 100, transferDistance = 100;
     private double hubVoltage = 12;
     private double duckPower = 0;
@@ -69,7 +69,7 @@ public class IntakeSystem implements HardwareSystem {
         transferDistance = transferSensor.getDistance(DistanceUnit.INCH);
         switch (currentState){
             case IDLE:
-                intakeMotor.setPower(-power);
+                intakeMotor.setPower(power);
                 if(power == 0){
                     transferMid();
                 }else{
@@ -78,12 +78,18 @@ public class IntakeSystem implements HardwareSystem {
                 break;
             case TRANSFER_READY:
                 transferMid();
+                if(startMid == 0){
+                    startMid = System.currentTimeMillis();
+                }
                 if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.isScoutIdle() && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
                     currentState = INTAKE_STATE.TRANSFER_UP;
-                    timer = System.currentTimeMillis() + 300;
+                    if(System.currentTimeMillis() - startMid < 300) {
+                        timer = System.currentTimeMillis() + (300 - (System.currentTimeMillis() - startMid));
+                    }
                 }
                 break;
             case TRANSFER_UP:
+                startMid = 0;
                 transferFlipIn();
                 if(System.currentTimeMillis() > timer){
                     currentState = INTAKE_STATE.TRANSFERRING;
@@ -91,7 +97,7 @@ public class IntakeSystem implements HardwareSystem {
                 }
                 break;
             case TRANSFERRING:
-                intakeMotor.setPower(1);
+                intakeMotor.setPower(-1);
                 if((itemInIntake() && (timer2 < System.currentTimeMillis() - 500)) || timer2 < System.currentTimeMillis()){
                     intakeMotor.setPower(0);
                     currentState = INTAKE_STATE.IDLE;
@@ -135,7 +141,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void transferFlipOut(){
-        intakeTransfer.setPosition(0.22);
+        intakeTransfer.setPosition(0.14);
     }
 
     public void transferFlipIn(){

@@ -75,7 +75,7 @@ public class DrivetrainSystem implements HardwareSystem {
     public void update() {
         double pos = tr.getMotor().getCurrentPosition() / CPI;
         double delta = pos - lastPos;
-        odometryPosition += delta;
+        odometryPosition -= delta;
         lastPos = pos;
         if(System.currentTimeMillis() > timer && timer != -1){
             setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -175,7 +175,7 @@ public class DrivetrainSystem implements HardwareSystem {
     }
 
     public double getOdometryPosition(){
-        return tr.getMotor().getCurrentPosition() / CPI;
+        return odometryPosition;
     }
 
     public void setOdometryPosition(double odometryPosition){

@@ -33,6 +33,13 @@ public class FullGamepadControl extends BasicOpmode {
                 hardware.getTurretSystem().setBucketPreset();
             }
 
+            if(gamepad1.right_bumper){
+                hardware.getIntakeSystem().setPower(0.001);
+            }
+            if(gamepad1.left_bumper){
+                hardware.getIntakeSystem().setPower(0);
+            }
+
             telemetry.addData("Extension", hardware.getTurretSystem().getExtensionPosition());
             telemetry.addData("Pitch", hardware.getTurretSystem().getPitchMotorPos());
             telemetry.addData("Turret", hardware.getTurretSystem().getTurretEncoderPos());

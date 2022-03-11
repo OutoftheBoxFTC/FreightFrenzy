@@ -141,7 +141,7 @@ public class ScoutSystem implements HardwareSystem {
                 if(moveExtensionAction.isAtTarget()){
                     setBucketIntakePos();
                     if(timer2 == 0)
-                        timer2 = System.currentTimeMillis() + 250;
+                        timer2 = System.currentTimeMillis() + 100;
                 }else{
                     timer2 = 0;
                 }
@@ -151,6 +151,9 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case OUTTAKING:
                 timer2 = 0;
+                if(forward) {
+                    intake.setPower(0.1);
+                }
                 if(forward) {
                     moveExtensionAction.setMaxSpeed(1);
                     closeArm();
@@ -182,17 +185,21 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 break;
             case PRELOAD_ANGLE:
+                if(forward) {
+                    intake.setPower(0);
+                }
                 if(forward){
                     moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
                     bucketServo.enableServo();
-
-                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()){
-                        transitionReady = true;
-                    }
-
-                    setBucketScore();
                     moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                     movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+
+                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()) {
+                        transitionReady = true;
+                    }
+                    if(targetState != SCOUT_STATE.PRELOAD_ANGLE){
+                        setBucketScore();
+                    }
                 }else{
                     //moveExtensionAction.setTargetPos(bucketHall.getState() ? extensionPreload : 9, DistanceUnit.INCH);
                     moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
@@ -220,7 +227,13 @@ public class ScoutSystem implements HardwareSystem {
                 }
                 moveExtensionAction.setTargetPos(scoutTarget.extension+extensionScoreOffset, DistanceUnit.INCH);
                 moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
-                setBucketScore();
+                movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+
+                if(getFieldTarget() == SCOUT_TARGET.ALLIANCE_LOW || getFieldTarget() == SCOUT_TARGET.ALLIANCE_MID){
+                    setBucketAngleAuto();
+                }else {
+                    setBucketScore();
+                }
                 if(moveExtensionAction.isAtTarget()){
                     transitionReady = true;
                 }
@@ -310,6 +323,10 @@ public class ScoutSystem implements HardwareSystem {
 
     public void setBucketPreset(){
         bucketServo.setPosition(0.48);
+    }
+
+    public void setBucketAngleAuto(){
+        bucketServo.setPosition(0.9);
     }
 
     public void setBucketScore(){
