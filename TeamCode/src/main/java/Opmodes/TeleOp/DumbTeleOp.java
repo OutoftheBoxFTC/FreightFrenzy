@@ -107,6 +107,9 @@ public abstract class DumbTeleOp extends BasicOpmode {
             if(gamepad1.y){
                 hardware.getTurretSystem().openArm();
             }
+            if(gamepad1.b){
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
+            }
             if(gamepad1Ex.left_trigger.pressed()){
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
             }
@@ -126,11 +129,6 @@ public abstract class DumbTeleOp extends BasicOpmode {
             boolean change = false;
             @Override
             public void update() {
-                if (gamepad2.dpad_up) {
-                    hardware.getTurretSystem().moveExtensionScoreOffset(ProgramClock.getFrameTimeSeconds() * 10);
-                } else if (gamepad2.dpad_down) {
-                    hardware.getTurretSystem().moveExtensionScoreOffset(ProgramClock.getFrameTimeSeconds() * -10);
-                }
                 if (gamepad2.dpad_left) {
                     hardware.getTurretSystem().disableTurretPID();
                     hardware.getTurretSystem().setTurretMotorPower(0.5);
@@ -146,21 +144,62 @@ public abstract class DumbTeleOp extends BasicOpmode {
             }
         });
 
-        gamepad1Ex.dpad_up.bindOnPress(() -> hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
+        OpmodeStatus.bindOnStart(new Action() {
+            @Override
+            public void update() {
+                if(gamepad1.dpad_right){
+                    hardware.getTurretSystem().disableExtensionPID();
+                    hardware.getTurretSystem().setExtensionMotorPower(1);
+                }else{
+                    hardware.getTurretSystem().enableExtensionPID();
+                }
+            }
+        });
 
+        gamepad2Ex.dpad_up.bindOnPress(() -> {
+            hardware.getTurretSystem().moveExtensionScoreOffset(1);
+        });
+        gamepad2Ex.dpad_down.bindOnPress(() -> hardware.getTurretSystem().moveExtensionScoreOffset(-1));
+
+        gamepad1Ex.dpad_up.bindOnPress(() -> hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
+        hardware.getTurretSystem().setExtensionPreload(6);
         gamepad2Ex.b.bindOnPress(() -> {
             hardware.getTurretSystem().setExtensionScoreOffset(0);
             hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
-            hardware.getTurretSystem().setExtensionPreload(12.5);
+            hardware.getTurretSystem().setExtensionPreload(6);
         });
         gamepad2Ex.x.bindOnPress(() -> {
             hardware.getTurretSystem().setExtensionScoreOffset(0);
             hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.SHARED);
-            hardware.getTurretSystem().setExtensionPreload(12.5);
+            hardware.getTurretSystem().setExtensionPreload(6);
         });
         gamepad2Ex.y.bindOnPress(() -> {
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
             hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.PASSTHROUGH);
             hardware.getTurretSystem().setExtensionPreload(20);
+        });
+        gamepad2Ex.right_bumper.bindOnPress(() -> {
+            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.CAP_GRAB);
+            hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+            hardware.getTurretSystem().setExtensionPreload(6);
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
+        });
+        gamepad2Ex.left_bumper.bindOnPress(() -> {
+            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.PASSTHROUGH);
+            hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+            hardware.getTurretSystem().setExtensionPreload(6);
+            hardware.getTurretSystem().setExtensionScoreOffset(0);
+        });
+
+        OpmodeStatus.bindOnStart(new Action() {
+            @Override
+            public void update() {
+                if(hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.CAP_GRAB ||
+                    hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.CAP_PLACE){
+                    double pitch = -gamepad2.left_stick_y;
+                    hardware.getTurretSystem().setPitchMotorPower(pitch);
+                }
+            }
         });
     }
 

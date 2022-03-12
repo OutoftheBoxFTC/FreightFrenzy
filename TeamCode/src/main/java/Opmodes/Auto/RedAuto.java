@@ -10,6 +10,8 @@ import Hardware.HardwareSystems.FFSystems.Actions.MoveScoutAction;
 import Hardware.HardwareSystems.FFSystems.Actions.ScoutTargets;
 import Hardware.HardwareSystems.FFSystems.IntakeSystem;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
+import MathSystems.Angle;
+import MathSystems.MathUtils;
 import Opmodes.BasicOpmode;
 import RoadRunner.drive.DriveConstants;
 import RoadRunner.drive.SampleMecanumDrive;
@@ -179,12 +181,11 @@ public class RedAuto extends BasicOpmode {
                 //hardware.getIntakeSystem().lock();
             }
         });
-        queue.submitAction(new DelayAction(300));
+        queue.submitAction(new DelayAction(600));
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
                 hardware.getTurretSystem().openArm();
-                hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
             }
         });
         queue.submitAction(new DelayAction(300));
@@ -193,6 +194,8 @@ public class RedAuto extends BasicOpmode {
             public void update() {
                 hardware.getIntakeSystem().transferFlipOut();
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+                hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+
             }
         });
         queue.submitAction(new Action() {
@@ -366,6 +369,16 @@ public class RedAuto extends BasicOpmode {
             @Override
             public void update() {
                 drive.setDrivePower(new Pose2d());
+            }
+        });
+
+        OpmodeStatus.bindOnStart(() -> {
+            if(Math.abs(MathUtils.getRotDist(hardware.getDrivetrainSystem().getImuAngle(), Angle.degrees(0)).degrees()) > 40){
+                ActionController.getInstance().terminateAction(queue);
+                ActionController.addAction(() -> {
+                    drive.setDrivePower(new Pose2d());
+                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+                });
             }
         });
 

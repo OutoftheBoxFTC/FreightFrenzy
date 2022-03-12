@@ -19,6 +19,8 @@ public class MovePitchAction implements Action {
     private ScoutSystem system;
     private PIDFSystem pid;
 
+    private boolean active = true;
+
     public MovePitchAction(ScoutSystem system){
         this.system = system;
         pid = new PIDFSystem(P, I, D, 0.1);
@@ -32,6 +34,9 @@ public class MovePitchAction implements Action {
 
     @Override
     public void update() {
+        if(!active){
+            return;
+        }
         pid.setCoefficients(P, 0, D, F);
         if(Double.isNaN(targetPos)){
             return;
@@ -58,5 +63,9 @@ public class MovePitchAction implements Action {
 
     public boolean isAtTarget(){
         return Math.abs(targetPos - system.getPitchMotorPos()) < (15);
+    }
+
+    public void setPIDActive(boolean b) {
+        active = b;
     }
 }

@@ -99,14 +99,15 @@ public class IntakeSystem implements HardwareSystem {
             case TRANSFERRING:
                 intakeMotor.setPower(-1);
                 if((itemInIntake() && (timer2 < System.currentTimeMillis() - 500)) || timer2 < System.currentTimeMillis()){
-                    intakeMotor.setPower(0);
+                    //intakeMotor.setPower(0);
                     currentState = INTAKE_STATE.IDLE;
                     if(itemInIntake()) {
                         scoutSystem.setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
                     }
                 }
+                break;
             case DUCK:
-                setPower(duckPower);
+                intakeMotor.setPower(duckPower);
                 break;
 
         }
@@ -206,14 +207,15 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void setDuckPower(double duckPower) {
-        currentState = INTAKE_STATE.DUCK;
         double scale = 12 / expansionHub.getInputVoltage(VoltageUnit.VOLTS);
         this.duckPower = (duckPower * scale);
     }
 
     public void startTransfer(){
-        currentState = INTAKE_STATE.TRANSFER_READY;
-        intakeMotor.setPower(0);
+        if(currentState == INTAKE_STATE.IDLE) {
+            currentState = INTAKE_STATE.TRANSFER_READY;
+            intakeMotor.setPower(0);
+        }
     }
 
     public double getBucketSensorDistance(){
@@ -221,11 +223,11 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void spinDuckBlue(){
-        setDuckPower(0.38);
+        setPower(0.48);
     }
 
     public void spinDuckRed(){
-        setDuckPower(-0.38);
+        setDuckPower(-0.48);
     }
 
     public void setZoom(double zoom){

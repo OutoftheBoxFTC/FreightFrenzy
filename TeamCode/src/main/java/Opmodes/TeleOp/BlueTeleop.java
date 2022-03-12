@@ -16,9 +16,9 @@ public class BlueTeleop extends DumbTeleOp {
             @Override
             public void update() {
                 if(gamepad2Ex.right_trigger.pressed()){
-                    //hardware.getIntakeSystem().spinDuckBlue();
+                    hardware.getIntakeSystem().spinDuckBlue();
                 }else if(gamepad2Ex.left_trigger.pressed()){
-                    //hardware.getIntakeSystem().setDuckPower(1);
+                    hardware.getIntakeSystem().setDuckPower(1);
                 }else{
                    // hardware.getIntakeSystem().idleIntake();
                 }

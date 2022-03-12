@@ -33,7 +33,12 @@ public class ActionQueue implements Action{
     @Override
     public void onEnd() {
         if(currentAction != null){
-            //ActionController.getInstance().terminateAction(currentAction);
+            ActionController.addAction(new InstantAction() {
+                @Override
+                public void update() {
+                    ActionController.getInstance().terminateAction(currentAction);
+                }
+            });
         }
     }
 

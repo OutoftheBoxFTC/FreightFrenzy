@@ -129,7 +129,7 @@ public class ScoutSystem implements HardwareSystem {
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
                 moveExtensionAction.setMaxSpeed(0.6);
-                movePitchAction.setTargetAngle(Angle.degrees(10));
+                movePitchAction.setTargetAngle(Angle.degrees(2));
                 if(intake.itemInIntake()){
                     closeArm();
                 }else{
@@ -173,7 +173,7 @@ public class ScoutSystem implements HardwareSystem {
                 moveExtensionAction.setTargetPos(10.5, DistanceUnit.INCH);
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
-                movePitchAction.setTargetAngle(Angle.degrees(10));
+                movePitchAction.setTargetAngle(Angle.degrees(8));
                 if(moveExtensionAction.isAtTarget()){
                     bucketServo.enableServo();
                     setBucketPreset();
@@ -228,6 +228,14 @@ public class ScoutSystem implements HardwareSystem {
                 moveExtensionAction.setTargetPos(scoutTarget.extension+extensionScoreOffset, DistanceUnit.INCH);
                 moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                 movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+
+                if(getFieldTarget() == SCOUT_TARGET.CAP_GRAB || getFieldTarget() == SCOUT_TARGET.CAP_PLACE){
+                    movePitchAction.setPIDActive(false);
+                    moveExtensionAction.setPidActive(false);
+                }else{
+                    movePitchAction.setPIDActive(true);
+                    moveExtensionAction.setPidActive(true);
+                }
 
                 if(getFieldTarget() == SCOUT_TARGET.ALLIANCE_LOW || getFieldTarget() == SCOUT_TARGET.ALLIANCE_MID){
                     setBucketAngleAuto();
@@ -492,7 +500,9 @@ public class ScoutSystem implements HardwareSystem {
         ALLIANCE_MID,
         ALLIANCE_LOW,
         SHARED,
-        PASSTHROUGH
+        PASSTHROUGH,
+        CAP_GRAB,
+        CAP_PLACE
     }
 
     public enum SCOUT_ALLIANCE{

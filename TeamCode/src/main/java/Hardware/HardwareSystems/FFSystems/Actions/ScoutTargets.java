@@ -10,9 +10,9 @@ public class ScoutTargets {
                 case ALLIANCE_HIGH:
                     return new SCOUTTarget(Angle.degrees(-60), Angle.degrees(36), 47.5);
                 case ALLIANCE_MID:
-                    return new SCOUTTarget(Angle.degrees(-57.8), Angle.degrees(17), 27);
+                    return new SCOUTTarget(Angle.degrees(-57.8), Angle.degrees(17), 39);
                 case ALLIANCE_LOW:
-                    return new SCOUTTarget(Angle.degrees(-57.8), Angle.degrees(9), 30);
+                    return new SCOUTTarget(Angle.degrees(-57.8), Angle.degrees(8), 39);
                 case SHARED:
                     return new SCOUTTarget(Angle.degrees(70), Angle.degrees(10), 15);
             }
@@ -21,15 +21,21 @@ public class ScoutTargets {
                 case ALLIANCE_HIGH:
                     return new SCOUTTarget(Angle.degrees(60), Angle.degrees(36), 47.5);
                 case ALLIANCE_MID:
-                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(17), 27);
+                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(17), 39);
                 case ALLIANCE_LOW:
-                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(9), 28);
+                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(7), 39);
                 case SHARED:
                     return new SCOUTTarget(Angle.degrees(-70), Angle.degrees(10), 20);
             }
         }
         if(target == ScoutSystem.SCOUT_TARGET.PASSTHROUGH){
-            return new SCOUTTarget(Angle.ZERO(), Angle.degrees(50), 20);
+            return new SCOUTTarget(Angle.ZERO(), Angle.degrees(50), 30);
+        }
+        if(target == ScoutSystem.SCOUT_TARGET.CAP_GRAB){
+            return new SCOUTTarget(Angle.ZERO(), Angle.degrees(0), 20);
+        }
+        if(target == ScoutSystem.SCOUT_TARGET.CAP_PLACE){
+            return new SCOUTTarget(Angle.ZERO(), Angle.degrees(50), 40);
         }
         return new SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
     }
