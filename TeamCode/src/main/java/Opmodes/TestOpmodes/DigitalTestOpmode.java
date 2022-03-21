@@ -15,7 +15,6 @@ import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 @Config
-@TeleOp
 public class DigitalTestOpmode extends LinearOpMode {
     public static int PORT_DIGITAL = 0;
     public static double POSITION = 0;

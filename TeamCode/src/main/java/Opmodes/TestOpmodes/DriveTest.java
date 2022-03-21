@@ -6,7 +6,7 @@ import MathSystems.Vector.Vector3;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
 import Utils.OpmodeStatus;
-@TeleOp
+
 public class DriveTest extends BasicOpmode {
     @Override
     public void setup() {

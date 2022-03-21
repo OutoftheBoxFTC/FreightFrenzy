@@ -14,7 +14,6 @@ import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 @Config
-@TeleOp
 public class AnalogTestOpmode extends LinearOpMode {
     public static int PORT_ANALOG = 0;
     public static double RANGE = 360;

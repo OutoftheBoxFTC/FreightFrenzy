@@ -15,7 +15,6 @@ import Opmodes.BasicOpmode;
 import State.Action.Action;
 import Utils.OpmodeStatus;
 
-@TeleOp
 @Config
 public class CameraTester extends BasicOpmode {
     public static double CAMERA_ANGLE = 0;

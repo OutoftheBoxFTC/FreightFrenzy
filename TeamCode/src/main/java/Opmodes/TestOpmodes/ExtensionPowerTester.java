@@ -10,7 +10,6 @@ import Opmodes.BasicOpmode;
 import State.Action.Action;
 import Utils.OpmodeStatus;
 
-@TeleOp
 @Config
 public class ExtensionPowerTester extends BasicOpmode {
     public static double POWER = 0;

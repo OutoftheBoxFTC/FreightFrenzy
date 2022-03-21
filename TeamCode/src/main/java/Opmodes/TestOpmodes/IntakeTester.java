@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
 import Utils.OpmodeStatus;
-@TeleOp
+
 public class IntakeTester extends BasicOpmode {
     @Override
     public void setup() {

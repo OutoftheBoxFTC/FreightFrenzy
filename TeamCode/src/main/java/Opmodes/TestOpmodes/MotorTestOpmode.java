@@ -13,7 +13,6 @@ import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 @Config
-@TeleOp
 public class MotorTestOpmode extends LinearOpMode {
     public static int PORT_MOTOR = 0;
     public static double POWER = 0;

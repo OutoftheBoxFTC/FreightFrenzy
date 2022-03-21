@@ -12,6 +12,8 @@ import Utils.PID.PIDSystem;
 public class MoveTurretAction implements Action {
     public static double P = 0.2, I = 0, D = 0;
 
+    public static final double TURRET_CONSTANT = 8.07333333;
+
     private Double targetPos = null;
     private ScoutSystem system;
     private PIDSystem pid;
@@ -25,7 +27,7 @@ public class MoveTurretAction implements Action {
     }
 
     public void setTargetAngle(Angle angle){
-        targetPos = angle.degrees() * 8.07333333;
+        targetPos = angle.degrees() * TURRET_CONSTANT;
     }
 
     @Override
@@ -58,6 +60,10 @@ public class MoveTurretAction implements Action {
             return false;
         }
         return Math.abs(targetPos - system.getTurretEncoderPos()) < 25;
+    }
+
+    public double getTargetPos(){
+        return targetPos;
     }
 
     public void setEnabled(boolean enabled) {

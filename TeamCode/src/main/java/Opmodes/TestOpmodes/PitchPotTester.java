@@ -10,7 +10,6 @@ import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 import Utils.OpmodeStatus;
 
-@TeleOp
 public class PitchPotTester extends BasicOpmode {
     double startVoltage = 0, factor = 0;
     @Override

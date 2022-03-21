@@ -8,7 +8,6 @@ import Opmodes.BasicOpmode;
 import State.Action.Action;
 import Utils.OpmodeStatus;
 
-@TeleOp
 @Config
 public class PitchTester extends BasicOpmode {
     public static int EXTENSION_TARGET = 0;

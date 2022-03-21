@@ -9,7 +9,6 @@ import State.Action.Action;
 import Utils.OpmodeStatus;
 import Utils.ProgramClock;
 
-@TeleOp
 public class PTZTester extends BasicOpmode {
     @Override
     public void setup() {

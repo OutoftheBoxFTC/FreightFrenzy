@@ -11,7 +11,6 @@ import State.Action.Action;
 import State.Action.ActionController;
 import Utils.OpmodeStatus;
 
-@TeleOp
 @Config
 public class ExtensionTester extends BasicOpmode {
     public static int EXTENSION_TARGET = 0;

@@ -12,7 +12,6 @@ import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 @Config
-@TeleOp
 public class ServoTestOpmode extends LinearOpMode {
     public static int PORT_SERVO = 0;
     public static double POSITION = 0;

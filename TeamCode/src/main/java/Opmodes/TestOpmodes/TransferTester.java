@@ -13,7 +13,6 @@ import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 import Utils.OpmodeStatus;
 
-@TeleOp
 public class TransferTester extends BasicOpmode {
     boolean transferring = false;
     @Override

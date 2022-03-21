@@ -11,7 +11,6 @@ import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 import Utils.OpmodeStatus;
 
-@TeleOp
 @Config
 public class StagingTesting extends BasicOpmode {
     public static int EXTENSION_TARGET = 0;

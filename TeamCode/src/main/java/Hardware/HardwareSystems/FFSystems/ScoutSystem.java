@@ -26,6 +26,8 @@ import MathSystems.MathUtils;
 @Config
 public class ScoutSystem implements HardwareSystem {
     public static int TURRET_SMOOTHING = 5;
+    public static double EXTENSION_START_ANGLE = 30;
+
     private Angle finalTurretAngle = Angle.ZERO(), finalPitchAngle = Angle.ZERO();
 
     private final MoveTurretAction moveTurretAction;
@@ -153,8 +155,6 @@ public class ScoutSystem implements HardwareSystem {
                 timer2 = 0;
                 if(forward) {
                     intake.setPower(0.1);
-                }
-                if(forward) {
                     moveExtensionAction.setMaxSpeed(1);
                     closeArm();
                     transitionReady = true;
@@ -169,8 +169,9 @@ public class ScoutSystem implements HardwareSystem {
                     if(!moveExtensionAction.isAtTarget()) {
                         bucketServo.disableServo();
                     }
+                    transitionReady = true;
                 }
-                moveExtensionAction.setTargetPos(10.5, DistanceUnit.INCH);
+                moveExtensionAction.setTargetPos(4, DistanceUnit.INCH);
                 setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
                 movePitchAction.setTargetAngle(Angle.degrees(8));
@@ -189,9 +190,12 @@ public class ScoutSystem implements HardwareSystem {
                     intake.setPower(0);
                 }
                 if(forward){
-                    moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
                     bucketServo.enableServo();
                     moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
+                    Angle error = Angle.degrees(Math.abs(moveTurretAction.getTargetPos() - getTurretEncoderPos()) / MoveTurretAction.TURRET_CONSTANT);
+                    if(Math.abs(error.degrees()) < EXTENSION_START_ANGLE){
+                        moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
+                    }
                     movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
 
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()) {

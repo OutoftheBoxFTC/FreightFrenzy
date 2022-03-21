@@ -19,7 +19,6 @@ import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 import Utils.OpmodeStatus;
 
-@TeleOp
 public class CameraDriveTester extends BasicOpmode {
     @Override
     public void setup() {
