@@ -135,7 +135,9 @@ public class ScoutSystem implements HardwareSystem {
                 if(intake.itemInIntake()){
                     closeArm();
                 }else{
-                    openArm();
+                    if(getExtensionRealDistance(DistanceUnit.INCH) < 1) {
+                        openArm();
+                    }
                 }
                 if(!forward && !moveExtensionAction.isAtTarget()){
                     //intake.outtake();
@@ -166,19 +168,15 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case TRANSFER:
                 if(forward) {
-                    if(!moveExtensionAction.isAtTarget()) {
-                        bucketServo.disableServo();
-                    }
                     transitionReady = true;
+                    moveExtensionAction.setTargetPos(6, DistanceUnit.INCH);
+                    movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                }else{
+                    setBucketIntakePos();
+                    moveExtensionAction.setTargetPos(2, DistanceUnit.INCH);
+                    movePitchAction.setTargetAngle(Angle.degrees(13));
                 }
-                moveExtensionAction.setTargetPos(4, DistanceUnit.INCH);
-                setBucketPreset();
                 moveTurretAction.setTargetAngle(Angle.ZERO());
-                movePitchAction.setTargetAngle(Angle.degrees(8));
-                if(moveExtensionAction.isAtTarget()){
-                    bucketServo.enableServo();
-                    setBucketPreset();
-                }
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()
                         //&& !bucketHall.getState()
                 ){
@@ -190,9 +188,9 @@ public class ScoutSystem implements HardwareSystem {
                     intake.setPower(0);
                 }
                 if(forward){
-                    bucketServo.enableServo();
                     moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                     Angle error = Angle.degrees(Math.abs(moveTurretAction.getTargetPos() - getTurretEncoderPos()) / MoveTurretAction.TURRET_CONSTANT);
+                    RobotLog.ii("Error", error.degrees()+" | " + moveTurretAction.getTargetPos() + " | " + getTurretEncoderPos());
                     if(Math.abs(error.degrees()) < EXTENSION_START_ANGLE){
                         moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
                     }
@@ -201,23 +199,23 @@ public class ScoutSystem implements HardwareSystem {
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()) {
                         transitionReady = true;
                     }
-                    if(targetState != SCOUT_STATE.PRELOAD_ANGLE){
+                    if(targetState != SCOUT_STATE.PRELOAD_ANGLE && getExtensionRealDistance(DistanceUnit.INCH) > 15){
                         setBucketScore();
                     }
                 }else{
                     //moveExtensionAction.setTargetPos(bucketHall.getState() ? extensionPreload : 9, DistanceUnit.INCH);
-                    moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
+                    moveExtensionAction.setTargetPos(2, DistanceUnit.INCH);
                     if(getExtensionRealDistance(DistanceUnit.INCH) < 33){
                         moveTurretAction.setTargetAngle(Angle.ZERO());
                         if(getFieldTarget() != SCOUT_TARGET.PASSTHROUGH)
-                            movePitchAction.setTargetAngle(Angle.degrees(9.5));
+                            movePitchAction.setTargetAngle(Angle.degrees(13));
                     }
 
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 11){
                         transitionReady = true;
                     }
 
-                    setBucketPreset();
+                    setBucketIntakePos();
                 }
                 moveExtensionAction.setMaxSpeed(1);
                 break;

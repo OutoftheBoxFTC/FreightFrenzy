@@ -2,6 +2,8 @@ package Hardware.HardwareSystems.FFSystems.Actions;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import Hardware.HardwareSystems.FFSystems.FFConstants;
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import MathSystems.Angle;
@@ -47,6 +49,12 @@ public class MovePitchAction implements Action {
             return;
         }
         double power = pid.getCorrection(targetPos - system.getPitchMotorPos(), 0);
+
+        if(system.getExtensionRealDistance(DistanceUnit.INCH) > 20){
+            if(power > 0){
+                power = 1;
+            }
+        }
 
         system.setPitchMotorPower(MathUtils.signedMax(power, FFConstants.Pitch.PITCH_KSTATIC));
     }

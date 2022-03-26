@@ -44,8 +44,12 @@ public class MoveExtensionAction implements Action {
             return;
         }
         system.setExtensionBrake();
-        if(Double.isNaN(targetPos) || isAtTarget()){
-            system.setExtensionMotorPower(0);
+        if(Double.isNaN(targetPos) || isAtTarget() || (targetPos == 0 && system.getExtensionPosition() < 5)){
+            if(system.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE) {
+                system.setExtensionMotorPower(-0.1);
+            }else{
+                system.setExtensionMotorPower(0.1);
+            }
             return;
         }
         double power = pid.getCorrection(targetPos - system.getExtensionPosition());
