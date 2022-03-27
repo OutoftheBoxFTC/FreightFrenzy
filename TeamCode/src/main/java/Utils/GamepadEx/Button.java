@@ -56,6 +56,10 @@ public class Button {
     public boolean toggled(){
         return toggle;
     }
+
+    public void overrideToggle(boolean toggle){
+        this.toggle = toggle;
+    }
     
     public boolean justPressed(){
         return pressed;

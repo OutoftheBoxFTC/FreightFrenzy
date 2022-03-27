@@ -44,9 +44,9 @@ public class MoveExtensionAction implements Action {
             return;
         }
         system.setExtensionBrake();
-        if(Double.isNaN(targetPos) || isAtTarget() || (targetPos == 0 && system.getExtensionPosition() < 5)){
+        if(Double.isNaN(targetPos) || isAtTarget() || (targetPos == 0 && system.getExtensionPosition() < 10)){
             if(system.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE) {
-                system.setExtensionMotorPower(-0.1);
+                system.setExtensionMotorPower(-0.3);
             }else{
                 system.setExtensionMotorPower(0.1);
             }

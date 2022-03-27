@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -16,6 +17,7 @@ import State.Action.ActionController;
 import State.Action.ActionQueue;
 import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
+import State.Action.StandardActions.ServoProfileAction;
 import Utils.GamepadEx.GamepadCallback;
 import Utils.GamepadEx.GamepadEx;
 import Utils.GamepadEx.GamepadValueCallback;
@@ -29,6 +31,8 @@ public abstract class DumbTeleOp extends BasicOpmode {
 
     public GamepadEx gamepad1Ex, gamepad2Ex;
     private boolean queuedRetract = false;
+
+    private boolean capIdle;
     @Override
     public void setup() {
         gamepad1Ex = new GamepadEx(gamepad1);
@@ -85,7 +89,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
             }
         });
 
-        OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getBucketSensorDistance()));
+        OpmodeStatus.bindOnStart(() -> telemetry.addData("Intake Distance", hardware.getIntakeSystem().getTransfer()));
 
         OpmodeStatus.bindOnStart(() -> {
             double speed = 1;
@@ -94,6 +98,11 @@ public abstract class DumbTeleOp extends BasicOpmode {
                     speed = 0.8;
                 }
             }
+
+            if(!capIdle){
+                speed = 0.35;
+            }
+
             hardware.getDrivetrainSystem().setPower(new Vector3(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x).scale(speed));
         });
 
@@ -124,25 +133,6 @@ public abstract class DumbTeleOp extends BasicOpmode {
             FtcDashboard.getInstance().getTelemetry().addData("ODO", hardware.getDrivetrainSystem().getOdometryPosition());
             FtcDashboard.getInstance().getTelemetry().update();
         });
-        OpmodeStatus.bindOnStart(new Action() {
-            double extendVal = 0, turretVal = 0;
-            boolean change = false;
-            @Override
-            public void update() {
-                if (gamepad2.dpad_left) {
-                    hardware.getTurretSystem().disableTurretPID();
-                    hardware.getTurretSystem().setTurretMotorPower(0.5);
-                    hardware.getTurretSystem().setTurretOffset(hardware.getTurretSystem().getTurretPosition().degrees() - turretVal);
-                } else if (gamepad2.dpad_right) {
-                    hardware.getTurretSystem().disableTurretPID();
-                    hardware.getTurretSystem().setTurretMotorPower(-0.5);
-                    hardware.getTurretSystem().setTurretOffset(hardware.getTurretSystem().getTurretPosition().degrees() - turretVal);
-                }else{
-                    hardware.getTurretSystem().enableTurretPID();
-                    turretVal = hardware.getTurretSystem().getTurretPosition().degrees();
-                }
-            }
-        });
 
         OpmodeStatus.bindOnStart(new Action() {
             @Override
@@ -156,12 +146,56 @@ public abstract class DumbTeleOp extends BasicOpmode {
             }
         });
 
-        gamepad2Ex.dpad_up.bindOnPress(() -> {
-            hardware.getTurretSystem().moveExtensionScoreOffset(1);
-        });
-        gamepad2Ex.dpad_down.bindOnPress(() -> hardware.getTurretSystem().moveExtensionScoreOffset(-1));
-
         gamepad1Ex.dpad_up.bindOnPress(() -> hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE));
+
+        OpmodeStatus.bindOnStart(new Action() {
+            boolean down = false, up = false;
+            double lastPos = 0;
+            @Override
+            public void update() {
+                double pos = 0.7;
+                if(gamepad2Ex.dpad_down.toggled()){
+                    pos = 0.29;
+                    down = true;
+                    up = false;
+                    gamepad2Ex.dpad_up.overrideToggle(false);
+                    gamepad2Ex.dpad_right.overrideToggle(false);
+                }else if(down){
+                    pos = 0.235;
+                }
+
+                if(gamepad2Ex.dpad_up.toggled()){
+                    pos = 0.55;
+                    up = true;
+                    down = false;
+                    gamepad2Ex.dpad_down.overrideToggle(false);
+                    gamepad2Ex.dpad_right.overrideToggle(false);
+                }else if(up){
+                    pos = 0.45;
+                }
+
+                if(gamepad2Ex.dpad_right.toggled()){
+                    gamepad2Ex.dpad_down.overrideToggle(false);
+                    gamepad2Ex.dpad_up.overrideToggle(false);
+                    down = false;
+                    up = false;
+                }
+
+                FtcDashboard.getInstance().getTelemetry().addData("Pos", pos);
+
+                if(lastPos != pos){
+                    ActionController.addAction(new ServoProfileAction(hardware.getIntakeSystem().getCapServo(), 2, (pos == 0.55 || pos == 0.45) ? 0.25 : 1, pos));
+                }
+                if(pos == 0.7){
+                    hardware.getIntakeSystem().getCapServo().setPosition(0.7);
+                    capIdle = true;
+                }else{
+                    capIdle = false;
+                }
+                lastPos = pos;
+            }
+        });
+
         hardware.getTurretSystem().setExtensionPreload(6);
         gamepad2Ex.b.bindOnPress(() -> {
             hardware.getTurretSystem().setExtensionScoreOffset(0);

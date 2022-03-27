@@ -17,13 +17,14 @@ import Hardware.Pipelines.LineFinderCamera;
 import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
+import State.Action.StandardActions.ServoQueueProfileAction;
 
 public class IntakeSystem implements HardwareSystem {
     public ScoutSystem scoutSystem;
 
     private SmartMotor intakeMotor;
 
-    private SmartServo intakeTransfer, cameraServo, panServo;
+    private SmartServo intakeTransfer, cameraServo, panServo, capServo;
 
     private double power;
     private long timer = 0, timer2 = 0, startMid = 0;
@@ -41,9 +42,12 @@ public class IntakeSystem implements HardwareSystem {
     private LineFinderCamera camera;
     private HardwareMap map;
 
+    private ServoQueueProfileAction transferQueue;
+
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
         intakeMotor = chub.getMotor(0);
         intakeTransfer = revHub.getServo(0);
+        intakeTransfer.setPmwRange(600, 2500);
         cameraServo = revHub.getServo(5);
         panServo = revHub.getServo(1);
         expansionHub = revHub.getModule();
@@ -52,24 +56,30 @@ public class IntakeSystem implements HardwareSystem {
         transferSensor = map.get(RevColorSensorV3.class, "transferSensor");
         camera = new LineFinderCamera(map, this);
 
+        capServo = revHub.getServo(4);
+
         t1 = revHub.getDigitalController(0);
         t2 = revHub.getDigitalController(1);
 
         t1.setMode(DigitalChannel.Mode.INPUT);
         t2.setMode(DigitalChannel.Mode.INPUT);
+
+        transferQueue = new ServoQueueProfileAction(intakeTransfer, 80, 20, 0); //80 vel, 20 accel
     }
 
     @Override
     public void initialize() {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        transferQueue.initialize();
     }
 
     @Override
     public void update() {
         transferDistance = transferSensor.getDistance(DistanceUnit.INCH);
+        transferQueue.update();
         switch (currentState){
             case IDLE:
-                intakeMotor.setPower(power);
+                intakeMotor.setPower(-power);
                 if(power == 0){
                     transferMid();
                 }else{
@@ -77,14 +87,15 @@ public class IntakeSystem implements HardwareSystem {
                 }
                 break;
             case TRANSFER_READY:
-                transferMid();
+                transferFlipIn();
+                intakeMotor.setPower(-1);
                 if(startMid == 0){
                     startMid = System.currentTimeMillis();
                 }
-                if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.isScoutIdle() && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
+                if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
                     currentState = INTAKE_STATE.TRANSFER_UP;
                     if(System.currentTimeMillis() - startMid < 300) {
-                        timer = System.currentTimeMillis() + (300 - (System.currentTimeMillis() - startMid));
+                        timer = System.currentTimeMillis() + 500;
                     }
                 }
                 break;
@@ -93,12 +104,14 @@ public class IntakeSystem implements HardwareSystem {
                 transferFlipIn();
                 if(System.currentTimeMillis() > timer){
                     currentState = INTAKE_STATE.TRANSFERRING;
-                    timer2 = System.currentTimeMillis() + (150 + 200);
+                    timer2 = System.currentTimeMillis() + (200 + 500);
                 }
                 break;
             case TRANSFERRING:
-                intakeMotor.setPower(-1);
-                if((itemInIntake() && (timer2 < System.currentTimeMillis() - 500)) || timer2 < System.currentTimeMillis()){
+                if(transferQueue.isIdle() || ((timer2 - 200) > System.currentTimeMillis())) {
+                    intakeMotor.setPower(1);
+                }
+                if((itemInIntake() || System.currentTimeMillis() > timer2)){
                     //intakeMotor.setPower(0);
                     currentState = INTAKE_STATE.IDLE;
                     if(itemInIntake()) {
@@ -115,6 +128,10 @@ public class IntakeSystem implements HardwareSystem {
 
     public boolean itemInTransfer(){
         return transferDistance < 0.5;
+    }
+
+    public double getTransfer(){
+        return transferDistance;
     }
 
     public double getNormalizedColour(){
@@ -142,15 +159,15 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void transferFlipOut(){
-        intakeTransfer.setPosition(0.14);
+        transferQueue.setTarget(0);
     }
 
     public void transferFlipIn(){
-        intakeTransfer.setPosition(0.87);
+        transferQueue.setTarget(0.7);
     }
 
     public void transferMid(){
-        intakeTransfer.setPosition(0.75);
+        transferQueue.setTarget(0.5);
     }
 
     public SmartServo getCameraServo() {
@@ -212,10 +229,8 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void startTransfer(){
-        if(currentState == INTAKE_STATE.IDLE) {
-            currentState = INTAKE_STATE.TRANSFER_READY;
-            intakeMotor.setPower(0);
-        }
+        currentState = INTAKE_STATE.TRANSFER_READY;
+        intakeMotor.setPower(0);
     }
 
     public double getBucketSensorDistance(){
@@ -244,6 +259,10 @@ public class IntakeSystem implements HardwareSystem {
 
     public INTAKE_STATE getCurrentState() {
         return currentState;
+    }
+
+    public SmartServo getCapServo() {
+        return capServo;
     }
 
     public enum INTAKE_STATE{
