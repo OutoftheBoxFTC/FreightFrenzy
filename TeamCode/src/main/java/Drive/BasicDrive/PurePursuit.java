@@ -65,6 +65,10 @@ public class PurePursuit implements Action {
         if(Math.abs(angleDiff.degrees()) > 5) {
             drivetrainSystem.setPower(new Vector3(0, speed, Math.signum(angleDiff.degrees()) * 0.4));
         }
+
+        if(position.getPos().distanceTo(path.getEndpoint().getPos()) < 2){
+            deactivateNow();
+        }
     }
 
     private int findLineCircleIntersections(
