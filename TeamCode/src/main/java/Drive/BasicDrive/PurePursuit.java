@@ -22,6 +22,7 @@ public class PurePursuit implements Action {
         this.path = path;
         this.speed = speed;
         this.drivetrainSystem = drivetrainSystem;
+        this.radius = radius;
     }
 
     public PurePursuit(DrivetrainSystem drivetrainSystem, Position position, Path path){
@@ -31,46 +32,29 @@ public class PurePursuit implements Action {
     @Override
     public void update() {
         int besti = path.getSegments().size()-1;
-        double minDist = Double.MAX_VALUE;
         for(int i = 0; i < path.getSegments().size(); i ++) {
             Vector2 solution1 = Vector2.ZERO(), solution2 = Vector2.ZERO();
             int solutions = findLineCircleIntersections(position.getX(), position.getY(), radius, path.getSegments().get(i).get(0).getPos(), path.getSegments().get(i).get(1).getPos(), solution1, solution2);
-            if(solutions == 1){
-                double dist = solution1.distanceTo(path.getEndpoint().getPos());
-                if(dist < minDist){
-                    besti = i;
-                    minDist = dist;
-                }
-            }
-            if(solutions == 2){
-                if(solution1.distanceTo(path.getSegments().get(i).get(1).getPos()) < solution2.distanceTo(path.getSegments().get(i).get(1).getPos())){
-                    minDist = solution1.distanceTo(path.getEndpoint().getPos());
-                }else{
-                    minDist = solution2.distanceTo(path.getEndpoint().getPos());
-                }
+            if(solutions != 0){
                 besti = i;
             }
         }
 
         Position endPos = path.getEndpoint();
-        if(minDist == Double.MAX_VALUE){
-            endPos = path.getEndpoint();
-        }else{
-            Vector2 solution1 = Vector2.ZERO(), solution2 = Vector2.ZERO();
-            int solutions = findLineCircleIntersections(position.getX(), position.getY(), radius, path.getSegments().get(besti).get(0).getPos(), path.getSegments().get(besti).get(1).getPos(), solution1, solution2);
-            if(solutions == 1){
+        Vector2 solution1 = Vector2.ZERO(), solution2 = Vector2.ZERO();
+        int solutions = findLineCircleIntersections(position.getX(), position.getY(), radius, path.getSegments().get(besti).get(0).getPos(), path.getSegments().get(besti).get(1).getPos(), solution1, solution2);
+        if(solutions == 1){
+            endPos = new Position(solution1, path.getEndpoint().getR());
+        }else if(solutions == 2){
+            if(solution1.distanceTo(path.getSegments().get(besti).get(1).getPos()) < solution2.distanceTo(path.getSegments().get(besti).get(1).getPos())){
                 endPos = new Position(solution1, path.getEndpoint().getR());
-            }else if(solutions == 2){
-                if(solution1.distanceTo(path.getSegments().get(besti).get(1).getPos()) < solution2.distanceTo(path.getSegments().get(besti).get(1).getPos())){
-                    endPos = new Position(solution1, path.getEndpoint().getR());
-                }else{
-                    endPos = new Position(solution2, path.getEndpoint().getR());
-                }
+            }else{
+                endPos = new Position(solution2, path.getEndpoint().getR());
             }
         }
 
         Vector2 diff = endPos.getPos().subtract(position.getPos());
-        Angle angle = Angle.radians(Math.atan2(diff.getB(), diff.getA()));
+        Angle angle = Angle.radians(Math.atan2(-diff.getA(), diff.getB()));
 
         double rot = position.getR().radians() + (speed > 0 ? 0 : Math.toRadians(180));
         double tau = (2 * Math.PI);
