@@ -66,7 +66,7 @@ public class PurePursuit implements Action {
             drivetrainSystem.setPower(new Vector3(0, speed, Math.signum(angleDiff.degrees()) * 0.4));
         }
 
-        if(position.getPos().distanceTo(path.getEndpoint().getPos()) < 2){
+        if(position.getPos().distanceTo(path.getEndpoint().getPos()) < 2 || Math.abs(angleDiff.degrees()) > 90){
             deactivateNow();
         }
     }
