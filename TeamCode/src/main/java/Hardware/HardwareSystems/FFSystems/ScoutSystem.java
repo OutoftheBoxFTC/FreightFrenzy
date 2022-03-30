@@ -149,9 +149,7 @@ public class ScoutSystem implements HardwareSystem {
                 }else{
                     timer2 = 0;
                 }
-                if(timer2 != 0 && System.currentTimeMillis() > timer2){
-                    transitionReady = true;
-                }
+                transitionReady = true;
                 break;
             case OUTTAKING:
                 timer2 = 0;
@@ -331,7 +329,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketIntakePos(){
-        bucketServo.setPosition(0.16);
+        bucketServo.setPosition(0.12);
     }
 
     public void setBucketPreset(){

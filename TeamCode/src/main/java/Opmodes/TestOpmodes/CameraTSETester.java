@@ -8,6 +8,7 @@ import State.Action.Action;
 import Utils.OpmodeStatus;
 
 @Config
+@TeleOp
 public class CameraTSETester extends BasicOpmode {
     public static CAMERA_POSITION camera_position = CAMERA_POSITION.RED;
     @Override

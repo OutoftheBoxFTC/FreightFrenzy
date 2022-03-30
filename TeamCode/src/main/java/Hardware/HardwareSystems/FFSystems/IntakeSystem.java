@@ -26,6 +26,8 @@ public class IntakeSystem implements HardwareSystem {
 
     private SmartServo intakeTransfer, cameraServo, panServo, capServo;
 
+    private DigitalChannel transferSwitch;
+
     private double power;
     private long timer = 0, timer2 = 0, startMid = 0;
     private double distance = 100, transferDistance = 100;
@@ -35,8 +37,6 @@ public class IntakeSystem implements HardwareSystem {
 
     private ColorRangeSensor sensor;
     private RevColorSensorV3 transferSensor;
-    private DigitalChannel t1, t2;
-
     private INTAKE_STATE currentState = INTAKE_STATE.IDLE;
 
     private LineFinderCamera camera;
@@ -47,7 +47,7 @@ public class IntakeSystem implements HardwareSystem {
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
         intakeMotor = chub.getMotor(0);
         intakeTransfer = revHub.getServo(0);
-        intakeTransfer.setPmwRange(600, 2500);
+        intakeTransfer.setPmwRange(500, 2400);
         cameraServo = revHub.getServo(5);
         panServo = revHub.getServo(1);
         expansionHub = revHub.getModule();
@@ -58,11 +58,8 @@ public class IntakeSystem implements HardwareSystem {
 
         capServo = revHub.getServo(4);
 
-        t1 = revHub.getDigitalController(0);
-        t2 = revHub.getDigitalController(1);
-
-        t1.setMode(DigitalChannel.Mode.INPUT);
-        t2.setMode(DigitalChannel.Mode.INPUT);
+        transferSwitch = revHub.getDigitalController(6);
+        transferSwitch.setMode(DigitalChannel.Mode.INPUT);
 
         transferQueue = new ServoQueueProfileAction(intakeTransfer, 80, 20, 0); //80 vel, 20 accel
     }
@@ -85,30 +82,41 @@ public class IntakeSystem implements HardwareSystem {
                 }else{
                     transferFlipOut();
                 }
+                if(transferDistance < 0.65){
+                    currentState = INTAKE_STATE.TRANSFER_READY;
+                    intakeMotor.setPower(0);
+                    setPower(0);
+                }
                 break;
             case TRANSFER_READY:
-                transferFlipIn();
+                intakeTransfer.disableServo();
                 intakeMotor.setPower(-1);
                 if(startMid == 0){
-                    startMid = System.currentTimeMillis();
+                    startMid = System.currentTimeMillis() + 500;
                 }
                 if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
-                    currentState = INTAKE_STATE.TRANSFER_UP;
-                    if(System.currentTimeMillis() - startMid < 300) {
-                        timer = System.currentTimeMillis() + 500;
+                    if(!transferSwitch.getState()) {
+                        currentState = INTAKE_STATE.TRANSFER_UP;
+                        timer = System.currentTimeMillis() + 100;
                     }
+                }
+                if(System.currentTimeMillis() > startMid && transferSwitch.getState()){
+                    transferFlipIn();
                 }
                 break;
             case TRANSFER_UP:
                 startMid = 0;
+                intakeTransfer.enableServo();
                 transferFlipIn();
                 if(System.currentTimeMillis() > timer){
                     currentState = INTAKE_STATE.TRANSFERRING;
-                    timer2 = System.currentTimeMillis() + (200 + 500);
+                    timer2 = System.currentTimeMillis() + (100 + 500);
                 }
                 break;
             case TRANSFERRING:
-                if(transferQueue.isIdle() || ((timer2 - 200) > System.currentTimeMillis())) {
+                intakeTransfer.enableServo();
+                transferFlipIn();
+                if(transferQueue.isIdle() || ((timer2 - 500) > System.currentTimeMillis())) {
                     intakeMotor.setPower(1);
                 }
                 if((itemInIntake() || System.currentTimeMillis() > timer2)){
@@ -159,15 +167,15 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void transferFlipOut(){
-        transferQueue.setTarget(0);
+        intakeTransfer.setPosition(0);
     }
 
     public void transferFlipIn(){
-        transferQueue.setTarget(0.7);
+        intakeTransfer.setPosition(0.6);
     }
 
     public void transferMid(){
-        transferQueue.setTarget(0.5);
+        intakeTransfer.setPosition(0.25);
     }
 
     public SmartServo getCameraServo() {

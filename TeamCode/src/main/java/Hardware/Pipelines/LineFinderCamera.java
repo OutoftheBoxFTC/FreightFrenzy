@@ -55,6 +55,10 @@ public class LineFinderCamera {
         camera.setPipeline(pipeline);
     }
 
+    public void setExposure(){
+
+    }
+
     public boolean isOpened() {
         return opened;
     }

@@ -15,6 +15,7 @@ import Hardware.SmartDevices.SmartLynxModule.SmartLynxModule;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 @Config
+@TeleOp
 public class DigitalTestOpmode extends LinearOpMode {
     public static int PORT_DIGITAL = 0;
     public static double POSITION = 0;
@@ -38,6 +39,7 @@ public class DigitalTestOpmode extends LinearOpMode {
         waitForStart();
         while(opModeIsActive()) {
             FtcDashboard.getInstance().getTelemetry().addData("Channel", channel.getState());
+            FtcDashboard.getInstance().getTelemetry().addData("State", channel.getState() ? 1 : 0);
             FtcDashboard.getInstance().getTelemetry().update();
         }
     }
