@@ -157,7 +157,7 @@ public class ScoutSystem implements HardwareSystem {
                     intake.setPower(0.1);
                     moveExtensionAction.setMaxSpeed(1);
                     closeArm();
-                    moveExtensionAction.setTargetPos(8, DistanceUnit.INCH);
+                    moveExtensionAction.setTargetPos(14, DistanceUnit.INCH);
                     if(moveExtensionAction.isAtTarget()){
                         transitionReady = true;
                     }
@@ -169,7 +169,7 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case TRANSFER:
                 if(forward) {
-                    moveExtensionAction.setTargetPos(8, DistanceUnit.INCH);
+                    moveExtensionAction.setTargetPos(14, DistanceUnit.INCH);
                     movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                     transitionReady = true;
                 }else{
@@ -215,6 +215,8 @@ public class ScoutSystem implements HardwareSystem {
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 11){
                         transitionReady = true;
                     }
+
+                    closeArm();
 
                     setBucketIntakePos();
                 }
@@ -329,7 +331,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketIntakePos(){
-        bucketServo.setPosition(0.12);
+        bucketServo.setPosition(0.2);
     }
 
     public void setBucketPreset(){
@@ -353,11 +355,15 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void closeArm(){
-        setArmPos(0.55);
+        setArmPos(0.3);
     }
 
     public void openArm(){
-        setArmPos(0.8);
+        setArmPos(0.5);
+    }
+
+    public void kickArm(){
+        setArmPos(0.88);
     }
 
     public double getTurretEncoderPos(){

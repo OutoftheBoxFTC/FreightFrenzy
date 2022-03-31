@@ -21,7 +21,7 @@ public class ScoutTargets {
                 case ALLIANCE_HIGH:
                     return new SCOUTTarget(Angle.degrees(60), Angle.degrees(36), 47.5);
                 case ALLIANCE_MID:
-                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(17), 39);
+                    return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(20), 41);
                 case ALLIANCE_LOW:
                     return new SCOUTTarget(Angle.degrees(57.8), Angle.degrees(7), 39);
                 case SHARED:

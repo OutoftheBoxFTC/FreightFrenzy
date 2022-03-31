@@ -66,7 +66,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
                         queue.submitAction(new InstantAction() {
                             @Override
                             public void update() {
-                                hardware.getTurretSystem().openArm();
+                                hardware.getTurretSystem().kickArm();
                             }
                         });
                         queue.submitAction(new DelayAction(300));
