@@ -37,6 +37,7 @@ public class IntakeSystem implements HardwareSystem {
 
     private ColorRangeSensor sensor;
     private RevColorSensorV3 transferSensor;
+    private boolean enabled = true  ;
     private INTAKE_STATE currentState = INTAKE_STATE.IDLE;
 
     private LineFinderCamera camera;
@@ -74,6 +75,9 @@ public class IntakeSystem implements HardwareSystem {
     public void update() {
         transferDistance = transferSensor.getDistance(DistanceUnit.INCH);
         transferQueue.update();
+        if(!enabled){
+            return;
+        }
         switch (currentState){
             case IDLE:
                 intakeMotor.setPower(-power);
@@ -132,6 +136,10 @@ public class IntakeSystem implements HardwareSystem {
                 break;
 
         }
+    }
+
+    public DigitalChannel getTransferSwitch() {
+        return transferSwitch;
     }
 
     public boolean itemInTransfer(){
@@ -271,6 +279,10 @@ public class IntakeSystem implements HardwareSystem {
 
     public SmartServo getCapServo() {
         return capServo;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public enum INTAKE_STATE{

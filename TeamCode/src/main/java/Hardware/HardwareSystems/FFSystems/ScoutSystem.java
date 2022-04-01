@@ -110,7 +110,7 @@ public class ScoutSystem implements HardwareSystem {
         extensionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         pitchMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        initialPitch = Angle.degrees(-(pitchPot.getAngle().degrees() - 226.61668));
+        initialPitch = Angle.degrees(-(pitchPot.getAngle().degrees() - 176));
         timer = System.currentTimeMillis() + 100;
         //initialTurret = -((int) (getTurretPotAngle().degrees() * 8.07333333))   ;
         scoutTarget = new ScoutTargets.SCOUTTarget(Angle.ZERO(), Angle.ZERO(), 0);
@@ -157,7 +157,7 @@ public class ScoutSystem implements HardwareSystem {
                     intake.setPower(0.1);
                     moveExtensionAction.setMaxSpeed(1);
                     closeArm();
-                    moveExtensionAction.setTargetPos(14, DistanceUnit.INCH);
+                    moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
                     if(moveExtensionAction.isAtTarget()){
                         transitionReady = true;
                     }
@@ -169,8 +169,10 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case TRANSFER:
                 if(forward) {
-                    moveExtensionAction.setTargetPos(14, DistanceUnit.INCH);
-                    movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                    moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
+                    if(!auto) {
+                        movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                    }
                     transitionReady = true;
                 }else{
                     setBucketIntakePos();
@@ -192,10 +194,15 @@ public class ScoutSystem implements HardwareSystem {
                     moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                     Angle error = Angle.degrees(Math.abs(moveTurretAction.getTargetPos() - getTurretEncoderPos()) / MoveTurretAction.TURRET_CONSTANT);
                     RobotLog.ii("Error", error.degrees()+" | " + moveTurretAction.getTargetPos() + " | " + getTurretEncoderPos());
-                    if(Math.abs(error.degrees()) < EXTENSION_START_ANGLE){
+                    if(Math.abs(error.degrees()) < EXTENSION_START_ANGLE && !auto){
                         moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
                     }
-                    movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                    if(auto){
+                        moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
+                    }
+                    if(!auto) {
+                        movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                    }
 
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()) {
                         transitionReady = true;
