@@ -11,9 +11,9 @@ import State.Action.Action;
 import Utils.PID.PIDSystem;
 @Config
 public class MoveExtensionAction implements Action {
-    public static final double MM_PER_TICK = 1.18473585;
+    public static final double MM_PER_TICK = (58 * Math.PI) / (28 * (3.7 * 2));
 
-    public static double P = 0.1, I = 0, D = 0;
+    public static double P = 100, I = 0, D = 0;
 
     private double maxSpeed = 1;
 
@@ -46,7 +46,7 @@ public class MoveExtensionAction implements Action {
         system.setExtensionBrake();
         if(Double.isNaN(targetPos) || isAtTarget() || (targetPos == 0 && system.getExtensionPosition() < 10)){
             if(system.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE) {
-                system.setExtensionMotorPower(-0.3);
+                system.setExtensionMotorPower(-1);
             }else{
                 system.setExtensionMotorPower(0.1);
             }
@@ -55,10 +55,10 @@ public class MoveExtensionAction implements Action {
         double power = pid.getCorrection(targetPos - system.getExtensionPosition());
 
         if(targetPos == 0 && targetPos < system.getExtensionPosition()){
-            power = 0.75 * Math.signum(power);
+            power = 1 * Math.signum(power);
         }
 
-        system.setExtensionMotorPower(MathUtils.signedMin(MathUtils.signedMax(power, 0.2), maxSpeed));
+        system.setExtensionMotorPower(MathUtils.signedMin(MathUtils.signedMax(power, 0.6), maxSpeed));
     }
 
     @Override

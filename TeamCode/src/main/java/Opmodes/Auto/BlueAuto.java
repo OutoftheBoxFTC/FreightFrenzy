@@ -2,6 +2,7 @@ package Opmodes.Auto;
 
 import android.graphics.Path;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
@@ -56,6 +57,14 @@ public class BlueAuto extends BasicOpmode {
             }
         });
 
+        OpmodeStatus.bindOnStart(new Action() {
+            @Override
+            public void update() {
+                FtcDashboard.getInstance().getTelemetry().addData("Motor Power", hardware.getTurretSystem().getExtensionMotor().getPower());
+                FtcDashboard.getInstance().getTelemetry().update();
+            }
+        });
+
         OpmodeStatus.bindOnStart(() -> telemetry.addData("Pose", hardware.getDrivetrainSystem().getImuAngle().degrees()));
 
         OpmodeStatus.bindOnStart(new InstantAction() {
@@ -65,14 +74,11 @@ public class BlueAuto extends BasicOpmode {
             }
         });
 
-        hardware.getIntakeSystem().getCapServo().setPosition(0);
-
         ActionQueue initQueue = new ActionQueue();
         initQueue.submitAction(new Action() {
             @Override
             public void update() {
                 hardware.getTurretSystem().setAuto(true);
-                hardware.getIntakeSystem().getCapServo().setPosition(0);
             }
 
             @Override
@@ -99,7 +105,7 @@ public class BlueAuto extends BasicOpmode {
                 //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.HOMING);
                 //hardware.getTurretSystem().moveTurretRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).turretAngle);
                 //hardware.getTurretSystem().movePitchRaw(ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_MID).pitchAngle);
-                hardware.getTurretSystem().setExtensionPreload(0);
+                //hardware.getTurretSystem().setExtensionPreload(0);
             }
         });
         initQueue.submitAction(new TimedAction(1000) {
@@ -132,6 +138,7 @@ public class BlueAuto extends BasicOpmode {
                         preload = PRELOAD_POSITION.HIGH;
                         break;
                 }
+                preload = PRELOAD_POSITION.HIGH;
                 telemetry.addData("Preload", preload);
             }
 
@@ -160,6 +167,7 @@ public class BlueAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
+                hardware.getTurretSystem().setAuto(false);
                 hardware.getIntakeSystem().setEnabled(true);
                 hardware.getIntakeSystem().getCapServo().setPosition(0.7);
                 ScoutTargets.SCOUTTarget target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
@@ -181,13 +189,14 @@ public class BlueAuto extends BasicOpmode {
                 //hardware.getTurretSystem().movePitchRaw(target.pitchAngle);
                 //hardware.getTurretSystem().moveExtensionRaw(target.extension, DistanceUnit.INCH);
                 //hardware.getTurretSystem().bypassSetState(ScoutSystem.SCOUT_STATE.SCORE);
-                hardware.getTurretSystem().setExtensionPreload(20);
+                hardware.getTurretSystem().setExtensionPreload(8);
             }
         });
         queue.submitAction(new DelayAction(25));
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
+                hardware.getIntakeSystem().getCapServo().setPosition(0.7);
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
             }
         });
@@ -240,7 +249,7 @@ public class BlueAuto extends BasicOpmode {
         queue.submitAction(new DelayAction(750));
 
 
-        for(int i = 0; i < 5; i ++){
+        for(int i = 0; i < 3; i ++){
             int finalI = i;
 
             queue.submitAction(new Action() {
@@ -252,9 +261,9 @@ public class BlueAuto extends BasicOpmode {
                     if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
                         headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
                     }
-                    drive.setDrivePower(new Pose2d(Math.max(0.8, Math.min(power, 0.6)), 0.3, 0));
+                    drive.setDrivePower(new Pose2d(Math.max(0.8, Math.min(power, 0.4)), 0.3, 0));
                     if(finalI > 2 && distance < 15) {
-                        drive.setDrivePower(new Pose2d(Math.max(0.8, Math.min(power, 0.6)), -0.2, -0.3));
+                        drive.setDrivePower(new Pose2d(Math.max(0.6, Math.min(power, 0.4)), -0.2, -0.3));
                     }
                     if(distance < 20){
                         hardware.getIntakeSystem().intake();
@@ -277,6 +286,7 @@ public class BlueAuto extends BasicOpmode {
                     if(System.currentTimeMillis() - startTimer > 27500){
                         ActionController.getInstance().terminateAction(queue);
                     }
+                    hardware.getIntakeSystem().startTransfer();
                 }
             });
 
@@ -341,6 +351,13 @@ public class BlueAuto extends BasicOpmode {
                     return hardware.getIntakeSystem().getCurrentState() == IntakeSystem.INTAKE_STATE.IDLE;
                 }
             });
+            queue.submitAction(new InstantAction() {
+                @Override
+                public void update() {
+                    hardware.getIntakeSystem().setPower(0.01);
+                }
+            });
+            queue.submitAction(new DelayAction(100));
             queue.submitAction(new MoveScoutAction(hardware.getTurretSystem(), ScoutSystem.SCOUT_STATE.SCORE));
             queue.submitAction(new DelayAction(50));
             queue.submitAction(new InstantAction() {

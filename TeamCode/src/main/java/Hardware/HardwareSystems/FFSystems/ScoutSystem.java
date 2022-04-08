@@ -38,7 +38,7 @@ public class ScoutSystem implements HardwareSystem {
     private SmartPotentiometer turretPot;
 
     private final SmartMotor turretMotor, pitchMotor, extensionMotor;
-    private final SmartServo bucketServo, armServo;
+    private final SmartServo bucketServo, armServo, slideLockServo;
     private DigitalChannel bucketHall;
 
     private Angle turretAngle, prevTurretAngle, turretVel, initialPitch;
@@ -49,7 +49,7 @@ public class ScoutSystem implements HardwareSystem {
 
     private long timer = 0;
 
-    private double extensionPreload = 17.5, extensionScoreOffset = 0, turretOffset;
+    private double extensionPreload = 8, extensionScoreOffset = 0, turretOffset;
 
     private boolean forward = false;
 
@@ -78,6 +78,8 @@ public class ScoutSystem implements HardwareSystem {
         pitchMotor = chub.getMotor(2);
 
         extensionMotor = chub.getMotor(3);
+
+        slideLockServo = chub.getServo(1);
 
         bucketHall = chub.getDigitalController(0);
 
@@ -130,13 +132,15 @@ public class ScoutSystem implements HardwareSystem {
                 break;
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
-                moveExtensionAction.setMaxSpeed(0.6);
+                moveExtensionAction.setMaxSpeed(1);
                 movePitchAction.setTargetAngle(Angle.degrees(2));
                 if(intake.itemInIntake()){
                     closeArm();
                 }else{
                     if(getExtensionRealDistance(DistanceUnit.INCH) < 1) {
                         openArm();
+                        slideLockServo.enableServo();
+                        slideLockServo.setPosition(0.2);
                     }
                 }
                 if(!forward && !moveExtensionAction.isAtTarget()){
@@ -157,19 +161,19 @@ public class ScoutSystem implements HardwareSystem {
                     intake.setPower(0.1);
                     moveExtensionAction.setMaxSpeed(1);
                     closeArm();
-                    moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
+                    moveExtensionAction.setTargetPos(5, DistanceUnit.INCH);
                     if(moveExtensionAction.isAtTarget()){
                         transitionReady = true;
                     }
                 }else{
                     moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
-                    moveExtensionAction.setMaxSpeed(0.6);
+                    moveExtensionAction.setMaxSpeed(1);
                     transitionReady = true;
                 }
                 break;
             case TRANSFER:
                 if(forward) {
-                    moveExtensionAction.setTargetPos(9, DistanceUnit.INCH);
+                    moveExtensionAction.setTargetPos(5, DistanceUnit.INCH);
                     if(!auto) {
                         movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                     }
@@ -177,7 +181,7 @@ public class ScoutSystem implements HardwareSystem {
                 }else{
                     setBucketIntakePos();
                     moveExtensionAction.setTargetPos(2, DistanceUnit.INCH);
-                    movePitchAction.setTargetAngle(Angle.degrees(13));
+                    movePitchAction.setTargetAngle(Angle.degrees(2));
                 }
                 moveTurretAction.setTargetAngle(Angle.ZERO());
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()
@@ -196,6 +200,7 @@ public class ScoutSystem implements HardwareSystem {
                     RobotLog.ii("Error", error.degrees()+" | " + moveTurretAction.getTargetPos() + " | " + getTurretEncoderPos());
                     if(Math.abs(error.degrees()) < EXTENSION_START_ANGLE && !auto){
                         moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
+                        slideLockServo.disableServo();
                     }
                     if(auto){
                         moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
@@ -212,14 +217,16 @@ public class ScoutSystem implements HardwareSystem {
                     }
                 }else{
                     //moveExtensionAction.setTargetPos(bucketHall.getState() ? extensionPreload : 9, DistanceUnit.INCH);
-                    moveExtensionAction.setTargetPos(2, DistanceUnit.INCH);
-                    if(getExtensionRealDistance(DistanceUnit.INCH) < 33){
+                    moveExtensionAction.setTargetPos(13, DistanceUnit.INCH);
+                    slideLockServo.enableServo();
+                    slideLockServo.setPosition(0.6);
+                    if(getExtensionRealDistance(DistanceUnit.INCH) < 18){
                         moveTurretAction.setTargetAngle(Angle.ZERO());
                         if(getFieldTarget() != SCOUT_TARGET.PASSTHROUGH)
-                            movePitchAction.setTargetAngle(Angle.degrees(13));
+                            movePitchAction.setTargetAngle(Angle.degrees(2));
                     }
 
-                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 11){
+                    if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 15){
                         transitionReady = true;
                     }
 
@@ -232,7 +239,7 @@ public class ScoutSystem implements HardwareSystem {
             case SCORE:
                 if(this.auto){
                     if(forward) {
-                        moveExtensionAction.setMaxSpeed(0.8);
+                        moveExtensionAction.setMaxSpeed(1);
                     }else{
                         moveExtensionAction.setMaxSpeed(1);
                     }
@@ -362,7 +369,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void closeArm(){
-        setArmPos(0.3);
+        setArmPos(0.27);
     }
 
     public void openArm(){
@@ -485,6 +492,10 @@ public class ScoutSystem implements HardwareSystem {
         return Angle.degrees(this.turretPot.getAngle().degrees() - 127);
     }
 
+    public SmartServo getSlideLockServo() {
+        return slideLockServo;
+    }
+
     public enum SCOUT_STATE {
         HOMING(-1),
         HOME_IN_INTAKE(0),
@@ -518,7 +529,8 @@ public class ScoutSystem implements HardwareSystem {
         SHARED,
         PASSTHROUGH,
         CAP_GRAB,
-        CAP_PLACE
+        CAP_PLACE,
+        LONG_PASSTHROUGH
     }
 
     public enum SCOUT_ALLIANCE{

@@ -24,7 +24,7 @@ public class IntakeSystem implements HardwareSystem {
 
     private SmartMotor intakeMotor;
 
-    private SmartServo intakeTransfer, cameraServo, panServo, capServo;
+    private SmartServo intakeTransfer, cameraServo, panServo, capServo, transferLock;
 
     private DigitalChannel transferSwitch;
 
@@ -51,6 +51,7 @@ public class IntakeSystem implements HardwareSystem {
         intakeTransfer.setPmwRange(500, 2400);
         cameraServo = revHub.getServo(5);
         panServo = revHub.getServo(1);
+        transferLock = revHub.getServo(2);
         expansionHub = revHub.getModule();
         this.map = map;
         sensor = map.get(ColorRangeSensor.class, "intakeSensor");
@@ -81,6 +82,7 @@ public class IntakeSystem implements HardwareSystem {
         switch (currentState){
             case IDLE:
                 intakeMotor.setPower(-power);
+                transferLock.setPosition(0.5);
                 if(power == 0){
                     transferMid();
                 }else{
@@ -101,10 +103,10 @@ public class IntakeSystem implements HardwareSystem {
                 if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
                     if(!transferSwitch.getState()) {
                         currentState = INTAKE_STATE.TRANSFER_UP;
-                        timer = System.currentTimeMillis() + 100;
+                        timer = System.currentTimeMillis() + 150;
                     }
                 }
-                if(System.currentTimeMillis() > startMid && transferSwitch.getState()){
+                if(transferSwitch.getState()){
                     transferFlipIn();
                 }
                 break;
@@ -119,6 +121,7 @@ public class IntakeSystem implements HardwareSystem {
                 break;
             case TRANSFERRING:
                 intakeTransfer.enableServo();
+                transferLock.setPosition(0.8);
                 transferFlipIn();
                 if(transferQueue.isIdle() || ((timer2 - 500) > System.currentTimeMillis())) {
                     intakeMotor.setPower(1);
@@ -241,7 +244,7 @@ public class IntakeSystem implements HardwareSystem {
 
     public void setDuckPower(double duckPower) {
         double scale = 12 / expansionHub.getInputVoltage(VoltageUnit.VOLTS);
-        this.duckPower = (duckPower * scale);
+        setPower((duckPower * scale));
     }
 
     public void startTransfer(){
@@ -254,7 +257,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void spinDuckBlue(){
-        setPower(0.48);
+        setDuckPower(-0.6);
     }
 
     public void spinDuckRed(){

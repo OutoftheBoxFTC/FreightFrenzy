@@ -3,6 +3,8 @@ package Opmodes.TestOpmodes;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import Hardware.HardwareSystems.FFSystems.ScoutSystem;
 import Opmodes.BasicOpmode;
 import State.Action.Action;
@@ -45,9 +47,16 @@ public class FullGamepadControl extends BasicOpmode {
             telemetry.addData("Turret", hardware.getTurretSystem().getTurretEncoderPos());
             telemetry.addData("Turret Angle", hardware.getTurretSystem().getTurretPotAngle().degrees());
             telemetry.addData("Pitch Angle", hardware.getTurretSystem().getPitchPot().getAngle().degrees());
-            FtcDashboard.getInstance().getTelemetry().addData("Pitch Angle", hardware.getTurretSystem().getPitchPot().getAngle().degrees());
-            FtcDashboard.getInstance().getTelemetry().addData("Turret Angle", hardware.getTurretSystem().getTurretPotAngle().degrees());
-            FtcDashboard.getInstance().getTelemetry().update();
+
+            Telemetry telemetry = FtcDashboard.getInstance().getTelemetry();
+            telemetry.addData("Turret", hardware.getTurretSystem().getTurretPosition().degrees());
+            telemetry.addData("Pitch", hardware.getTurretSystem().getPitchPot().getAngle().degrees());
+            telemetry.addData("Extension", hardware.getTurretSystem().getExtensionPosition());
+            telemetry.addData("odo", hardware.getDrivetrainSystem().getOdometryPosition());
+            telemetry.addData("Bucket", Double.isNaN(hardware.getIntakeSystem().getBucketSensorDistance()) ? 0 : hardware.getIntakeSystem().getBucketSensorDistance());
+            telemetry.addData("Transfer", hardware.getIntakeSystem().getTransfer());
+            telemetry.addData("Intake Switch", hardware.getIntakeSystem().getTransferSwitch().getState() ? 1 : 0);
+            telemetry.update();
         });
     }
 }

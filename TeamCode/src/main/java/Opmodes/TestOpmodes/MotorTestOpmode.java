@@ -1,5 +1,6 @@
 package Opmodes.TestOpmodes;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -13,6 +14,7 @@ import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 
 @Config
+@TeleOp
 public class MotorTestOpmode extends LinearOpMode {
     public static int PORT_MOTOR = 0;
     public static double POWER = 0;
@@ -33,7 +35,10 @@ public class MotorTestOpmode extends LinearOpMode {
         }
         SmartMotor motor = (CHUB ? smartChub.getMotor(PORT_MOTOR) : smartEhub.getMotor(PORT_MOTOR));
         waitForStart();
-        while(opModeIsActive())
+        while(opModeIsActive()) {
             motor.setPower(POWER);
+            FtcDashboard.getInstance().getTelemetry().addData("Encoder", motor.getMotor().getCurrentPosition());
+            FtcDashboard.getInstance().getTelemetry().update();
+        }
     }
 }
