@@ -133,7 +133,7 @@ public class ScoutSystem implements HardwareSystem {
             case HOME_IN_INTAKE:
                 moveExtensionAction.setTargetPos(0, DistanceUnit.INCH);
                 moveExtensionAction.setMaxSpeed(1);
-                movePitchAction.setTargetAngle(Angle.degrees(2));
+                movePitchAction.setTargetAngle(Angle.degrees(7));
                 if(intake.itemInIntake()){
                     closeArm();
                 }else{
@@ -175,13 +175,13 @@ public class ScoutSystem implements HardwareSystem {
                 if(forward) {
                     moveExtensionAction.setTargetPos(5, DistanceUnit.INCH);
                     if(!auto) {
-                        movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                        //movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                     }
                     transitionReady = true;
                 }else{
                     setBucketIntakePos();
                     moveExtensionAction.setTargetPos(2, DistanceUnit.INCH);
-                    movePitchAction.setTargetAngle(Angle.degrees(2));
+                    movePitchAction.setTargetAngle(Angle.degrees(4));
                 }
                 moveTurretAction.setTargetAngle(Angle.ZERO());
                 if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()
@@ -197,16 +197,16 @@ public class ScoutSystem implements HardwareSystem {
                 if(forward){
                     moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                     Angle error = Angle.degrees(Math.abs(moveTurretAction.getTargetPos() - getTurretEncoderPos()) / MoveTurretAction.TURRET_CONSTANT);
-                    RobotLog.ii("Error", error.degrees()+" | " + moveTurretAction.getTargetPos() + " | " + getTurretEncoderPos());
+                    //RobotLog.ii("Error", error.degrees()+" | " + moveTurretAction.getTargetPos() + " | " + getTurretEncoderPos());
                     if(Math.abs(error.degrees()) < EXTENSION_START_ANGLE && !auto){
                         moveExtensionAction.setTargetPos(scoutTarget.extension, DistanceUnit.INCH);
+                        if(!auto) {
+                            movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
+                        }
                         slideLockServo.disableServo();
                     }
                     if(auto){
                         moveExtensionAction.setTargetPos(extensionPreload, DistanceUnit.INCH);
-                    }
-                    if(!auto) {
-                        movePitchAction.setTargetAngle(scoutTarget.pitchAngle);
                     }
 
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget()) {
@@ -223,7 +223,7 @@ public class ScoutSystem implements HardwareSystem {
                     if(getExtensionRealDistance(DistanceUnit.INCH) < 18){
                         moveTurretAction.setTargetAngle(Angle.ZERO());
                         if(getFieldTarget() != SCOUT_TARGET.PASSTHROUGH)
-                            movePitchAction.setTargetAngle(Angle.degrees(2));
+                            movePitchAction.setTargetAngle(Angle.degrees(7));
                     }
 
                     if(moveExtensionAction.isAtTarget() && moveTurretAction.isAtTarget() && movePitchAction.isAtTarget() && getExtensionRealDistance(DistanceUnit.INCH) < 15){
@@ -345,7 +345,7 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void setBucketIntakePos(){
-        bucketServo.setPosition(0.2);
+        bucketServo.setPosition(0.23);
     }
 
     public void setBucketPreset(){
@@ -369,11 +369,11 @@ public class ScoutSystem implements HardwareSystem {
     }
 
     public void closeArm(){
-        setArmPos(0.27);
+        setArmPos(0.22);
     }
 
     public void openArm(){
-        setArmPos(0.5);
+        setArmPos(0.52);
     }
 
     public void kickArm(){

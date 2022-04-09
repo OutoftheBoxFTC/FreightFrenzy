@@ -103,7 +103,10 @@ public abstract class DumbTeleOp extends BasicOpmode {
                 speed = 0.35;
             }
 
-            hardware.getDrivetrainSystem().setPower(new Vector3(gamepad1.left_stick_x, -gamepad1.left_stick_y, (gamepad1.right_stick_x * (speed == 1 ? 1 : 0.5))).scale(speed));
+            speed = 1;
+
+            //hardware.getDrivetrainSystem().setPower(new Vector3(gamepad1.left_stick_x, -gamepad1.left_stick_y, (gamepad1.right_stick_x * (speed == 1 ? 1 : 0.5))).scale(speed));
+            hardware.getDrivetrainSystem().setPower(new Vector3(0, -gamepad1.left_stick_y, ((gamepad1.right_stick_x + gamepad1.left_stick_x) * (speed == 1 ? 1 : 0.5))).scale(speed));
         });
 
         OpmodeStatus.bindOnStart(() -> {
@@ -154,7 +157,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
             double lastPos = 0;
             @Override
             public void update() {
-                double pos = 0.7;
+                double pos = 0.8;
                 if(gamepad2Ex.dpad_right.toggled()){
                     gamepad2Ex.dpad_down.overrideToggle(false);
                     gamepad2Ex.dpad_up.overrideToggle(false);
@@ -163,25 +166,25 @@ public abstract class DumbTeleOp extends BasicOpmode {
                     hardware.getIntakeSystem().getCapServo().setPosition(0.7);
                 }
                 if(gamepad2Ex.dpad_down.toggled()){
-                    pos = 0.31+(0.31 - 0.235);
+                    pos = 0.31+(0.31 - 0.235)-0.02;
                     down = true;
                     up = false;
                     gamepad2Ex.dpad_up.overrideToggle(false);
                     if(gamepad2Ex.dpad_right.toggled())
                         gamepad2Ex.dpad_right.overrideToggle(false);
                 }else if(down){
-                    pos = 0.235+(0.31 - 0.235);
+                    pos = 0.235+(0.31 - 0.235)-0.02;
                 }
 
                 if(gamepad2Ex.dpad_up.toggled()){
-                    pos = 0.52+(0.31 - 0.235)+0.01;
+                    pos = 0.52+(0.31 - 0.235)+0.01-0.02;
                     up = true;
                     down = false;
                     gamepad2Ex.dpad_down.overrideToggle(false);
                     if(gamepad2Ex.dpad_right.toggled())
                         gamepad2Ex.dpad_right.overrideToggle(false);
                 }else if(up){
-                    pos = 0.47+(0.31 - 0.235);
+                    pos = 0.47+(0.31 - 0.235)-0.02;
                 }
 
                 FtcDashboard.getInstance().getTelemetry().addData("Pos", pos);

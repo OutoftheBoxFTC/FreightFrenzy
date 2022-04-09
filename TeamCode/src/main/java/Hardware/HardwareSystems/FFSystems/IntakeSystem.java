@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DigitalChannelImpl;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -59,6 +60,7 @@ public class IntakeSystem implements HardwareSystem {
         camera = new LineFinderCamera(map, this);
 
         capServo = revHub.getServo(4);
+        capServo.getServo().setDirection(Servo.Direction.REVERSE);
 
         transferSwitch = revHub.getDigitalController(6);
         transferSwitch.setMode(DigitalChannel.Mode.INPUT);

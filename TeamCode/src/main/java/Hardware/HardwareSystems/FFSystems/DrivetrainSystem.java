@@ -120,6 +120,11 @@ public class DrivetrainSystem implements HardwareSystem {
         brPower = direction.getB() + direction.getA() - direction.getC();
         tlPower = -direction.getB() - direction.getA() - direction.getC();
         trPower = direction.getB() - direction.getA() - direction.getC();
+
+        //blPower = -(direction.getB() - direction.getC());
+        //brPower = direction.getB() - direction.getC();
+        //tlPower = -(direction.getB() - direction.getC());
+        //trPower = direction.getB() - direction.getC();
     }
 
     public void setPower(double bl, double br, double tl, double tr){
