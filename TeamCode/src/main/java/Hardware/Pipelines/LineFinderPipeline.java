@@ -117,7 +117,7 @@ public class LineFinderPipeline extends OpenCvPipeline {
         this.zoomFactor = zoomFactor;
     }
 
-    private static Point getCenter(Rect rect){
+    public static Point getCenter(Rect rect){
         if (rect == null) {
             return new Point(0, 0);
         }

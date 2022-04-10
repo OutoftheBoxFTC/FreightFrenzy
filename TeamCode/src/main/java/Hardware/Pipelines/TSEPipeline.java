@@ -46,7 +46,7 @@ public class TSEPipeline extends OpenCvPipeline {
         Scalar s3 = Core.mean(subm3);
 
         if(s1.val[0] > s2.val[0] && s1.val[0] > s3.val[0]){
-            position = 3;
+            position = 1;
         }
 
         if(s2.val[0] > s1.val[0] && s2.val[0] > s3.val[0]){
@@ -54,7 +54,7 @@ public class TSEPipeline extends OpenCvPipeline {
         }
 
         if(s3.val[0] > s2.val[0] && s3.val[0] > s1.val[0]){
-            position = 1;
+            position = 3;
         }
 
         if(position == 3){

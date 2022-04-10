@@ -157,43 +157,43 @@ public abstract class DumbTeleOp extends BasicOpmode {
             double lastPos = 0;
             @Override
             public void update() {
-                double pos = 0.8;
+                double pos = 0.72;
                 if(gamepad2Ex.dpad_right.toggled()){
                     gamepad2Ex.dpad_down.overrideToggle(false);
                     gamepad2Ex.dpad_up.overrideToggle(false);
                     down = false;
                     up = false;
-                    hardware.getIntakeSystem().getCapServo().setPosition(0.7);
+                    hardware.getIntakeSystem().getCapServo().setPosition(0.72);
                 }
                 if(gamepad2Ex.dpad_down.toggled()){
-                    pos = 0.31+(0.31 - 0.235)-0.02;
+                    pos = 0.28;
                     down = true;
                     up = false;
                     gamepad2Ex.dpad_up.overrideToggle(false);
                     if(gamepad2Ex.dpad_right.toggled())
                         gamepad2Ex.dpad_right.overrideToggle(false);
                 }else if(down){
-                    pos = 0.235+(0.31 - 0.235)-0.02;
+                    pos = 0.23;
                 }
 
                 if(gamepad2Ex.dpad_up.toggled()){
-                    pos = 0.52+(0.31 - 0.235)+0.01-0.02;
+                    pos = 0.52;
                     up = true;
                     down = false;
                     gamepad2Ex.dpad_down.overrideToggle(false);
                     if(gamepad2Ex.dpad_right.toggled())
                         gamepad2Ex.dpad_right.overrideToggle(false);
                 }else if(up){
-                    pos = 0.47+(0.31 - 0.235)-0.02;
+                    pos = 0.44;
                 }
 
                 FtcDashboard.getInstance().getTelemetry().addData("Pos", pos);
 
                 if(lastPos != pos){
-                    ActionController.addAction(new ServoProfileAction(hardware.getIntakeSystem().getCapServo(), 2, (pos == 0.55 || pos == 0.45) ? 0.25 : 1, pos));
+                    ActionController.addAction(new ServoProfileAction(hardware.getIntakeSystem().getCapServo(), 2, (pos == 0.52 || pos == 0.44) ? 0.25 : 1, pos));
                 }
-                if(pos == 0.7){
-                    hardware.getIntakeSystem().getCapServo().setPosition(0.7);
+                if(pos == 0.72){
+                    hardware.getIntakeSystem().getCapServo().setPosition(0.72);
                     capIdle = true;
                 }else{
                     capIdle = false;

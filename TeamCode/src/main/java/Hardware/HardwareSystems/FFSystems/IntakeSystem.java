@@ -44,6 +44,8 @@ public class IntakeSystem implements HardwareSystem {
     private LineFinderCamera camera;
     private HardwareMap map;
 
+    private boolean auto = false;
+
     private ServoQueueProfileAction transferQueue;
 
     public IntakeSystem(SmartLynxModule chub, SmartLynxModule revHub, HardwareMap map){
@@ -90,8 +92,10 @@ public class IntakeSystem implements HardwareSystem {
                 }else{
                     transferFlipOut();
                 }
-                if(transferDistance < 0.65){
-                    currentState = INTAKE_STATE.TRANSFER_READY;
+                if(transferDistance < 0.65 && !auto){
+                    if(scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 3) {
+                        currentState = INTAKE_STATE.TRANSFER_READY;
+                    }
                     intakeMotor.setPower(0);
                     setPower(0);
                 }
@@ -102,11 +106,9 @@ public class IntakeSystem implements HardwareSystem {
                 if(startMid == 0){
                     startMid = System.currentTimeMillis() + 500;
                 }
-                if(scoutSystem.getCurrentState() == ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE && scoutSystem.getExtensionRealDistance(DistanceUnit.INCH) < 2) {
-                    if(!transferSwitch.getState()) {
-                        currentState = INTAKE_STATE.TRANSFER_UP;
-                        timer = System.currentTimeMillis() + 150;
-                    }
+                if(!transferSwitch.getState()) {
+                    currentState = INTAKE_STATE.TRANSFER_UP;
+                    timer = System.currentTimeMillis() + 150;
                 }
                 if(transferSwitch.getState()){
                     transferFlipIn();
@@ -131,7 +133,7 @@ public class IntakeSystem implements HardwareSystem {
                 if((itemInIntake() || System.currentTimeMillis() > timer2)){
                     //intakeMotor.setPower(0);
                     currentState = INTAKE_STATE.IDLE;
-                    if(itemInIntake()) {
+                    if(itemInIntake() && !auto && !(scoutSystem.getFieldTarget() == ScoutSystem.SCOUT_TARGET.PASSTHROUGH)) {
                         scoutSystem.setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
                     }
                 }
@@ -212,7 +214,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public boolean itemInIntake(){
-        return sensor.getDistance(DistanceUnit.INCH) < 3.1;
+        return sensor.getDistance(DistanceUnit.INCH) < 2.5;
     }
 
     public void panCameraNeutral(){
@@ -262,8 +264,12 @@ public class IntakeSystem implements HardwareSystem {
         setDuckPower(-0.6);
     }
 
+    public void spinDuckBlueAuto(){
+        setDuckPower(-0.55);
+    }
+
     public void spinDuckRed(){
-        setDuckPower(-0.48);
+        setDuckPower(0.6);
     }
 
     public void setZoom(double zoom){
@@ -288,6 +294,14 @@ public class IntakeSystem implements HardwareSystem {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setAuto(boolean auto) {
+        this.auto = auto;
+    }
+
+    public void spinDuckRedAuto() {
+        setDuckPower(0.5);
     }
 
     public enum INTAKE_STATE{

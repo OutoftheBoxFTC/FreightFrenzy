@@ -5,7 +5,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import Drive.BasicDrive.PurePursuit;
+import MathSystems.Angle;
+import MathSystems.Position;
 import RoadRunner.drive.SampleMecanumDrive;
+import RoadRunner.drive.SampleTankDrive;
+import Utils.PathUtils.Path;
+import Utils.PathUtils.PathBuilder;
 
 /**
  * This is a simple teleop routine for testing localization. Drive the robot around like a normal
@@ -16,22 +22,33 @@ import RoadRunner.drive.SampleMecanumDrive;
  */
 @TeleOp(group = "drive")
 public class LocalizationTest extends LinearOpMode {
+    Position position = Position.ZERO();
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        SampleTankDrive drive = new SampleTankDrive(hardwareMap);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        Path path = new PathBuilder(Position.ZERO())
+                .lineTo(new Position(0, 30, Angle.ZERO()))
+                .lineTo(new Position(10, 40, Angle.ZERO())).build();
+
+        PurePursuit pp = new PurePursuit(drive, position, path);
 
         waitForStart();
 
         while (!isStopRequested()) {
-            drive.setWeightedDrivePower(
+            drive.setDrivePower(
                     new Pose2d(
                             -gamepad1.left_stick_y,
-                            -gamepad1.left_stick_x,
+                            0,
                             -gamepad1.right_stick_x
                     )
             );
+
+            position.set(new Position(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), Angle.radians(drive.getPoseEstimate().getHeading())));
+
+            pp.update();
 
             drive.update();
 

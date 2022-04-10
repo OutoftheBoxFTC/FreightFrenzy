@@ -25,6 +25,10 @@ public class FullReadout extends BasicOpmode {
                 telemetry.addData("Bucket", Double.isNaN(hardware.getIntakeSystem().getBucketSensorDistance()) ? 0 : hardware.getIntakeSystem().getBucketSensorDistance());
                 telemetry.addData("Transfer", hardware.getIntakeSystem().getTransfer());
                 telemetry.addData("Intake Switch", hardware.getIntakeSystem().getTransferSwitch().getState() ? 1 : 0);
+                telemetry.addData("Bl", hardware.getDrivetrainSystem().getBl().getMotor().getCurrentPosition());
+                telemetry.addData("Br", hardware.getDrivetrainSystem().getBr().getMotor().getCurrentPosition());
+                telemetry.addData("Tl", hardware.getDrivetrainSystem().getTl().getMotor().getCurrentPosition());
+                telemetry.addData("Tr", hardware.getDrivetrainSystem().getTr().getMotor().getCurrentPosition());
                 telemetry.update();
             }
         });

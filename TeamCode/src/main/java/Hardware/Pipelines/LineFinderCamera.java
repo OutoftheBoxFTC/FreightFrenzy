@@ -14,12 +14,14 @@ import Hardware.HardwareSystems.FFSystems.IntakeSystem;
 public class LineFinderCamera {
     private LineFinderPipeline pipeline;
     private TSEPipeline tsePipeline;
+    private DuckPipeline duckPipeline;
     private OpenCvCamera camera;
     private boolean opened = false;
 
     public LineFinderCamera(HardwareMap hardwareMap, IntakeSystem intakeSystem){
         pipeline = new LineFinderPipeline();
         tsePipeline = new TSEPipeline();
+        duckPipeline = new DuckPipeline();
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "lineCam");
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -47,12 +49,20 @@ public class LineFinderCamera {
         return tsePipeline;
     }
 
+    public DuckPipeline getDuckPipeline() {
+        return duckPipeline;
+    }
+
     public void switchTSE(){
         camera.setPipeline(tsePipeline);
     }
 
     public void switchLine(){
         camera.setPipeline(pipeline);
+    }
+
+    public void switchDuck(){
+        camera.setPipeline(duckPipeline);
     }
 
     public void setExposure(){

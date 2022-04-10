@@ -1,5 +1,9 @@
 package Drive.BasicDrive;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+
 import Hardware.HardwareSystems.FFSystems.DrivetrainSystem;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
@@ -7,17 +11,19 @@ import MathSystems.Position;
 import MathSystems.Vector.Vector2;
 import MathSystems.Vector.Vector3;
 import MathSystems.Vector.Vector4;
+import RoadRunner.drive.SampleTankDrive;
 import State.Action.Action;
 import Utils.PathUtils.Path;
 import Utils.PathUtils.PathUtil;
+import Utils.PathUtils.Segment;
 
 public class PurePursuit implements Action {
-    private DrivetrainSystem drivetrainSystem;
+    private SampleTankDrive drivetrainSystem;
     private Position position;
     private Path path;
     private double speed, radius;
 
-    public PurePursuit(DrivetrainSystem drivetrainSystem, Position position, Path path, double speed, double radius){
+    public PurePursuit(SampleTankDrive drivetrainSystem, Position position, Path path, double speed, double radius){
         this.position = position;
         this.path = path;
         this.speed = speed;
@@ -25,12 +31,22 @@ public class PurePursuit implements Action {
         this.radius = radius;
     }
 
-    public PurePursuit(DrivetrainSystem drivetrainSystem, Position position, Path path){
-        this(drivetrainSystem, position, path, 1, 10);
+    public PurePursuit(SampleTankDrive drivetrainSystem, Position position, Path path){
+        this(drivetrainSystem, position, path, 1, 5);
     }
 
     @Override
     public void update() {
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.fieldOverlay().setStroke("blue");
+        for(Segment s : path.getSegments()){
+            packet.fieldOverlay().strokeLine(s.get(0).getX(), s.get(0).getY(), s.get(1).getX(), s.get(1).getY());
+        }
+        packet.fieldOverlay().setStroke("red");
+        packet.fieldOverlay().strokeCircle(position.getX(), position.getY(), radius);
+        packet.fieldOverlay().setFill("black");
+
         int besti = path.getSegments().size()-1;
         for(int i = 0; i < path.getSegments().size(); i ++) {
             Vector2 solution1 = Vector2.ZERO(), solution2 = Vector2.ZERO();
@@ -53,8 +69,10 @@ public class PurePursuit implements Action {
             }
         }
 
+        packet.fieldOverlay().fillRect(endPos.getX(), endPos.getY(), 1, 1);
+
         Vector2 diff = endPos.getPos().subtract(position.getPos());
-        Angle angle = Angle.radians(Math.atan2(-diff.getA(), diff.getB()));
+        Angle angle = Angle.radians(Math.atan2(diff.getA(), diff.getB()));
 
         double rot = position.getR().radians() + (speed > 0 ? 0 : Math.toRadians(180));
         double tau = (2 * Math.PI);
@@ -62,13 +80,23 @@ public class PurePursuit implements Action {
 
         Angle angleDiff = MathUtils.getRotDist(angle, Angle.radians(rot));
 
+        angleDiff = Angle.radians(((angleDiff.radians() - (Math.PI/2)  % tau) + tau) % tau);
+
+        angleDiff = MathUtils.getRotDist(Angle.ZERO(), angleDiff);
+
         if(Math.abs(angleDiff.degrees()) > 5) {
-            drivetrainSystem.setPower(new Vector3(0, speed, Math.signum(angleDiff.degrees()) * 0.4));
+            drivetrainSystem.setDrivePower(new Pose2d(0, 0, Math.signum(angleDiff.degrees()) * -1));
+            //drivetrainSystem.setPower(new Vector3(0, speed, Math.signum(angleDiff.degrees()) * 0.4));
+        }else{
+            //drivetrainSystem.setDrivePower(new Pose2d(0.6, 0, Math.signum(angleDiff.degrees()) * -0.3));
         }
 
         if(position.getPos().distanceTo(path.getEndpoint().getPos()) < 2 || Math.abs(angleDiff.degrees()) > 90){
-            deactivateNow();
+            //deactivateNow();
         }
+        packet.put("Angle", angleDiff.degrees());
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        FtcDashboard.getInstance().getTelemetry().update();
     }
 
     private int findLineCircleIntersections(
