@@ -23,6 +23,7 @@ import State.Action.InstantAction;
 import State.Action.StandardActions.DelayAction;
 import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
+import Utils.ScoutData;
 
 @Autonomous
 @Config
@@ -71,6 +72,7 @@ public class RedDuckAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getTurretSystem().setAuto(true);
+                hardware.getIntakeSystem().setTransferAuto();
             }
 
             @Override
@@ -111,6 +113,17 @@ public class RedDuckAuto extends BasicOpmode {
             public void update() {
                 hardware.getIntakeSystem().moveCameraBlueTSE();
                 hardware.getIntakeSystem().transferFlipIn();
+            }
+        });
+        initQueue.submitAction(new Action() {
+            @Override
+            public void update() {
+                hardware.getIntakeSystem().setTransferAuto();
+            }
+
+            @Override
+            public boolean shouldDeactivate() {
+                return isStarted();
             }
         });
 
@@ -161,7 +174,8 @@ public class RedDuckAuto extends BasicOpmode {
             public void update() {
                 hardware.getTurretSystem().setAuto(false);
                 hardware.getIntakeSystem().setEnabled(true);
-                hardware.getIntakeSystem().getCapServo().setPosition(0.8);
+                hardware.getIntakeSystem().disableAuto();
+                hardware.getIntakeSystem().getCapServo().setPosition(0.72);
                 ScoutTargets.SCOUTTarget target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
                 switch (preload){
                     case HIGH:
@@ -188,7 +202,7 @@ public class RedDuckAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
-                hardware.getIntakeSystem().getCapServo().setPosition(0.9);
+                hardware.getIntakeSystem().getCapServo().setPosition(0.72);
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
             }
         });
@@ -267,7 +281,7 @@ public class RedDuckAuto extends BasicOpmode {
         queue.submitAction(new Action() {
             @Override
             public void update() {
-                drive.setDrivePower(new Pose2d(1, 0, 0));
+                drive.setDrivePower(new Pose2d(0.6, 0, 0));
             }
 
             @Override
@@ -308,7 +322,7 @@ public class RedDuckAuto extends BasicOpmode {
 
             @Override
             public boolean shouldDeactivate() {
-                return drive.getPoseEstimate().getY() > -9;
+                return drive.getPoseEstimate().getY() > -8;
             }
         });
         queue.submitAction(new TimedAction(250) {
@@ -327,9 +341,18 @@ public class RedDuckAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getIntakeSystem().spinDuckRedAuto();
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
             }
         });
-        queue.submitAction(new DelayAction(5000));
+        queue.submitAction(new TimedAction(5000) {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setAuto(true);
+                hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
+                hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                hardware.getIntakeSystem().spinDuckRedAuto();
+            }
+        });
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
@@ -405,6 +428,16 @@ public class RedDuckAuto extends BasicOpmode {
             @Override
             public void update() {
                 drive.setDrivePower(new Pose2d());
+            }
+        });
+        queue.submitAction(new InstantAction() {
+            @Override
+            public void update() {
+                drive.setDrivePower(new Pose2d());
+                ScoutData.dataStale = false;
+                ScoutData.extensionDistance = hardware.getTurretSystem().getExtensionPosition();
+                ScoutData.turretAngle = hardware.getTurretSystem().getTurretPosition();
+                ScoutData.pitchAngle = hardware.getTurretSystem().getPitchPot().getAngle();
             }
         });
         OpmodeStatus.bindOnStart(queue);

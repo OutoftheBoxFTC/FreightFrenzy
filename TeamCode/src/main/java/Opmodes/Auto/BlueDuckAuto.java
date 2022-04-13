@@ -115,6 +115,7 @@ public class BlueDuckAuto extends BasicOpmode {
             public void update() {
                 hardware.getIntakeSystem().moveCameraRedTSE();
                 hardware.getIntakeSystem().transferFlipIn();
+                hardware.getIntakeSystem().setTransferAuto();
             }
         });
 
@@ -194,6 +195,7 @@ public class BlueDuckAuto extends BasicOpmode {
             public void update() {
                 hardware.getIntakeSystem().getCapServo().setPosition(0.9);
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                hardware.getIntakeSystem().disableAuto();
             }
         });
         queue.submitAction(new Action() {
@@ -271,7 +273,7 @@ public class BlueDuckAuto extends BasicOpmode {
         queue.submitAction(new Action() {
             @Override
             public void update() {
-                drive.setDrivePower(new Pose2d(1, 0, 0));
+                drive.setDrivePower(new Pose2d(0.6, 0, 0));
             }
 
             @Override
@@ -312,7 +314,7 @@ public class BlueDuckAuto extends BasicOpmode {
 
             @Override
             public boolean shouldDeactivate() {
-                return drive.getPoseEstimate().getY() < 9;
+                return drive.getPoseEstimate().getY() < 8;
             }
         });
         queue.submitAction(new TimedAction(250) {

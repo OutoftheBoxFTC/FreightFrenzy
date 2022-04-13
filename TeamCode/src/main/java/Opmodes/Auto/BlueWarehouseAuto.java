@@ -92,7 +92,6 @@ public class BlueWarehouseAuto extends BasicOpmode {
                 hardware.getIntakeSystem().moveCameraLine();
                 hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_LOW);
-                hardware.getIntakeSystem().transferFlipOut();
                 hardware.getIntakeSystem().setEnabled(false);
             }
         });
@@ -119,6 +118,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
             public void update() {
                 hardware.getIntakeSystem().moveCameraBlueTSE();
                 hardware.getIntakeSystem().transferFlipIn();
+                hardware.getIntakeSystem().setTransferAuto();
             }
         });
 
@@ -222,6 +222,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getTurretSystem().kickArm();
+
                 //hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
             }
         });
@@ -230,6 +231,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getIntakeSystem().transferFlipOut();
+                hardware.getIntakeSystem().disableAuto();
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH_AUTO);
                 hardware.getTurretSystem().setExtensionPreload(6);
@@ -255,7 +257,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (22 + (finalI * 2)) - drive.getPoseEstimate().getX();
+                    double distance = (18 + (finalI * 1)) - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
                     double headingPower = 0;
                     if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
@@ -274,7 +276,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() >= 21 + (finalI * 2) || hardware.getIntakeSystem().itemInTransfer();
+                    return drive.getPoseEstimate().getX() >= 16 + (finalI * 1) || hardware.getIntakeSystem().itemInTransfer();
                 }
             });
 

@@ -71,7 +71,9 @@ public abstract class DumbTeleOp extends BasicOpmode {
                         queue.submitAction(new InstantAction() {
                             @Override
                             public void update() {
-                                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+                                if(!(hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.PASSTHROUGH)) {
+                                    hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
+                                }
                                 queuedRetract = false;
                             }
                         });

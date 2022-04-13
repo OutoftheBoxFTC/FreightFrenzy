@@ -70,6 +70,7 @@ public class RedWarehouseAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getTurretSystem().setAuto(true);
+                hardware.getIntakeSystem().setTransferAuto();
             }
 
             @Override
@@ -161,6 +162,7 @@ public class RedWarehouseAuto extends BasicOpmode {
             public void update() {
                 hardware.getTurretSystem().setAuto(false);
                 hardware.getIntakeSystem().setEnabled(true);
+                hardware.getIntakeSystem().disableAuto();
                 hardware.getIntakeSystem().getCapServo().setPosition(0.7);
                 ScoutTargets.SCOUTTarget target = ScoutTargets.getTarget(ScoutSystem.SCOUT_ALLIANCE.BLUE, ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
                 switch (preload){
@@ -247,14 +249,14 @@ public class RedWarehouseAuto extends BasicOpmode {
             queue.submitAction(new Action() {
                 @Override
                 public void update() {
-                    double distance = (22 + (finalI * 2)) - drive.getPoseEstimate().getX();
+                    double distance = (18 + (finalI * 1)) - drive.getPoseEstimate().getX();
                     double power = Math.sqrt(2 * (DriveConstants.MAX_ACCEL/3.0) * distance) / DriveConstants.MAX_VEL;
                     double headingPower = 0;
                     if(drive.getPoseEstimate().getHeading() > Math.toRadians(5)){
                         headingPower = -0.4 * Math.signum(drive.getPoseEstimate().getHeading());
                     }
                     drive.setDrivePower(new Pose2d(Math.max(0.6, Math.min(power, 0.5)), 0, -0.3));
-                    if(finalI >= 0 && distance < 20) {
+                    if(finalI > 1 && distance < 20) {
                         drive.setDrivePower(new Pose2d(Math.max(0.6, Math.min(power, 0.5)), 0, 0.35));
                     }
                     if(distance < 20){
@@ -266,7 +268,7 @@ public class RedWarehouseAuto extends BasicOpmode {
 
                 @Override
                 public boolean shouldDeactivate() {
-                    return drive.getPoseEstimate().getX() >= 21 + (finalI * 2) || hardware.getIntakeSystem().itemInTransfer();
+                    return drive.getPoseEstimate().getX() >= 16 + (finalI * 1) || hardware.getIntakeSystem().itemInTransfer();
                 }
             });
 

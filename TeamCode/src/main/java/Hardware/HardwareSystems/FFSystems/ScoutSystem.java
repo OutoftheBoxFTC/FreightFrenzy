@@ -173,7 +173,9 @@ public class ScoutSystem implements HardwareSystem {
             case OUTTAKING:
                 timer2 = 0;
                 if(forward) {
-                    intake.setPower(0.1);
+                    if(!auto) {
+                        intake.setPower(0.1);
+                    }
                     moveExtensionAction.setMaxSpeed(1);
                     closeArm();
                     moveExtensionAction.setTargetPos(5, DistanceUnit.INCH);
@@ -210,6 +212,9 @@ public class ScoutSystem implements HardwareSystem {
                     intake.setPower(0.01);
                 }
                 if(forward){
+                    if(auto){
+                        slideLockServo.setPosition(0);
+                    }
                     moveTurretAction.setTargetAngle(Angle.degrees(scoutTarget.turretAngle.degrees() + turretOffset));
                     Angle error = Angle.degrees(Math.abs(moveTurretAction.getTargetPos() - getTurretEncoderPos()) / MoveTurretAction.TURRET_CONSTANT);
                     //RobotLog.ii("Error", error.degrees()+" | " + moveTurretAction.getTargetPos() + " | " + getTurretEncoderPos());
@@ -223,6 +228,8 @@ public class ScoutSystem implements HardwareSystem {
                         }else{
                             if(!auto) {
                                 slideLockServo.setPosition(0.6);
+                            }else{
+                                slideLockServo.setPosition(0);
                             }
                         }
                     }

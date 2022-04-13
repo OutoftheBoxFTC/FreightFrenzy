@@ -10,18 +10,18 @@ public class ScoutTargets {
                 case ALLIANCE_HIGH:
                     return new SCOUTTarget(Angle.degrees(-58), Angle.degrees(32), 47.5);
                 case ALLIANCE_HIGH_AUTO:
-                    return new SCOUTTarget(Angle.degrees(-58), Angle.degrees(26), 45);
+                    return new SCOUTTarget(Angle.degrees(-56), Angle.degrees(26), 45);
                 case ALLIANCE_MID:
-                    return new SCOUTTarget(Angle.degrees(-57), Angle.degrees(17), 38);
+                    return new SCOUTTarget(Angle.degrees(-54), Angle.degrees(17), 42);
                 case ALLIANCE_LOW:
-                    return new SCOUTTarget(Angle.degrees(-58), Angle.degrees(6), 38);
+                    return new SCOUTTarget(Angle.degrees(-54), Angle.degrees(5), 42);
                 case SHARED:
                     return new SCOUTTarget(Angle.degrees(85), Angle.degrees(10), 14);
             }
         }else{
             switch (target){
                 case ALLIANCE_HIGH:
-                    return new SCOUTTarget(Angle.degrees(68), Angle.degrees(30), 42.5);
+                    return new SCOUTTarget(Angle.degrees(68), Angle.degrees(30), 43.5);
                 case ALLIANCE_HIGH_AUTO:
                     return new SCOUTTarget(Angle.degrees(68), Angle.degrees(25.5), 42.5);
                 case ALLIANCE_MID:

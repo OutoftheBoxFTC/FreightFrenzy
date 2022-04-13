@@ -141,7 +141,9 @@ public class IntakeSystem implements HardwareSystem {
             case DUCK:
                 intakeMotor.setPower(duckPower);
                 break;
-
+            case AUTO_INIT:
+                transferFlipIn();
+                break;
         }
     }
 
@@ -304,11 +306,24 @@ public class IntakeSystem implements HardwareSystem {
         setDuckPower(0.5);
     }
 
+    public void setTransferAuto(){
+        currentState = INTAKE_STATE.AUTO_INIT;
+    }
+
+    public void disableAuto(){
+        currentState = INTAKE_STATE.IDLE;
+    }
+
+    public SmartServo getTransferServo() {
+        return intakeTransfer;
+    }
+
     public enum INTAKE_STATE{
         IDLE,
         TRANSFER_READY,
         TRANSFER_UP,
         TRANSFERRING,
-        DUCK
+        DUCK,
+        AUTO_INIT
     }
 }

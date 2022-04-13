@@ -24,7 +24,7 @@ import State.Action.StandardActions.DelayAction;
 import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
 
-@Autonomous
+//@Autonomous
 @Config
 public class RedAuto extends BasicOpmode {
     private double startPos = 0;
