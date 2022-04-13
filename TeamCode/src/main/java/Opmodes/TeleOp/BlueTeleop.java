@@ -22,6 +22,15 @@ public class BlueTeleop extends DumbTeleOp {
                 }else{
                    // hardware.getIntakeSystem().idleIntake();
                 }
+                if(gamepad1Ex.x.toggled()){
+                    if(hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.SHARED){
+                        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.RED);
+                    }else{
+                        hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
+                    }
+                }else{
+                    hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
+                }
             }
         });
     }

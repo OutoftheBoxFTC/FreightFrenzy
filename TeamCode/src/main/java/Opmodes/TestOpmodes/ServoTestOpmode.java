@@ -17,6 +17,7 @@ import Hardware.SmartDevices.SmartServo.SmartServo;
 public class ServoTestOpmode extends LinearOpMode {
     public static int PORT_SERVO = 0;
     public static double POSITION = 0;
+    public static double MIN_PWM = 600, MAX_PWM = 2400;
     public static boolean CHUB = false, REVERSE = false;
     private SmartLynxModule smartChub;
     private SmartLynxModule smartEhub;
@@ -32,12 +33,14 @@ public class ServoTestOpmode extends LinearOpMode {
                 smartEhub = new SmartLynxModule(lynx, hardwareMap);
             }
         }
-        SmartServo motor = (CHUB ? smartChub.getServo(PORT_SERVO) : smartEhub.getServo(PORT_SERVO));
+        SmartServo servo = (CHUB ? smartChub.getServo(PORT_SERVO) : smartEhub.getServo(PORT_SERVO));
         if(REVERSE){
-            motor.getServo().setDirection(Servo.Direction.REVERSE);
+            servo.getServo().setDirection(Servo.Direction.REVERSE);
         }
         waitForStart();
-        while(opModeIsActive())
-            motor.setPosition(POSITION);
+        while(opModeIsActive()) {
+            servo.setPosition(POSITION);
+            servo.setPmwRange(MIN_PWM, MAX_PWM);
+        }
     }
 }

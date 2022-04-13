@@ -19,6 +19,7 @@ public class FullReadout extends BasicOpmode {
             public void update() {
                 Telemetry telemetry = FtcDashboard.getInstance().getTelemetry();
                 telemetry.addData("Turret", hardware.getTurretSystem().getTurretPotAngle().degrees());
+                telemetry.addData("Fake Turret", hardware.getTurretSystem().getTurretPosition().degrees());
                 telemetry.addData("Pitch", hardware.getTurretSystem().getPitchPot().getAngle().degrees());
                 telemetry.addData("Extension", hardware.getTurretSystem().getExtensionPosition());
                 telemetry.addData("odo", hardware.getDrivetrainSystem().getOdometryPosition());

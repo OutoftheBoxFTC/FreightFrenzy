@@ -45,15 +45,13 @@ public abstract class DumbTeleOp extends BasicOpmode {
 
         hardware.getTurretSystem().setScoutFieldTarget(target);
 
+        hardware.getIntakeSystem().getCapServo().setPosition(0.72);
+
         OpmodeStatus.bindOnStart(() -> {
             if(hardware.getIntakeSystem().itemInTransfer()){
                 gamepad1.rumble(Gamepad.RUMBLE_DURATION_CONTINUOUS);
             }else{
                 gamepad1.stopRumble();
-            }
-
-            if(gamepad1Ex.right_trigger.pressed()){
-                hardware.getIntakeSystem().startTransfer();
             }
         });
 
@@ -113,7 +111,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
             if(gamepad1.a){
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.TRANSFER);
             }
-            if(gamepad1.x){
+            if(gamepad1.right_trigger > 0.1){
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
             }
             if(gamepad1.y){
@@ -128,7 +126,7 @@ public abstract class DumbTeleOp extends BasicOpmode {
         });
 
         OpmodeStatus.bindOnStart(() -> {
-            FtcDashboard.getInstance().getTelemetry().addData("Current", hardware.getTurretSystem().getExtensionMotor().getCurrent(CurrentUnit.AMPS));
+            FtcDashboard.getInstance().getTelemetry().addData("Current", hardware.getTurretSystem().getTurretMotor().getMotor().getCurrent(CurrentUnit.AMPS));
             FtcDashboard.getInstance().getTelemetry().addData("Bl", hardware.getDrivetrainSystem().getBl().getMotor().getCurrent(CurrentUnit.AMPS));
             FtcDashboard.getInstance().getTelemetry().addData("Br", hardware.getDrivetrainSystem().getBr().getMotor().getCurrent(CurrentUnit.AMPS));
             FtcDashboard.getInstance().getTelemetry().addData("Tl", hardware.getDrivetrainSystem().getTl().getMotor().getCurrent(CurrentUnit.AMPS));
@@ -158,33 +156,25 @@ public abstract class DumbTeleOp extends BasicOpmode {
             @Override
             public void update() {
                 double pos = 0.72;
-                if(gamepad2Ex.dpad_right.toggled()){
-                    gamepad2Ex.dpad_down.overrideToggle(false);
-                    gamepad2Ex.dpad_up.overrideToggle(false);
-                    down = false;
-                    up = false;
-                    hardware.getIntakeSystem().getCapServo().setPosition(0.72);
-                }
+
                 if(gamepad2Ex.dpad_down.toggled()){
                     pos = 0.28;
-                    down = true;
-                    up = false;
-                    gamepad2Ex.dpad_up.overrideToggle(false);
-                    if(gamepad2Ex.dpad_right.toggled())
-                        gamepad2Ex.dpad_right.overrideToggle(false);
-                }else if(down){
+                }
+                if(gamepad2Ex.dpad_right.toggled()){
                     pos = 0.23;
                 }
-
                 if(gamepad2Ex.dpad_up.toggled()){
                     pos = 0.52;
-                    up = true;
-                    down = false;
-                    gamepad2Ex.dpad_down.overrideToggle(false);
-                    if(gamepad2Ex.dpad_right.toggled())
-                        gamepad2Ex.dpad_right.overrideToggle(false);
-                }else if(up){
+                }
+                if(gamepad2Ex.dpad_left.toggled()){
                     pos = 0.44;
+                }
+
+                if(gamepad2Ex.a.pressed()){
+                    gamepad2Ex.dpad_right.overrideToggle(false);
+                    gamepad2Ex.dpad_left.overrideToggle(false);
+                    gamepad2Ex.dpad_up.overrideToggle(false);
+                    gamepad2Ex.dpad_down.overrideToggle(false);
                 }
 
                 FtcDashboard.getInstance().getTelemetry().addData("Pos", pos);
@@ -218,26 +208,13 @@ public abstract class DumbTeleOp extends BasicOpmode {
             hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.PASSTHROUGH);
             hardware.getTurretSystem().setExtensionPreload(20);
         });
-        gamepad2Ex.right_bumper.bindOnPress(() -> {
-            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.CAP_GRAB);
-            hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
-            hardware.getTurretSystem().setExtensionPreload(6);
-            hardware.getTurretSystem().setExtensionScoreOffset(0);
-        });
-        gamepad2Ex.left_bumper.bindOnPress(() -> {
-            hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.PASSTHROUGH);
-            hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
-            hardware.getTurretSystem().setExtensionPreload(6);
-            hardware.getTurretSystem().setExtensionScoreOffset(0);
-        });
 
         OpmodeStatus.bindOnStart(new Action() {
             @Override
             public void update() {
-                if(hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.CAP_GRAB ||
-                    hardware.getTurretSystem().getFieldTarget() == ScoutSystem.SCOUT_TARGET.CAP_PLACE){
-                    double pitch = -gamepad2.left_stick_y;
-                    hardware.getTurretSystem().setPitchMotorPower(pitch);
+                double extension = -gamepad2Ex.right_joystick.getY();
+                if(hardware.getTurretSystem().getCurrentState() == ScoutSystem.SCOUT_STATE.SCORE){
+                    hardware.getTurretSystem().moveExtensionScoreOffset(extension * 10 * ProgramClock.getFrameTimeSeconds());
                 }
             }
         });

@@ -26,6 +26,7 @@ import State.Action.StandardActions.DelayAction;
 import State.Action.StandardActions.TimedAction;
 import Utils.OpmodeStatus;
 import Utils.ProgramClock;
+import Utils.ScoutData;
 
 @Autonomous
 @Config
@@ -330,9 +331,18 @@ public class BlueDuckAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getIntakeSystem().spinDuckBlueAuto();
+                hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.PRELOAD_ANGLE);
             }
         });
-        queue.submitAction(new DelayAction(5000));
+        queue.submitAction(new TimedAction(5000) {
+            @Override
+            public void update() {
+                hardware.getTurretSystem().setAuto(true);
+                hardware.getTurretSystem().setScoutAlliance(ScoutSystem.SCOUT_ALLIANCE.BLUE);
+                hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
+                hardware.getIntakeSystem().spinDuckBlueAuto();
+            }
+        });
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
@@ -408,6 +418,10 @@ public class BlueDuckAuto extends BasicOpmode {
             @Override
             public void update() {
                 drive.setDrivePower(new Pose2d());
+                ScoutData.dataStale = false;
+                ScoutData.extensionDistance = hardware.getTurretSystem().getExtensionPosition();
+                ScoutData.turretAngle = hardware.getTurretSystem().getTurretPosition();
+                ScoutData.pitchAngle = hardware.getTurretSystem().getPitchPot().getAngle();
             }
         });
         OpmodeStatus.bindOnStart(queue);

@@ -134,7 +134,7 @@ public class IntakeSystem implements HardwareSystem {
                     //intakeMotor.setPower(0);
                     currentState = INTAKE_STATE.IDLE;
                     if(itemInIntake() && !auto && !(scoutSystem.getFieldTarget() == ScoutSystem.SCOUT_TARGET.PASSTHROUGH)) {
-                        scoutSystem.setScoutTarget(ScoutSystem.SCOUT_STATE.SCORE);
+                        scoutSystem.setScoutTarget(ScoutSystem.SCOUT_STATE.TRANSFER);
                     }
                 }
                 break;
@@ -190,7 +190,7 @@ public class IntakeSystem implements HardwareSystem {
     }
 
     public void transferMid(){
-        intakeTransfer.setPosition(0.25);
+        intakeTransfer.setPosition(0.35);
     }
 
     public SmartServo getCameraServo() {
