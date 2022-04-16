@@ -79,6 +79,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getTurretSystem().setAuto(true);
+                hardware.getIntakeSystem().setTransferAuto();
             }
 
             @Override
@@ -230,6 +231,7 @@ public class BlueWarehouseAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
+                hardware.getIntakeSystem().disableAuto();
                 hardware.getIntakeSystem().transferFlipOut();
                 hardware.getIntakeSystem().disableAuto();
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);

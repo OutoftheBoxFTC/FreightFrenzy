@@ -75,6 +75,7 @@ public class BlueDuckAuto extends BasicOpmode {
             @Override
             public void update() {
                 hardware.getTurretSystem().setAuto(true);
+                hardware.getIntakeSystem().setTransferAuto();
             }
 
             @Override
@@ -227,6 +228,7 @@ public class BlueDuckAuto extends BasicOpmode {
         queue.submitAction(new InstantAction() {
             @Override
             public void update() {
+                hardware.getIntakeSystem().disableAuto();
                 hardware.getIntakeSystem().transferFlipOut();
                 hardware.getTurretSystem().setScoutTarget(ScoutSystem.SCOUT_STATE.HOME_IN_INTAKE);
                 hardware.getTurretSystem().setScoutFieldTarget(ScoutSystem.SCOUT_TARGET.ALLIANCE_HIGH);
